@@ -1,0 +1,779 @@
+[
+  {
+    "snapshot": "sources/vanilla/appearances/0009/character/appearance/2_mon/cd_m0001_00_twofeet/cd_m0001_00_phw_north/cd_m0001_00_phw_north_44001.app_xml",
+    "sha256": "c58721fe73fdfb77aedd96370a1368db7beeddcd2f37a38afbde3fd2f67dcc3c",
+    "bytes": 720,
+    "group": "0009",
+    "virtual_path": "character/appearance/2_mon/cd_m0001_00_twofeet/cd_m0001_00_phw_north/cd_m0001_00_phw_north_44001.app_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/appearances/0009/character/appearance/3_npc/cd_npc_north/cd_nhw_north/cd_nhw_north_20026.app_xml",
+    "sha256": "017f9d5d2311c57e1adc9f1a7d4b0117aaa197f39bfa13a7cc7b58cb12bfd316",
+    "bytes": 671,
+    "group": "0009",
+    "virtual_path": "character/appearance/3_npc/cd_npc_north/cd_nhw_north/cd_nhw_north_20026.app_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/appearances/0009/character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20165.app_xml",
+    "sha256": "777164a1c3064ead2a58ecb803c8ec157a89e80b980f35586a35f8d48289ea7a",
+    "bytes": 662,
+    "group": "0009",
+    "virtual_path": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20165.app_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/appearances/0009/character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20166.app_xml",
+    "sha256": "3ac2fa9c2a32eeb12452bec69fe468bac7166c719d3d2c2b5c96ecd50e6c645d",
+    "bytes": 679,
+    "group": "0009",
+    "virtual_path": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20166.app_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/appearances/0009/character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20167.app_xml",
+    "sha256": "5f807f6536df080784a349a28b42bc596f19ebc1efb9ca326bec9014502f4106",
+    "bytes": 659,
+    "group": "0009",
+    "virtual_path": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20167.app_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/appearances/0009/character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20168.app_xml",
+    "sha256": "2b58c4a456d41db45a7ce46b33763c4c6ade8e8ae725941bec01e846c7d61900",
+    "bytes": 659,
+    "group": "0009",
+    "virtual_path": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20168.app_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/appearances/0009/character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20169.app_xml",
+    "sha256": "0eb7ca1b5e7696d2c00b8c73f98a77d0331484d74df07e3a890616c884188895",
+    "bytes": 710,
+    "group": "0009",
+    "virtual_path": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20169.app_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/originals/0009/character/bin__/prefab/1_pc/02_phw/nude/phw_00_nude_00_0001_damian.prefab",
+    "sha256": "2b9af872019b0fdb9387961297d2103548d0729f9499272bbc2bc3985863fb59",
+    "bytes": 2104,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/nude/phw_00_nude_00_0001_damian.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/originals/0009/character/model/1_pc/2_phw/nude/phw_00_nude_00_0001.pac",
+    "sha256": "d51fb429448e147d0eabd512f092a8e7b99524ba24ad183ed231fee1e14da7bb",
+    "bytes": 895279,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/nude/phw_00_nude_00_0001.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/originals/0009/character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac",
+    "sha256": "bad6e5d6b9f5b35efb35ad70e647a738fc4fde80f5993fe2802282a9ca909f75",
+    "bytes": 893188,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0038.prefab",
+    "sha256": "f306299cc663e8b66c8778b666a63744a84a094a66382d0b01ac8deccd51937c",
+    "bytes": 1906,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0038.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0092.prefab",
+    "sha256": "94cf27b979b4ad7e0aa200c5d4c3e3995faa68561d50b0af8b134fec2be7f3b6",
+    "bytes": 1901,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0092.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0160.prefab",
+    "sha256": "f526b38fbbf266c73d49b74d97c7c7c4b29d69fbaea18f6aba9464233bc6bf1b",
+    "bytes": 1921,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0160.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0161_index01.prefab",
+    "sha256": "cbde8119c96f28b884f46f221987e8965d4f20bfa4cf8edc284e9ee4c4d1b0a4",
+    "bytes": 1922,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0161_index01.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0163.prefab",
+    "sha256": "788962412ca39322150f06e1bd7aed01dabd36a1de10ab16988202cf0b2fd263",
+    "bytes": 1921,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0163.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0185.prefab",
+    "sha256": "dfc019d813e913fbc4845070343ffbf09114a86e63da0cf6e51bb45eeefc8243",
+    "bytes": 1904,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0185.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0137_01_index01.prefab",
+    "sha256": "3d2dc9454e46cc8c53afa2224e2c34632251ca3d8ccf3b0c5581df8d0c648ba7",
+    "bytes": 1905,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0137_01_index01.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0164.prefab",
+    "sha256": "6fabe544f88188ff42bcb09f9003e2d6c6767b99d790796fbe1c2dbd97370e37",
+    "bytes": 2176,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0164.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0186.prefab",
+    "sha256": "9f24026e3765a8460b5f845075fa618c15d35fe6c99f08d9220b77a6787af288",
+    "bytes": 2176,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0186.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0187.prefab",
+    "sha256": "3c820ed5baeedf6c2c59a7b86bdcacc4629e2e2e933686af8b3ba357f8e68387",
+    "bytes": 1997,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0187.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0206_dd.prefab",
+    "sha256": "5e6e23747f1be442c2dc6aed78584843daea8ceb9eccda7f03bef1e28f2f5b3f",
+    "bytes": 1997,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0206_dd.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_0177.prefab",
+    "sha256": "f6fe2c6a47737758bc0dd84a8ed952af81512083ce1b93f3c8d0b4ec0b038757",
+    "bytes": 2176,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_0177.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_0185.prefab",
+    "sha256": "633090a31246d3d425739b61465f0491874e12c4840036aac3f80b3c60095a23",
+    "bytes": 1997,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_0185.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/9_upperbody/cd_phw_00_ub_00_0157.prefab",
+    "sha256": "c3419f9fab292de467a2c1efa3886be8be9c7c210525265cb5d70abeadaca14a",
+    "bytes": 2220,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/9_upperbody/cd_phw_00_ub_00_0157.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/1_pc/02_phw/armor/9_upperbody/cd_phw_00_ub_00_0164.prefab",
+    "sha256": "beee61a43e64eb9d599ed099c707c04fc27c750c06456c94238ad9a6b3face50",
+    "bytes": 2483,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/1_pc/02_phw/armor/9_upperbody/cd_phw_00_ub_00_0164.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/3_npc/02_nhw/south_armor/19_cloak/cd_nhw_so_cloak_20169_s.prefab",
+    "sha256": "fa70ffbaa795639f17726c3ed86a8722cc2dd174929b527c2eb0110995118213",
+    "bytes": 1916,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/19_cloak/cd_nhw_so_cloak_20169_s.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20165.prefab",
+    "sha256": "9697cbb8d9ae03d50f0533b26229f0c3c57065a33c7cf333003833c327f02d2e",
+    "bytes": 2422,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20165.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20166.prefab",
+    "sha256": "0da2b000a7760f647ebe9b19438015f7553d513ec11f8bd0ad7d2f0f88489ccb",
+    "bytes": 2283,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20166.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20167.prefab",
+    "sha256": "35f0a31f47b4d033a7b5661213e26f98371d65531ab83d35caf2050034628281",
+    "bytes": 2495,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20167.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20168.prefab",
+    "sha256": "58337d73abd22458ebe5a5beb5e40fc27c43b66f6da0a35e924d57a04cbf607b",
+    "bytes": 2501,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20168.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20169_u.prefab",
+    "sha256": "bfb4d4c4c31c899c4a6b034d0c50df200b6113590b5e7e133b2c734dac808bc4",
+    "bytes": 2330,
+    "group": "0009",
+    "virtual_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20169_u.prefab"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0164.pac",
+    "sha256": "50086f6e95c258b19777e88f85dc4f658cf947de7150fc58364aabcdcf887fdd",
+    "bytes": 78975,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0164.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0185.pac",
+    "sha256": "3d9204dce6868100ea180d2026ea68cc42ee9285488b4322f026b9d972046dcb",
+    "bytes": 73743,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0185.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0187.pac",
+    "sha256": "9ebc624b2daf6b90bce8b40a35dd902d30bad0a899fa141fa0ed483278663132",
+    "bytes": 32390,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0187.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0038.pac",
+    "sha256": "47d5aa378cf8361051120ab21bc9e5a92ff380d0f8a39a6163766fd4811ded91",
+    "bytes": 210516,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0038.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0092.pac",
+    "sha256": "b9531676c4b122fef460cc76367d4b200d23a3b6f754d527e97b9b3de8fa87a2",
+    "bytes": 176694,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0092.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0160.pac",
+    "sha256": "e1e12a3bcdc17b853b9f9847583fa4156f9679a9c105c40a968b3eaed9aa7d1e",
+    "bytes": 130317,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0160.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0161.pac",
+    "sha256": "e59d707a1aac0191dd8ec90bb15f0ace084e4d38edb6e61afad2990d2bfd8353",
+    "bytes": 269394,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0161.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0163.pac",
+    "sha256": "45d84554c48d12a23591dea09d361c3c70dd5c34e05bb92d07981d326400f958",
+    "bytes": 250255,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0163.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0185.pac",
+    "sha256": "81805d77ed87a6a7bdc7f68791020fb79870e3cade92245a65d0078fc7148fae",
+    "bytes": 209049,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0185.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0137_01.pac",
+    "sha256": "a91bad11e523f4cb92b012f3dadaff838eb7dfa18ab5fa62f407c62bc5d793e3",
+    "bytes": 184258,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0137_01.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164.pac",
+    "sha256": "8c576a914e0cb66b61038d5f7c53cd28e57b75c1227ffefa12cdbaca43ff5fd2",
+    "bytes": 246294,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164_sub01.pac",
+    "sha256": "b7d8b4ff906808a93da63afbfcad6651160a5affc2ed5365dea4409f9323ed07",
+    "bytes": 63371,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164_sub01.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177.pac",
+    "sha256": "655a75992de96a7f08077314da4d6e6e5d3d9b8163a555ea012150fed88a3968",
+    "bytes": 78508,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177_sub01.pac",
+    "sha256": "561f766f6150e58eb7837e47257ec196e0ef3e6f7539d69fb38e148197ac386b",
+    "bytes": 42797,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177_sub01.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0185.pac",
+    "sha256": "dd3efe2a32e0c7b7405037fc4a1188ead6e0d5f9a773eb855dadc5c38adc9118",
+    "bytes": 125691,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0185.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186.pac",
+    "sha256": "30e4ee49824a39693a7b99625251ae4316bb6b0cb001b0aeb86c83605a9e6119",
+    "bytes": 117029,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186_sub01.pac",
+    "sha256": "8c0d324ac5fbbd764f0c783d64346dd3680cdb249e191b0f1fd88ccca397135f",
+    "bytes": 18707,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186_sub01.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0187.pac",
+    "sha256": "d653b2fcbdfac3936451241818bfcb1aaabec7f7ce7c38ad47289287e5b84202",
+    "bytes": 111287,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0187.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0206.pac",
+    "sha256": "f8c7b434c27c166c46cf87e530b3b35a318ebbce720096296c9227bf9c25d7a8",
+    "bytes": 79624,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0206.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0157.pac",
+    "sha256": "e5a0e50578a17fdfb89b58212504a5f408def59942b7f1d8ed26d0a73112ec62",
+    "bytes": 5103783,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0157.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0164.pac",
+    "sha256": "ce568cbc796833a79c2afeef49fe351a651cddf0e3e952c8f167cf5e2d3fe9f4",
+    "bytes": 362466,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0164.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0177.pac",
+    "sha256": "a51cc3fc4a358cb020a739fd45139e99684af1a6ff7428c26e0e3db20f378e6f",
+    "bytes": 152028,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0177.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0185.pac",
+    "sha256": "25a90444cf94aa6afe9fea9324ba79c7fa895ff18364abb48bcca107b6ee8405",
+    "bytes": 386758,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0185.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0186.pac",
+    "sha256": "4e2cfdca4ad885eef6c935a0aae03a5e24ebbde7a5d1bef6bacb32792d552146",
+    "bytes": 487692,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0186.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0187.pac",
+    "sha256": "dba589c83b440864103c34da5a15d86a92f078b0cedef5a51631bc1dd7d8f589",
+    "bytes": 452919,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0187.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0157.pac",
+    "sha256": "a88fdc2f3f06fe3015f32313207ead6de3364f01691fb4a68bf33a1cf5a286bf",
+    "bytes": 941439,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0157.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164.pac",
+    "sha256": "4f298b2dec4f0cf0e0fb6728f4af7b10bfe429fd98d1675278e007d1ec6b2121",
+    "bytes": 691397,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164_sub02.pac",
+    "sha256": "dc6a07d505846ec74680919406adddec3a7dcdfcf4e631912aa8b4fb7aa1be8c",
+    "bytes": 727416,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164_sub02.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0177.pac",
+    "sha256": "4050a245998f89d56ca9557616b08f4a03a9f3d8fa3f3ef87fd781b09294576b",
+    "bytes": 599932,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0177.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0185.pac",
+    "sha256": "9785f376184a3c6fcaff460a351f9a6c8a0b78793f0b5a89e98b4cdf8c66d73a",
+    "bytes": 557588,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0185.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0186.pac",
+    "sha256": "f03b9280419fb2039b956c1522b8e1c0d35e569d17b600d79efc4cfe6e40c6ee",
+    "bytes": 794427,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0186.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0187.pac",
+    "sha256": "685841585103994c3426c85b26d635d52f5515cccf2eb50f0abdcda55a222968",
+    "bytes": 686489,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0187.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0177.pac",
+    "sha256": "a2279cff75081a01d1ea6733cfaa3cd536b7fea7620a38afd6482c6ae9f60ce9",
+    "bytes": 133587,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0177.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0186.pac",
+    "sha256": "07513d22baabc39118556729574dd220bc47ee33987f8024326e5d6f95abe622",
+    "bytes": 263492,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0186.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0187.pac",
+    "sha256": "cf342a2e4ab755f1967bf82c9fb6ff6f0ba184bc0d2b4657406b6716b43057bf",
+    "bytes": 134401,
+    "group": "0009",
+    "virtual_path": "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0187.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_10001.pac",
+    "sha256": "3819b3de2a8ce5dfe7e25d169c3fc21c9f9175c481b46f4270f1ba1f682d435f",
+    "bytes": 73211,
+    "group": "0009",
+    "virtual_path": "character/model/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_10001.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_20169.pac",
+    "sha256": "2ef06c93bef847224b2f4ede0648f1b371463bc11e874b33ed5d55cc13096ce1",
+    "bytes": 39056,
+    "group": "0009",
+    "virtual_path": "character/model/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_20169.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/3_npc/2_nhw/armor_south/19_cloak/cd_nhw_00_so_cloak_20169.pac",
+    "sha256": "d90397a7ef0088cd1daf69182aeb21438fa78c770f9dda9b3f5fb086ec9e8f34",
+    "bytes": 147307,
+    "group": "0009",
+    "virtual_path": "character/model/3_npc/2_nhw/armor_south/19_cloak/cd_nhw_00_so_cloak_20169.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_20169.pac",
+    "sha256": "7bc17d009d5d06aa11d81c55b0550f968308c19f2e2243d1cfe5e2f889fb381a",
+    "bytes": 913138,
+    "group": "0009",
+    "virtual_path": "character/model/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_20169.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/model/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_belt_20169.pac",
+    "sha256": "01c7de6db383d0e661e9bc042feff7341bd9526bd1eef3b40d1ffe039d41c47c",
+    "bytes": 64906,
+    "group": "0009",
+    "virtual_path": "character/model/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_belt_20169.pac"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0164.pac_xml",
+    "sha256": "6a9b1c7cef1da4948bd67325a0961f662ef2e4760d07e81359f03ee146a70232",
+    "bytes": 11326,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0164.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0185.pac_xml",
+    "sha256": "679b1b6e0981a025cfd60d9de68e9d812788ec832398f4bb051523231b22dd4e",
+    "bytes": 11646,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0185.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0187.pac_xml",
+    "sha256": "679b1b6e0981a025cfd60d9de68e9d812788ec832398f4bb051523231b22dd4e",
+    "bytes": 11646,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0187.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0038.pac_xml",
+    "sha256": "45b324b95bc24b3e746ae79ed795b2a48acc1d69804811ecb8ee0ebf5f808b48",
+    "bytes": 64682,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0038.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0092.pac_xml",
+    "sha256": "7c0feee79ee635502b324a36708bd72cfbe665639442a64205a63172695554cc",
+    "bytes": 93785,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0092.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0160.pac_xml",
+    "sha256": "649ba9f7a5d9a93f2f223f0be6e94b1c0b469374b374a2e295c5801bd949e4be",
+    "bytes": 21260,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0160.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0161.pac_xml",
+    "sha256": "638b82fb998787a1890ee4dac4457e7a8a21d13611a66712a74cfe8fd80f3465",
+    "bytes": 22939,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0161.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0163.pac_xml",
+    "sha256": "8c643e0f892a0a16f07c97c0c8704c686f9315dc17fd1668bbd4953482857fd8",
+    "bytes": 197126,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0163.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0185.pac_xml",
+    "sha256": "952e97747299621211990cecb9f4a3633bac8fe46c205d8b91a042a8d573395d",
+    "bytes": 31206,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0185.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0137_01.pac_xml",
+    "sha256": "13fc5cf3a4e1d92368f301b126a7fe3cf886cd4bdaa95d1760f41062809f2242",
+    "bytes": 22232,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0137_01.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164.pac_xml",
+    "sha256": "3c3460f906533a7a122ea327666e9ba64ccf5cb657cbbd2b412d0a336c45a2bd",
+    "bytes": 18273,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164_sub01.pac_xml",
+    "sha256": "9c300dbd95db1c1834ff89e0b76050ea479f5be843ec789da591e6e551cf46d2",
+    "bytes": 15450,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164_sub01.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177.pac_xml",
+    "sha256": "3cd2000f3ba10dcc0dea023044ddb872bf26d2adf7b553cfff31df2c367d2629",
+    "bytes": 21071,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177_sub01.pac_xml",
+    "sha256": "817d286dec4c7d46777350c72fcc68c8b2d746828c2665d6e7e686557e067c8b",
+    "bytes": 31269,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177_sub01.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0185.pac_xml",
+    "sha256": "34f30dc3156f86c359188cbf6c053e868e8f9b1dbab178c67774ed093ca4b893",
+    "bytes": 71943,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0185.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186.pac_xml",
+    "sha256": "387f6588e1583259ad7ea16172db2cea09b26c36863a43e6fa554751c4fe9926",
+    "bytes": 26317,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186_sub01.pac_xml",
+    "sha256": "699c72a3ada5247775a586ca0a8fd9838e1f6e88cf0e25c3db086ff8a4ba9041",
+    "bytes": 20858,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186_sub01.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0187.pac_xml",
+    "sha256": "1480c2322012d53bc93000007bfab5870fd9aacf74e4b7716aee6d387881a867",
+    "bytes": 19926,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0187.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0206.pac_xml",
+    "sha256": "384fb4a26ba53411f2c0c043e91cee115796b9122cf4482149bd71b4eb5ee70b",
+    "bytes": 22011,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0206.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0157.pac_xml",
+    "sha256": "44faa5649aad3faec396c6fe5ded9d10a470ade2190d136b6a150ffbb65f8502",
+    "bytes": 7955,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0157.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0164.pac_xml",
+    "sha256": "ea2774e064123cff4510608f245c0fa32682e70f88b8c834bd1a6b22e12cb66d",
+    "bytes": 26675,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0164.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0177.pac_xml",
+    "sha256": "1ae373fa4b61e21d914a1dd938ec32465dff854e6b0864a3e6cc4277ceba40f8",
+    "bytes": 20067,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0177.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0185.pac_xml",
+    "sha256": "d25b4309308c9f9ea6e5ae96daac7b7ff89de7201142f8e80068fcc314d992c4",
+    "bytes": 21873,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0185.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0186.pac_xml",
+    "sha256": "56ddf42e3e7a7681079bece4ac4f33c2bfdaad43e259c2f4e696d77f05e86e40",
+    "bytes": 85896,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0186.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0187.pac_xml",
+    "sha256": "f87f4ff781f86dd1c9bc45bebd2163474eb5232e472803d647079474961b7104",
+    "bytes": 40772,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0187.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0157.pac_xml",
+    "sha256": "63c4bc010edcabaf2ac83a4e365ffbfc220d0b30694d5a6198eb19cf00dcddd9",
+    "bytes": 62206,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0157.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164.pac_xml",
+    "sha256": "a56017e75155d9cd73b4c7b486ebcbb569ba134ae9aa7e037ae906b225cee708",
+    "bytes": 134895,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164_sub02.pac_xml",
+    "sha256": "d5207b978632fe2d40d29d350cd4ca09faf9a79abc6562a1bf68dc1890f7edd3",
+    "bytes": 1327,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164_sub02.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0177.pac_xml",
+    "sha256": "0169a7b84ff17431c2e556c4f333737d38af65bf63ef98bf62b01e31c2c3789e",
+    "bytes": 89464,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0177.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0185.pac_xml",
+    "sha256": "c4a57b1f2a47b8110e581f283756a749154c71f6bbd72b71f2878e27cbcf3cfc",
+    "bytes": 90962,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0185.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0186.pac_xml",
+    "sha256": "3828d1dc5436df9a3b84910c7cd4f23d614f76b8928556af037fd8ce74aeae5d",
+    "bytes": 181215,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0186.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0187.pac_xml",
+    "sha256": "3720e25c75ecc51c0f7c12c96887868558dbf2e22661b9115df6b586a35a2a5c",
+    "bytes": 195190,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0187.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0177.pac_xml",
+    "sha256": "84b283e30dcf0b293ab030412ccbedfcfa70b9c62c2fc4ec9e1bba8283e2b810",
+    "bytes": 5949,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0177.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0186.pac_xml",
+    "sha256": "95485dc8519102782650b772cfccf2e4d14a60636813779e76e1a204a6f4e905",
+    "bytes": 47392,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0186.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0187.pac_xml",
+    "sha256": "78c34abb75609c0831fb4415095788a3ae60cc396f81b6e7c2bb14d2fc83d6ee",
+    "bytes": 23278,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0187.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_10001.pac_xml",
+    "sha256": "e25d5a5cfa75f7844bf9e337881e0953d1acf92b8b87e6350758c6d209edcce0",
+    "bytes": 38789,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_10001.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_20169.pac_xml",
+    "sha256": "523d335a364ddd27809e5d8b416be4238d5843381dc40b543196f82e6c151939",
+    "bytes": 11185,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_20169.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/3_npc/2_nhw/armor_south/19_cloak/cd_nhw_00_so_cloak_20169.pac_xml",
+    "sha256": "4e610d68692e5a850a03307cda5124d2de529a0fbd549a0e456d7b3fd048e0cf",
+    "bytes": 21097,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/3_npc/2_nhw/armor_south/19_cloak/cd_nhw_00_so_cloak_20169.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_20169.pac_xml",
+    "sha256": "883b46a28b5e43205cf1a3f516a22bfa68ad15dcbd03eb8dc722b2306f72ec04",
+    "bytes": 68001,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_20169.pac_xml"
+  },
+  {
+    "snapshot": "sources/vanilla/witch-sources/0009/character/modelproperty/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_belt_20169.pac_xml",
+    "sha256": "1375bcb0e596d883e58ec786ec5c9c932730cb7f3ec13495f24de8a8782a3226",
+    "bytes": 23307,
+    "group": "0009",
+    "virtual_path": "character/modelproperty/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_belt_20169.pac_xml"
+  }
+]

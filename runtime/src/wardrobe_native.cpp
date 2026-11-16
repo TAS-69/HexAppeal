@@ -1,0 +1,248 @@
+#include "wardrobe_native.h"
+#include "wardrobe_snapshot.h"
+#include "wardrobe_transport.h"
+#include "wardrobe_resources.h"
+#include "dancer_palette.h"
+#include "wardrobe_api.h"
+#include "wardrobe_refresh.h"
+#include "runtime.h"
+#include "underwear.h"
+#include "core/log.h"
+#include <Windows.h>
+#include <algorithm>
+#include <cstring>
+#include <cctype>
+#include <fstream>
+#include <map>
+
+namespace hex {
+namespace {
+WardrobeSelection selections;
+std::mutex mutex;
+bool engineReady=false,writesAllowed=false,resourcesReady=false,faulted=false;
+std::array<uint64_t,6> armed{};
+std::array<uint64_t,6> appliedGeneration{};
+std::array<std::string,6> witchDetail{};
+std::array<std::string,6> choiceErrors{};
+std::string resourceDetail="Dancer dependencies have not been checked.";
+std::string detail="Wardrobe integration is not ready.";
+DancerResourceStatus dancerResources;
+int startupColour=-1;
+std::string paletteError;
+uintptr_t base=0;
+struct Owned {int witch=-1;uintptr_t node=0;uint64_t attempted=0,observedAt=0;bool installed=false,pending=false;DWORD deadline=0;std::string original,current,requested,removed,refreshOutfit,desired;WardrobeRefreshCycle refresh;};
+std::map<uintptr_t,Owned> owned;
+uintptr_t ptr(uintptr_t at){__try{return at?*reinterpret_cast<const uintptr_t*>(at):0;}__except(EXCEPTION_EXECUTE_HANDLER){return 0;}}
+uint32_t num(uintptr_t at){__try{return at?*reinterpret_cast<const uint32_t*>(at):0;}__except(EXCEPTION_EXECUTE_HANDLER){return 0;}}
+bool read(uintptr_t at,void* out,size_t size){__try{std::memcpy(out,reinterpret_cast<const void*>(at),size);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
+bool text(uintptr_t wrapper,char* out,size_t capacity){
+    const auto count=num(wrapper+8);const auto string=ptr(wrapper);if(!string||!count||count>=capacity||!read(string,out,count))return false;
+    for(uint32_t i=0;i<count;++i)if(static_cast<unsigned char>(out[i])<32||static_cast<unsigned char>(out[i])>126)return false;
+    out[count]=0;return true;
+}
+bool bytes(uintptr_t at,const unsigned char* expected,size_t count){unsigned char actual[32]{};return count<=sizeof actual&&read(at,actual,count)&&!memcmp(actual,expected,count);}
+bool retain(uintptr_t wrapper){__try{auto* refs=reinterpret_cast<volatile LONG*>(wrapper+16);const auto value=*refs;if(value<0)return true;if(value<1||value>0x1000000)return false;InterlockedIncrement(refs);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
+bool release(uintptr_t* wrapper){__try{reinterpret_cast<void(*)(uintptr_t*)>(base+0x3e6f50)(wrapper);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
+bool destroy(WardrobeRecord* record){__try{reinterpret_cast<void(*)(void*)>(base+0x536660)(record);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
+bool pipeline(uintptr_t node,WardrobeVector* removals,WardrobeVector* additions,uint8_t flag){
+    __try{reinterpret_cast<intptr_t(*)(uintptr_t,void*,void*,uint8_t)>(base+0x2f8c200)(node,removals,additions,flag);return true;}
+    __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+uintptr_t canonical(const char* name){
+    const auto loader=ptr(base+0x7160288),table=loader+0x50;const auto count=num(table+4),capacity=num(table+8);const auto entries=ptr(table+0x18);
+    if(!loader||!entries||count>capacity||count>100000)return 0;
+    for(uint32_t i=0;i<count;++i){const auto entry=ptr(entries+i*8),wrapper=ptr(entry+8);char candidate[192]{};
+        if(text(wrapper,candidate,sizeof candidate)&&!strcmp(candidate,name))return wrapper;}
+    return 0;
+}
+bool readyRecord(const WardrobeSnapshot& snapshot,const char* expected,WardrobeRecord& record){
+    const auto data=ptr(snapshot.node+0x40);const auto count=num(snapshot.node+0x48),capacity=num(snapshot.node+0x4c);
+    if(!data||count>64||count>capacity)return false;
+    for(uint32_t i=0;i<count;++i){WardrobeRecord candidate;const auto address=data+i*0x70;char name[192]{};
+        if(!read(address,&candidate,sizeof candidate))return false;
+        uintptr_t wrapper=0;memcpy(&wrapper,candidate.bytes.data(),8);
+        if(text(wrapper,name,sizeof name)&&!strcmp(name,expected)&&isSimpleWardrobeRecord(candidate,base)){
+            if(ptr(snapshot.node+0x40)!=data||num(snapshot.node+0x48)!=count)return false;
+            record=candidate;return true;}
+    }return false;
+}
+std::string defaultGarment(const WardrobeSnapshot& snapshot){for(uint32_t i=0;i<snapshot.claimCount;++i)if(snapshot.claims[i].kind==WardrobePartKind::DefaultGarment)return snapshot.claims[i].prefab;return {};}
+WardrobeCapabilities capabilities(){WardrobeCapabilities result;result.switchReady=engineReady&&writesAllowed&&!faulted;result.dancerAssets=resourcesReady&&Runtime::get().shapingAvailable;return result;}
+uint32_t refreshDelay(){const auto ini=Runtime::get().folder/L"HexAppeal.ini";return std::clamp<uint32_t>(GetPrivateProfileIntW(L"Wardrobe",L"RefreshDelayMs",1500,ini.c_str()),100,10000);}
+}
+bool initializeNativeWardrobe(std::string& error){
+    auto& runtime=Runtime::get();std::lock_guard<std::mutex> lock(mutex);
+    engineReady=false;
+    base=reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
+    if(runtime.profiles.empty()){error="Wardrobe settings folder is unavailable.";detail=error;return false;}
+    if(!selections.load(runtime.profiles.parent_path()/L"wardrobe.ini",error)){detail=error;return false;}
+    if(!initializeWardrobeAPI(runtime.profiles.parent_path()/L"wardrobe-controls.ini",error)){detail=error;return false;}
+    const auto ini=runtime.folder/L"HexAppeal.ini";
+    writesAllowed=GetPrivateProfileIntW(L"Development",L"EnableWardrobeWrites",0,ini.c_str())!=0;
+    const unsigned char pipelineBytes[]={0x48,0x89,0x5c,0x24,0x10,0x44,0x88,0x4c,0x24,0x20,0x4c,0x89,0x44,0x24,0x18};
+    const unsigned char destroyBytes[]={0x48,0x89,0x5c,0x24,0x18,0x48,0x89,0x4c,0x24,0x08,0x57,0x48,0x83,0xec,0x20};
+    const unsigned char releaseBytes[]={0x48,0x89,0x5c,0x24,0x10,0x48,0x89,0x74,0x24,0x18,0x57,0x48,0x83,0xec,0x20};
+    engineReady=bytes(base+0x2f8c200,pipelineBytes,sizeof pipelineBytes)&&bytes(base+0x536660,destroyBytes,sizeof destroyBytes)&&bytes(base+0x3e6f50,releaseBytes,sizeof releaseBytes);
+    detail=!engineReady?"The game is present, but its outfit functions could not be located by this adapter.":!writesAllowed?"Wardrobe writes are disabled in this development build.":"Waiting for the separate Dancer resource bindings.";
+    if(!engineReady){error=detail;return false;}
+    armed=selections.snapshot().generations;
+    LOG("Saved Wardrobe choices queued; application waits for live witch ownership, outfit records and dependencies.");
+    return true;
+}
+void refreshWardrobeResources(const DependencyStatus& dependencies){
+    const auto checked=inspectDancerResources(dependencies,GetModuleHandleW(L"DmmRuntime.asi")!=nullptr);
+    std::lock_guard<std::mutex> lock(mutex);
+    static std::string previous;
+    if(previous!=checked.detail){LOG("Wardrobe resources: %s",checked.detail.c_str());previous=checked.detail;}
+    resourcesReady=checked.ready;
+    dancerResources=checked;
+    if(startupColour<0&&checked.ready)startupColour=checked.colour;
+    resourceDetail=checked.detail;
+    if(engineReady&&writesAllowed&&!resourcesReady)detail=checked.detail;
+}
+void tickNativeWardrobe(uintptr_t actor,int witch){
+    if(witch<0||witch>5)return;
+    const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);
+    if(!engineReady||!writesAllowed||faulted||armed[witch]!=selected.generations[witch])return;
+    const auto choiceId=wardrobeOutfitId(selected.choices[witch]);const bool dancer=choiceId=="hexappeal/dancer";bool isDefault=choiceId=="hexappeal/default";
+    if(dancer&&(!resourcesReady||!Runtime::get().shapingAvailable))return;
+    WardrobeSnapshot snapshot;if(!captureWardrobeSnapshot(actor,witch,base,snapshot))return;
+    auto& status=witchDetail[witch];
+    std::string desired=dancer?"cd_phw_00_ub_00_0191_u":"";
+    if(!isDefault&&!dancer){WardrobeProviderOutfit provider;std::string error;if(!resolveWardrobeProvider(choiceId,witch,provider,error)){status=error;return;}desired=provider.prefab;}
+    const auto has=[&](const std::string& name){for(uint32_t i=0;i<snapshot.claimCount;++i)if(name==snapshot.claims[i].prefab)return true;return false;};
+    if(owned.find(actor)==owned.end()&&owned.size()>=64){status="Instance limit reached; reload before adding more.";return;}auto& entry=owned[actor];
+    if(entry.node!=snapshot.node||entry.witch!=witch){entry={};entry.node=snapshot.node;entry.witch=witch;entry.observedAt=GetTickCount64();appliedGeneration[witch]=0;}
+    if(GetTickCount64()-entry.observedAt<250){status="Outfit / waiting for witch";return;}
+    if(entry.refresh.pending()&&entry.refreshOutfit==choiceId)entry.refresh.generation=selected.generations[witch];else entry.refresh.sync(selected.generations[witch]);
+    if(entry.pending){
+        const bool observed=has(entry.requested)&&!has(entry.removed);
+        if(observed){entry.pending=false;entry.installed=entry.requested!=entry.original;entry.current=entry.installed?entry.requested:"";const bool transition=entry.refresh.acknowledged(entry.installed,GetTickCount64());appliedGeneration[witch]=entry.refresh.pending()?0:entry.attempted;if(transition)entry.attempted=0;status=entry.refresh.pending()?"Outfit / refreshing":"Outfit / active";if(!entry.refresh.pending()){Runtime::get().requestShapeReapply(witch);LOG("Wardrobe final assembly acknowledged; saved shape refit queued for witch=%d.",witch);}LOG("Wardrobe switch acknowledged witch=%d actor=%p node=%p prefab=%s dancer=%d.",witch,reinterpret_cast<void*>(actor),reinterpret_cast<void*>(snapshot.node),entry.requested.c_str(),entry.installed&&entry.current=="cd_phw_00_ub_00_0191_u");}
+        else if(int32_t(GetTickCount()-entry.deadline)>=0){entry.pending=false;faulted=true;std::string ignored;if(entry.refresh.phase==WardrobeRefreshCycle::Idle)selections.change(witch,WardrobeField::Outfit,0,{true,false,false,false},ignored);detail="Outfit call completed, but the expected assembly was not observed. Reload before retrying.";}
+        return;
+    }
+    bool custom=false;for(uint32_t i=0;i<snapshot.claimCount;++i){const auto& claim=snapshot.claims[i];if(std::strstr(claim.prefab,"_ub_")&&claim.kind!=WardrobePartKind::DefaultGarment&&(!entry.installed||entry.current!=claim.prefab))custom=true;}
+    if(custom){appliedGeneration[witch]=0;status="Custom outfit retained";return;}
+    if(entry.desired!=desired){entry.desired=desired;entry.attempted=0;appliedGeneration[witch]=0;}
+    if(entry.installed&&!has(entry.current)&&snapshot.defaultGarment){entry.installed=false;entry.current.clear();entry.attempted=0;appliedGeneration[witch]=0;}
+    if(!isDefault&&entry.refresh.begin(entry.installed&&entry.current==desired))entry.attempted=0;
+    if(entry.refresh.phase==WardrobeRefreshCycle::Original)isDefault=true;
+    if(!entry.refresh.readyToRestore(GetTickCount64())){status="Outfit / refreshing";return;}
+    if((!isDefault&&entry.installed&&entry.current==desired&&has(desired)&&!snapshot.defaultGarment)||(!entry.installed&&snapshot.defaultGarment&&(isDefault||has(desired)))){
+        entry.attempted=selected.generations[witch];appliedGeneration[witch]=entry.attempted;status="Outfit / active";return;
+    }
+    appliedGeneration[witch]=0;
+    if(entry.attempted==selected.generations[witch]){status="Waiting for outfit assembly";return;}
+    if(isDefault&&!entry.installed){status="External outfit retained";return;}
+    const auto original=entry.installed?entry.original:defaultGarment(snapshot);
+    if(original.empty()||(!entry.installed&&!snapshot.defaultGarment)||(entry.installed&&!has(entry.current))){status="Waiting for a default outfit";return;}
+    const auto sourceName=entry.installed?entry.current:original,targetName=isDefault?original:desired;
+    const auto* source=sourceName.c_str();const auto* target=targetName.c_str();
+
+
+    WardrobeRecord record;if(!readyRecord(snapshot,original.c_str(),record)){status="Original outfit record unavailable";return;}
+    const auto removeWrapper=canonical(source),addWrapper=canonical(target);if(!removeWrapper||!addWrapper){status="Waiting for outfit registry";return;}
+    std::memcpy(record.bytes.data(),&removeWrapper,sizeof removeWrapper);
+    WardrobeSnapshot fresh;if(!captureWardrobeSnapshot(actor,witch,base,fresh)||fresh.node!=snapshot.node||fresh.claimData!=snapshot.claimData||fresh.claimCount!=snapshot.claimCount)return;
+    bool sourceStillPresent=false;for(uint32_t i=0;i<fresh.claimCount;++i){const auto& claim=fresh.claims[i];sourceStillPresent|=sourceName==claim.prefab;if(std::strstr(claim.prefab,"_ub_")&&claim.kind!=WardrobePartKind::DefaultGarment&&(!entry.installed||entry.current!=claim.prefab))return;}
+    if(!sourceStillPresent)return;
+    if(!restoreOutfitVisibility(reinterpret_cast<void*>(actor))){status="Outfit / waiting to restore garment visibility";return;}
+    entry.attempted=selected.generations[witch];
+    entry.refresh.applyingSelected();
+    const auto result=invokeWardrobeSwap(snapshot.node,record,addWrapper,base,{retain,release,destroy,pipeline});
+    LOG("Wardrobe switch call witch=%d actor=%p node=%p source=%s target=%s result=%d thread=%u.",witch,reinterpret_cast<void*>(actor),reinterpret_cast<void*>(snapshot.node),source,target,int(result),GetCurrentThreadId());
+    if(result!=WardrobeCallResult::Completed){faulted=true;std::string ignored;if(entry.refresh.phase==WardrobeRefreshCycle::Idle)selections.change(witch,WardrobeField::Outfit,0,{true,false,false,false},ignored);detail="The outfit call failed. Reload before retrying.";return;}
+    entry.original=original;entry.removed=sourceName;entry.requested=targetName;
+    entry.pending=true;entry.deadline=GetTickCount()+5000;status="Saved / waiting for outfit assembly";
+}
+WardrobeEditorStatus wardrobeEditorStatus(int target){
+    const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);WardrobeEditorStatus result;result.available=capabilities();result.detail=detail;result.dependencyDetail=resourceDetail;result.resourceFilesReady=resourcesReady;result.versionWarning=dancerResources.warning;
+    if(target< -1||target>5){result.available={};return result;}result.selected=selected.choices[target<0?0:target];
+    if(target<0)for(const auto& choice:selected.choices){result.mixedOutfit|=wardrobeOutfitId(choice)!=wardrobeOutfitId(result.selected);result.mixedUnderwear|=choice.underwear!=result.selected.underwear;result.mixedDancer|=choice.dancer!=result.selected.dancer;}
+    if(result.available.switchReady){
+        result.warning=false;
+        if(target>=0){
+            result.detail=armed[target]!=selected.generations[target]?"Outfit / awaiting selection":
+                selected.choices[target].outfit==WitchOutfit::Dancer&&!result.available.dancerAssets?"Dancer dependencies unavailable":
+                witchDetail[target].empty()?"Outfit / waiting for witch":witchDetail[target];
+        }else{
+            unsigned active=0;for(size_t i=0;i<6;++i)if(armed[i]==selected.generations[i]&&appliedGeneration[i]==selected.generations[i])++active;
+            result.detail="Outfits / "+std::to_string(active)+" active, "+std::to_string(6-active)+" waiting";
+        }
+    }
+    if(result.available.switchReady)result.caption=result.detail;
+    if(!result.available.dancerAssets&&result.available.switchReady&&result.selected.outfit==WitchOutfit::Dancer){result.caption="Dancer / dependency needed";result.detail=resourceDetail;result.warning=true;}
+    for(int witch=0;witch<6;++witch)if((target<0||target==witch)&&!choiceErrors[witch].empty()){
+        result.caption="Selection not saved";result.detail=choiceErrors[witch];result.warning=true;break;
+    }
+    return result;
+}
+bool changeWardrobeChoice(int target,WardrobeField field,int value,std::string& error){
+    const auto status=wardrobeEditorStatus(target);if(!selections.change(target,field,value,status.available,error)){
+        std::lock_guard<std::mutex> lock(mutex);for(int witch=0;witch<6;++witch)if(target<0||target==witch)choiceErrors[witch]=error;
+        LOG_ERR("Wardrobe selection rejected target=%d field=%d: %s",target,int(field),error.c_str());return false;
+    }
+    const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);
+    for(int witch=0;witch<6;++witch)if(target<0||target==witch){armed[witch]=selected.generations[witch];choiceErrors[witch].clear();witchDetail[witch]="Outfit / waiting for witch";}
+    return true;
+}
+GlobalDancerColourStatus globalDancerColourStatus(){
+    std::lock_guard<std::mutex> lock(mutex);GlobalDancerColourStatus status;
+    status.ready=dancerResources.paletteReady;status.selected=dancerResources.colour;status.startup=startupColour;status.versionWarning=dancerResources.warning;
+    bool pending=false,activeDancer=false;for(const auto& row:owned){if(row.second.refresh.pending())pending=true;if(row.second.installed&&row.second.current=="cd_phw_00_ub_00_0191_u")activeDancer=true;}
+    status.detail=!paletteError.empty()?paletteError:!status.ready?dancerResources.paletteDetail:
+        pending?"Saved globally / refreshing outfit":status.selected!=status.startup?activeDancer?"Saved globally / outfit refreshed":"Saved globally / used on the next outfit assembly":"Global colour / selected at startup";
+    return status;
+}
+bool changeGlobalDancerColour(int colour,std::string& error){
+    const auto selected=selections.snapshot();
+    std::lock_guard<std::mutex> lock(mutex);
+    if(!dancerResources.paletteReady){error=dancerResources.paletteDetail;paletteError=error;return false;}
+    if(!changeDancerBinding(dancerResources.texture,dancerResources.sourceRoot,colour,error)){paletteError=error;return false;}
+    dancerResources.colour=colour;paletteError.clear();
+    unsigned queued=0;for(auto& row:owned){auto& entry=row.second;if(entry.witch>=0&&entry.witch<6&&wardrobeOutfitId(selected.choices[entry.witch])=="hexappeal/dancer"&&((entry.installed&&entry.current=="cd_phw_00_ub_00_0191_u")||entry.refresh.phase!=WardrobeRefreshCycle::Idle)){entry.refreshOutfit="hexappeal/dancer";entry.refresh.request(selected.generations[entry.witch],GetTickCount64(),refreshDelay());++queued;}}
+    LOG("Global Dancer colour saved: %s. External sources unchanged; automatic outfit refresh queued for %u instances.",dancerColours[colour].label,queued);
+    return true;
+}
+bool requestWardrobeOutfit(int witch,const std::string& id,std::string& error){
+    if(id=="hexappeal/default"||id=="hexappeal/dancer")return changeWardrobeChoice(witch,WardrobeField::Outfit,id=="hexappeal/dancer"?1:0,error);
+    if(witch< -1||witch>5){error="Choose a supported witch.";return false;}
+    const auto status=wardrobeEditorStatus(witch);if(!status.available.switchReady){error=status.detail;return false;}
+    for(int i=0;i<6;++i)if(witch<0||witch==i){WardrobeProviderOutfit provider;if(!resolveWardrobeProvider(id,i,provider,error))return false;}
+    if(!selections.providerOutfit(witch,id,error))return false;
+    const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);for(int i=0;i<6;++i)if(witch<0||witch==i){armed[i]=selected.generations[i];choiceErrors[i].clear();witchDetail[i]="Outfit / waiting for witch";}return true;
+}
+bool nativeWardrobeSelection(int witch,std::string& id,std::string& prefab,bool& available,uint64_t& revision){
+    if(witch<0||witch>5)return false;const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);if(!engineReady)return false;
+    id=wardrobeOutfitId(selected.choices[witch]);revision=selected.generations[witch];available=capabilities().switchReady;
+    if(id=="hexappeal/dancer"){prefab="cd_phw_00_ub_00_0191_u";available=available&&capabilities().dancerAssets;}
+    else if(id!="hexappeal/default"){WardrobeProviderOutfit provider;std::string ignored;const bool ready=resolveWardrobeProvider(id,witch,provider,ignored);prefab=provider.prefab;available=available&&ready;}
+    return true;
+}
+void reapplyWardrobeProviderControls(int witch,const std::string& id){
+    selections.invalidate(witch,id);const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);for(int i=0;i<6;++i)if((witch<0||witch==i)&&wardrobeOutfitId(selected.choices[i])==id){armed[i]=selected.generations[i];choiceErrors[i].clear();witchDetail[i]="Outfit / waiting for variant";}
+    for(auto& row:owned){auto& entry=row.second;if(entry.witch<0||entry.witch>5||(witch>=0&&witch!=entry.witch)||wardrobeOutfitId(selected.choices[entry.witch])!=id||!entry.installed)continue;WardrobeProviderOutfit provider;std::string ignored;if(resolveWardrobeProvider(id,entry.witch,provider,ignored)&&provider.prefab==entry.current){entry.refreshOutfit=id;entry.refresh.request(selected.generations[entry.witch],GetTickCount64(),refreshDelay());}}
+}
+bool requestSelectedWardrobeRefresh(int witch,const std::string& id,std::string& error){
+    if(witch< -1||witch>5){error="Choose one witch or All witches.";return false;}
+    const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);
+    if(!engineReady||!writesAllowed||faulted){error=detail;return false;}
+    unsigned queued=0;for(auto& row:owned){auto& entry=row.second;if(entry.witch<0||entry.witch>5||(witch>=0&&entry.witch!=witch)||wardrobeOutfitId(selected.choices[entry.witch])!=id||(!entry.installed&&entry.refresh.phase==WardrobeRefreshCycle::Idle))continue;entry.refreshOutfit=id;entry.refresh.request(selected.generations[entry.witch],GetTickCount64(),refreshDelay());++queued;}
+    if(!queued){error="No owned selected replacement is visible to refresh. Its next assembly will use the current resources.";return false;}return true;
+}
+bool ownedOutfitVisibility(uintptr_t actor,int witch,OutfitVisibilityPolicy& policy){
+    policy={};if(witch<0||witch>5)return false;
+    const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);
+    const auto found=owned.find(actor);if(found==owned.end())return false;const auto& entry=found->second;
+    if(!entry.installed||entry.pending||entry.refresh.pending()||entry.witch!=witch)return false;
+    WardrobeSnapshot snapshot;if(!captureWardrobeSnapshot(actor,witch,base,snapshot)||snapshot.node!=entry.node)return false;
+    bool present=false;for(uint32_t i=0;i<snapshot.claimCount;++i)if(entry.current==snapshot.claims[i].prefab)present=true;
+    if(!present)return false;
+    policy.owned=true;policy.owner=entry.node;policy.prefab=entry.current;
+    if(faulted)return true;
+    WardrobeProviderOutfit provider;std::string error;
+    if(!resolveWardrobeProvider(wardrobeOutfitId(selected.choices[witch]),witch,provider,error)||provider.prefab!=entry.current)return true;
+    policy.enabled=true;for(const auto& part:provider.visibilityParts)policy.parts.push_back({part.part,part.visible});
+    return true;
+}
+}

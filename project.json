@@ -1,0 +1,12 @@
+{
+  "name": "Hex Appeal",
+  "author": "TAS-69",
+  "version": "1.0.0",
+  "required_body": {
+    "mod": "Venus Body for Damiane",
+    "nexus_id": 3318,
+    "version": "2.6",
+    "variant": "Elf Body",
+    "pac_sha256": "8f101b8cc7d5c3af0b1ba2d38a6c2bfbbadecd733bd39f9491f1bf6a654466eb"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "example/parts-dress",
+  "label": "Example / Parts Dress",
+  "prefab": "example_parts_dress_u",
+  "credit": "Replace with your own outfit credits",
+  "requirements": "Example names only: supply and mount your own prefab and models.",
+  "controls": [
+    {"id": "bra", "label": "Outfit bra", "type": "toggle", "default": true, "follow_base_underwear": true},
+    {"id": "briefs", "label": "Outfit briefs", "type": "toggle", "default": true, "follow_base_underwear": true}
+  ],
+  "part_visibility": [
+    {"control": "bra", "part": "ExampleOutfitBra"},
+    {"control": "briefs", "part": "ExampleOutfitBriefs"}
+  ]
+}

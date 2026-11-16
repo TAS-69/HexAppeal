@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "yourname/my-dress",
+  "label": "My Outfit Mod / My Dress",
+  "prefab": "my_dress_bra_panties",
+  "credit": "Your mod name and credits",
+  "requirements": "Install and mount the separately supplied outfit assets.",
+  "controls": [
+    {"id":"bra","label":"Outfit bra","type":"toggle","default":true,"follow_base_underwear":true},
+    {"id":"panties","label":"Outfit panties","type":"toggle","default":true,"follow_base_underwear":true}
+  ],
+  "native_controls": ["bra", "panties"],
+  "states": [
+    {"values":{"bra":false,"panties":false},"prefab":"my_dress_no_underwear"},
+    {"values":{"bra":false,"panties":true},"prefab":"my_dress_panties"},
+    {"values":{"bra":true,"panties":false},"prefab":"my_dress_bra"},
+    {"values":{"bra":true,"panties":true},"prefab":"my_dress_bra_panties"}
+  ]
+}

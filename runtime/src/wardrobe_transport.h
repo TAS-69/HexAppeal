@@ -1,0 +1,20 @@
+#pragma once
+#include <array>
+#include <cstddef>
+#include <cstdint>
+
+namespace hex {
+struct alignas(8) WardrobeRecord {std::array<unsigned char,0x70> bytes{};};
+struct WardrobeVector {void* data=nullptr;uint32_t count=0,capacity=0;};
+struct WardrobeRemoval {uintptr_t wrapper=0,metadata=0;};
+static_assert(sizeof(WardrobeRecord)==0x70&&sizeof(WardrobeVector)==16&&sizeof(WardrobeRemoval)==16);
+struct WardrobeTransport {
+    bool(*retain)(uintptr_t)=nullptr;
+    bool(*release)(uintptr_t*)=nullptr;
+    bool(*destroy)(WardrobeRecord*)=nullptr;
+    bool(*pipeline)(uintptr_t,WardrobeVector*,WardrobeVector*,uint8_t)=nullptr;
+};
+enum class WardrobeCallResult {Completed,InvalidRecord,MissingFunctions,RetainFailed,CallFailed,CleanupFailed};
+bool isSimpleWardrobeRecord(const WardrobeRecord& record,uintptr_t gameBase);
+WardrobeCallResult invokeWardrobeSwap(uintptr_t node,const WardrobeRecord& source,uintptr_t target,uintptr_t gameBase,const WardrobeTransport& transport);
+}

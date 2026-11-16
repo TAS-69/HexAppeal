@@ -1,0 +1,296 @@
+[
+  {
+    "name": "White Crow",
+    "record": "NHW_WhiteCrow_Witch_6622",
+    "key": 6622,
+    "appearance": "character/appearance/2_mon/cd_m0001_00_twofeet/cd_m0001_00_phw_north/cd_m0001_00_phw_north_44001.app_xml",
+    "body": {
+      "Name": "phw_00_nude_00_0001",
+      "CharacterScale": "0.97",
+      "EnableCharacterScaleLimit": "false"
+    },
+    "parts": [
+      {
+        "prefab": "cd_phw_00_ub_00_0164",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/9_upperbody/cd_phw_00_ub_00_0164.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164.pac",
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0164_sub02.pac",
+          "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0164.pac",
+          "character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0164.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_foot_0137_01_index01",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0137_01_index01.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0137_01.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_hel_00_0164",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0164.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164.pac",
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0164_sub01.pac"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Bari",
+    "record": "NHW_Unique_WitchBari_102045",
+    "key": 1001091,
+    "appearance": "character/appearance/3_npc/cd_npc_north/cd_nhw_north/cd_nhw_north_20026.app_xml",
+    "body": {
+      "Name": "PHW_00_Nude_00_0301",
+      "CharacterScale": "0.97"
+    },
+    "parts": [
+      {
+        "prefab": "cd_phw_00_ub_00_0157",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/9_upperbody/cd_phw_00_ub_00_0157.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0157.pac",
+          "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0157.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_foot_0038",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0038.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0038.pac"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Sylvia",
+    "record": "NHW_Unique_power_Witch_1",
+    "key": 1001369,
+    "appearance": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20169.app_xml",
+    "body": {
+      "Name": "phw_00_nude_00_0001_damian",
+      "CharacterScale": "0.97"
+    },
+    "parts": [
+      {
+        "prefab": "cd_nhw_so_ub_20169_u",
+        "prefab_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20169_u.prefab",
+        "models": [
+          "character/model/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_20169.pac",
+          "character/model/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_20169.pac",
+          "character/model/3_npc/2_nhw/armor_south/9_upperbody/cd_nhw_00_so_ub_belt_20169.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_foot_0038",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0038.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0038.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_hel_00_0206_dd",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0206_dd.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0206.pac"
+        ]
+      },
+      {
+        "prefab": "cd_nhw_so_cloak_20169_s",
+        "prefab_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/19_cloak/cd_nhw_so_cloak_20169_s.prefab",
+        "models": [
+          "character/model/3_npc/2_nhw/armor_south/19_cloak/cd_nhw_00_so_cloak_20169.pac"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Bari the Witch",
+    "record": "NHW_Unique_Goodness_Witch_1",
+    "key": 1001374,
+    "appearance": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20167.app_xml",
+    "body": {
+      "Name": "phw_00_nude_00_0001",
+      "CharacterScale": "0.97"
+    },
+    "parts": [
+      {
+        "prefab": "cd_nhw_so_ub_20167",
+        "prefab_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20167.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0187.pac",
+          "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0187.pac",
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0187.pac",
+          "character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0187.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_foot_00_0163",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0163.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0163.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_hel_00_0187",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0187.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0187.pac"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Areciel",
+    "record": "NHW_Unique_power_Witch_Store",
+    "key": 1002938,
+    "appearance": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20165.app_xml",
+    "body": {
+      "Name": "phw_00_nude_00_0001",
+      "CharacterScale": "0.97"
+    },
+    "parts": [
+      {
+        "prefab": "cd_phw_00_foot_00_0161_index01",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0161_index01.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0161.pac"
+        ]
+      },
+      {
+        "prefab": "cd_nhw_so_ub_20165",
+        "prefab_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20165.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0177.pac",
+          "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0177.pac",
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0177.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_hel_0177",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_0177.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177.pac",
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0177_sub01.pac"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Elowen",
+    "record": "NHW_Unique_Wisdom_Witch_Store",
+    "key": 1002939,
+    "appearance": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20168.app_xml",
+    "body": {
+      "Name": "phw_00_nude_00_0001",
+      "CharacterScale": "0.97"
+    },
+    "parts": [
+      {
+        "prefab": "cd_nhw_so_ub_20168",
+        "prefab_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20168.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0186.pac",
+          "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0186.pac",
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0186.pac",
+          "character/model/3_npc/2_nhw/armor_south/10_lowerbody/cd_nhw_00_so_lb_10001.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_foot_00_0160",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0160.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0160.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_hel_00_0186",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0186.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186.pac",
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0186_sub01.pac"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Bari",
+    "record": "NHW_Unique_Goodness_Witch_Store",
+    "key": 1002940,
+    "appearance": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20167.app_xml",
+    "body": {
+      "Name": "phw_00_nude_00_0001",
+      "CharacterScale": "0.97"
+    },
+    "parts": [
+      {
+        "prefab": "cd_nhw_so_ub_20167",
+        "prefab_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20167.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0187.pac",
+          "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0187.pac",
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_belt_00_0187.pac",
+          "character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0187.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_foot_00_0163",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0163.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0163.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_hel_00_0187",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_00_0187.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0187.pac"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Lyselia",
+    "record": "NHW_Unique_Modesty_Witch_Store",
+    "key": 1002941,
+    "appearance": "character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20166.app_xml",
+    "body": {
+      "Name": "phw_00_nude_00_0001",
+      "CharacterScale": "0.97"
+    },
+    "parts": [
+      {
+        "prefab": "cd_nhw_so_ub_20166",
+        "prefab_path": "character/bin__/prefab/3_npc/02_nhw/south_armor/cd_nhw_so_ub_20166.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/9_upperbody/cd_phw_00_ub_00_0185.pac",
+          "character/model/1_pc/2_phw/armor/10_lowerbody/cd_phw_00_lb_00_0185.pac",
+          "character/model/1_pc/2_phw/armor/19_cloak/cd_phw_00_cloak_00_0185.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_foot_0092",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_0092.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_0092.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_hel_0185",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/13_hel/cd_phw_00_hel_0185.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/13_hel/cd_phw_00_hel_00_0185.pac"
+        ]
+      },
+      {
+        "prefab": "cd_phw_00_foot_00_0185",
+        "prefab_path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0185.prefab",
+        "models": [
+          "character/model/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0185.pac"
+        ]
+      }
+    ]
+  }
+]
