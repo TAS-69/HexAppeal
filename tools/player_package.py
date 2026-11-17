@@ -15,6 +15,7 @@ def player_package(version,body_files,refit_files,runtime_files,documents,allowe
         digest=hashlib.sha256(data).hexdigest()
         if digest in dependency_hashes:raise ValueError('External dependency content cannot be bundled: '+name)
         suffix=path.suffix.lower()
+        if suffix=='.json' and name!='mod.json':raise ValueError('DMM treats extra JSON documents as patches: '+name)
         if suffix in {'.exe','.dll','.obj','.pdb','.lib','.exp','.pyc','.dds','.hkx','.pac_xml','.app_xml'}:
             raise ValueError('Unexpected package binary: '+name)
         if suffix=='.asi' and name!='HexAppeal.asi':raise ValueError('Only the Hex Appeal runtime belongs in this package.')

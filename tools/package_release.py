@@ -111,7 +111,7 @@ for component in ('Hex Appeal - Bodies','Hex Appeal - Outfit Refits'):
     metadata=json.loads((ROOT/component/'mod.json').read_text(encoding='utf-8-sig'))
     if metadata['modinfo']['version']!=version:raise SystemExit('Component version mismatch.')
     assets.append([(p.relative_to(ROOT/component).as_posix(),p.read_bytes()) for p in (ROOT/component/'files').rglob('*') if p.is_file()])
-documents=[('VERIFICATION.json',summary_bytes),('LICENSE',(ROOT/'LICENSE').read_bytes()),
+documents=[('VERIFICATION.txt',summary_bytes),('LICENSE',(ROOT/'LICENSE').read_bytes()),
            ('DEPENDENCIES-AND-REFERENCES.md',package_doc((ROOT/'DEPENDENCIES-AND-REFERENCES.md').read_text(encoding='utf-8-sig'),'').encode())]
 for name in ('README.md','INTEGRATION.md'):documents.append(('docs/'+name,package_doc((ROOT/'runtime'/name).read_text(encoding='utf-8-sig'),'runtime').encode()))
 documents += [('licenses/'+p.name,p.read_bytes()) for p in (ROOT/'runtime/licenses').iterdir() if p.is_file()]

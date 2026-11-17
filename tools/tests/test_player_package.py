@@ -26,6 +26,11 @@ class PlayerPackage(unittest.TestCase):
     def test_body_and_refit_overlap_cannot_silently_replace_files(self):
         with self.assertRaises(ValueError):self.package(body_files=[('files/0009/character/default.pac',b'own generated garment')])
 
+    def test_reports_cannot_be_imported_as_unknown_patches(self):
+        for name in ('VERIFICATION.json','docs/report.JSON'):
+            with self.subTest(name=name),self.assertRaisesRegex(ValueError,'extra JSON documents'):self.package(documents=[(name,b'{}')])
+        self.assertIn('Hex Appeal/VERIFICATION.txt',self.package(documents=[('VERIFICATION.txt',b'{}')]))
+
     def test_dependency_content_is_rejected_even_when_renamed(self):
         with self.assertRaises(ValueError):self.package(documents=[('notes.txt',b'external body')])
 
