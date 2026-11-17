@@ -1,6 +1,6 @@
 # One player download
 
-The next public player package combines **Bodies, Runtime and default Outfit Refits**. Players download one ZIP and enable **Hex Appeal** on Mods and its **HexAppeal** switch on ASI Mods, then mount. The development source keeps its separate modules. SDK and source downloads are optional creator resources, not extra installation steps for players.
+The 1.0.0 player package, refreshed on 17 November 2026, combines **Bodies, Runtime and default Outfit Refits**. Players download one ZIP and enable **Hex Appeal** on Mods and its **HexAppeal** switch on ASI Mods, then mount. The development source keeps its separate modules. SDK and source downloads are optional creator resources, not extra installation steps for players.
 
 The combined layout was imported and mounted with **DMM 5.0.1** on 17 November 2026. All seven appearance routes and forty default garment routes matched. DMM keeps data and plugin switches separate; turning off only Mods leaves the ASI enabled. Both normal switches are part of installation and removal. Other managers need their own acceptance check.
 
@@ -25,7 +25,7 @@ Hex Appeal/
 
 There is one manifest titled **Hex Appeal**, seven appearance-routing patches and forty existing game-derived default garment refits. The only plugin is Hex Appeal. Dependencies, dependency models/textures/presets, private Dancer experiments, saves, permission messages and test executables remain outside the download. Licensed compiled overlay adaptations retain their notices.
 
-The packager checks path safety, case-insensitive duplicates, the complete approved garment set and external dependency hashes, including both checked VENUS variants. It produces one player archive plus separate creator SDK/source archives. `VERSION` is not incremented automatically. Published 1.0.0 archives and tags remain unchanged.
+The packager checks path safety, case-insensitive duplicates, the complete approved garment set and external dependency hashes, including both checked VENUS variants. It produces one player archive plus separate creator SDK/source archives. `VERSION` is not incremented automatically. The earlier split 1.0.0 files and tag were backed up before this explicitly requested replacement.
 
 ## Manager acceptance
 

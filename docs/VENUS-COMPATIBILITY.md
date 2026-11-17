@@ -1,6 +1,6 @@
 # VENUS Human Body compatibility
 
-Development build **0.5.7** recognizes both **VENUS 2.6 Human Body** and **Elf Body**. Enable one variant in DMM. Public release **1.0.0** remains unchanged; its runtime treats the Human file as an unverified readable body rather than a hard block, while its older build/preflight tools require Elf Body.
+The refreshed **1.0.0** release recognizes both **VENUS 2.6 Human Body** and **Elf Body**, including the runtime and build/preflight tools. Enable one variant in DMM. This support was introduced in development 0.5.7 and is retained in the 0.5.8 release source.
 
 ## What matches
 
@@ -8,9 +8,9 @@ Both original downloads contain 13,740 primary vertices and 25,158 faces. Their 
 
 The refitter deliberately ignores target head displacement. Both variants therefore supply identical refit control data. The existing forty default-garment outputs and seven appearance patches remain unchanged. No new body or outfit asset is generated or bundled.
 
-The development adapter recognizes both original hashes and names the detected variant. Manual paths accept either. The source/preflight tools allow exactly one selected Human or Elf variant and validate it against the shared refit baseline. Other readable versions retain the existing soft-warning policy; an unknown body's static refit compatibility still needs a geometry review.
+The adapter recognizes both original hashes and names the detected variant. Manual paths accept either. The source/preflight tools allow exactly one selected Human or Elf variant and validate it against the shared refit baseline. Other readable versions retain the existing soft-warning policy; an unknown body's static refit compatibility still needs a geometry review.
 
-The game prefab reads `phw_00_nude_00_0001_damian.pac`. Earlier guards also required a `cd_phw_...` alias, which VENUS itself does not install. Development 0.5.7 requires the actual primary route and checks the alias only when present. A clean Human or Elf installation no longer needs an unrelated mod to supply that filename. Release 1.0.0 retains the earlier gate.
+The game prefab reads `phw_00_nude_00_0001_damian.pac`. Earlier guards also required a `cd_phw_...` alias, which VENUS itself does not install. The current runtime requires the actual primary route and checks the alias only when present. A clean Human or Elf installation does not need an unrelated mod to supply that filename.
 
 ## Checks
 
@@ -27,7 +27,7 @@ These are close idle-view checks on Elowen, not acceptance of every witch in mot
 
 The subsequent compatibility correction keeps unverified appearance-mod versions usable with a warning and checks their hook chains separately. Runtime `de392658026ea59427df2adc0998f51fceb12904f14648caed0bb4f04dbd33c2` passed all 22 offline runtime checks and all 34 helper tests. Windows initially blocked the separate preferences executable with error 225; a standard rebuild of its unchanged source later passed and the full suite completed. With Elf Body restored, the same runtime passed saved Dancer restoration and automatic Black → White → Black refresh on Elowen using the main entry's local references. The Human results above retain their original binary and scope.
 
-After testing, Elf Body, the ear-mod selection and the exact saved Hex Appeal settings were restored. No game save was restored or edited. Public release 1.0.0 and its archives were left unchanged.
+After testing, Elf Body, the ear-mod selection and the exact saved Hex Appeal settings were restored. No game save was restored or edited. Those Human-session checks preceded the refreshed public 1.0.0 package. Its version-stamped rebuild receives separate offline verification; the Human live evidence retains the hashes and limits above.
 
 ## Installation conflict
 

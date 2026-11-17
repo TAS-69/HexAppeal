@@ -19,7 +19,7 @@ report_dir = root / 'reports'
 report_dir.mkdir(exist_ok=True)
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
 commands = [
-    ('sdk_definition_generator', [__import__('sys').executable,'-m','unittest','discover','-s',str(root/'sdk/tests'),'-p','test_definition.py']),
+    ('sdk_definition_generator', [__import__('sys').executable,'-m','unittest','discover','-s',str(root/'sdk/tests'),'-p','test_*.py']),
     ('model', [str(build/'model_tests.exe'), str(build/'test profiles.ini')]),
     ('auto_apply', [str(build/'auto_apply_tests.exe'),str(build/'auto-fixture'/'profiles.ini')]),
     ('frame_dispatch_abi', [str(build/'frame_dispatch_tests.exe')]),

@@ -1,6 +1,6 @@
 # Dependency compatibility
 
-Development **0.5.8** separates the installed version from the checks needed to use each feature. A new hash produces an **Unverified** warning. Readable files and a passing native interface remain usable. Failed requirements produce a **Blocked** state with the specific reason.
+The refreshed **1.0.0** release, based on development **0.5.8**, separates the installed version from the checks needed to use each feature. A new hash produces an **Unverified** warning. Readable files and a passing native interface remain usable. Failed requirements produce a **Blocked** state with the specific reason.
 
 Open **F9 → Settings → Dependencies & paths**. File rows show which downloads were found and verified. **Feature checks** show whether the active integration is ready. Hover a blocked row or its error icon for the cause.
 
@@ -34,4 +34,4 @@ The **0.5.8** build passed **23/23** offline runtime checks and **34** helper te
 
 On 17 November 2026, a live Elowen check showed all six feature rows ready while Character Creator retained its unverified-version warning. A temporary external preset with an unsupported field blocked HEX and displayed that field in the tooltip; the other feature rows stayed ready. Clearing the override restored automatic detection, HEX readiness and the saved shape. The saved Dancer / Arcane Pink selection remained active and unchanged. This was one close idle view, not exhaustive motion or all-witch coverage.
 
-The tested runtime was `25640380fe36d4e511a3924c5f62a32bd3ceecabe17f5e85002db267b0114a6a`. The verified **0.5.7** restore point remains preserved. Public release **1.0.0** is unchanged.
+The tested runtime was `25640380fe36d4e511a3924c5f62a32bd3ceecabe17f5e85002db267b0114a6a`. The verified **0.5.7** restore point remains preserved. The refreshed **1.0.0** includes these changes; its exact rebuilt binary has a separate [release verification summary](VERIFICATION-1.0.0.md).

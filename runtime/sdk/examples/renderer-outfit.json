@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "id": "example/renderer-outfit",
+  "label": "Example Collection / Runtime Outfit",
+  "prefab": "example_runtime_outfit_u",
+  "credit": "Your outfit credits",
+  "requirements": "Supply your own outfit assets and implement the renderer bridge functions.",
+  "controls": [
+    {"id": "colour", "label": "Shared colour", "type": "choice", "scope": "global", "default": "black", "options": [{"id": "black", "label": "Black"}, {"id": "white", "label": "White"}]},
+    {"id": "bra", "label": "Outfit bra", "type": "toggle", "default": true, "follow_base_underwear": true},
+    {"id": "briefs", "label": "Outfit briefs", "type": "toggle", "default": true, "follow_base_underwear": true}
+  ]
+}

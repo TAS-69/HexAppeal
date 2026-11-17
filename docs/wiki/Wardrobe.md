@@ -4,11 +4,11 @@ Wardrobe is a shared **default witch outfit replacer menu**. Choose a witch or A
 
 ## Default and Dancer
 
-**Default** restores the recognized witch default. The separate Outfit Refits add-on determines whether that default uses Hex Appeal's VENUS baseline refit.
+**Default** restores the recognized witch default. The combined player package includes Hex Appeal's VENUS baseline default refits; file priority determines which overlapping refit is served.
 
 The optional **Sexy Witches of Pywel Reshaped / Dancer Dress** uses the original external outfit. Each witch can independently use Default or Dancer. It does not take ownership of arbitrary custom spouse/barber clothing.
 
-In the next combined package, run **Setup Dancer.cmd before the first mount** to connect the original dependency to the main Hex Appeal entry. No separate Dancer resource entry is needed. This optional setup uses Python 3.12+ and leaves original file contents unchanged. [Installation](Installation.md) covers the steps and the older published 1.0.0 setup.
+Run **Setup Dancer.cmd before the first mount** to connect the original dependency to the main Hex Appeal entry. No separate Dancer resource entry is needed. This optional setup uses Python 3.12+ and leaves original file contents unchanged. [Installation](Installation.md) covers the steps and upgrades from the earlier split package.
 
 Dancer supplies **Original White, Midnight Black, Crimson Red, Arcane Pink and Emerald Green**. Its texture route is shared, so its colour is **global**, even when outfit selection is per witch. A change saves the colour, verifies the external resource and queues a Default → selected refresh automatically. Allow a short settling interval. Rapid changes are combined. Saved outfit selections restore after loading into the world.
 

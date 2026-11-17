@@ -10,7 +10,7 @@ Select one witch or **All witches**. Changes save automatically and apply when t
 
 The nine marked points have gentle detents: snap within two pixels, release beyond three. The Top and Bottom buttons move only their own axis to an exact preset; the other region keeps its current blend.
 
-VENUS uses the actual installed Elf Body with a neutral native deformation. HEX reads the external original preset, including its stomach/waist parameters. Automatic discovery prefers the checked 1.3 preset. FLAT uses the native minimum for the selected breast/butt size region; it does not scale a body part to zero. Other regional parameters blend through the same native shaping route.
+VENUS uses the actual installed VENUS Human/Elf body with a neutral native deformation. HEX reads the external original preset, including its stomach/waist parameters. Automatic discovery prefers the checked 1.3 preset. FLAT uses the native minimum for the selected breast/butt size region; it does not scale a body part to zero. Other regional parameters blend through the same native shaping route.
 
 ## Height and Weight
 

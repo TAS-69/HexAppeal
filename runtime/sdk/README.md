@@ -23,8 +23,10 @@ The generator validates definitions and emits ordinary C++. It does not run a mo
 | [Parts definition](examples/parts-outfit.json), [provider](examples/PartsOutfitProvider.cpp) | Wardrobe handles declared engine visibility parts on its owned replacement. |
 | [Combined variants](examples/outfit.json), [provider](examples/NativeOutfitProvider.cpp) | Wardrobe chooses the supplied prefab for each bra/briefs combination. |
 | [Polling provider](examples/WardrobeProvider.cpp) | Your checked renderer integration applies saved/effective values. |
+| [Eight-state outfit](examples/advanced-outfit.json), [provider](examples/AdvancedOutfitProvider.cpp) | Wardrobe combines colour/garment prefabs with an independent belt part. |
+| [Custom renderer definition](examples/renderer-outfit.json), [provider](examples/CustomRendererProvider.cpp) | Your renderer handles effective visibility, rebuilt instances and shared colour refresh. |
 
-All example prefab/part names are placeholders. No outfit asset accompanies them.
+All example prefab/part names are placeholders. No outfit asset accompanies them. [Advanced integrations](ADVANCED-EXAMPLES.md) provides complete definitions, code and acceptance steps.
 
 ## Connect and register
 
@@ -33,12 +35,9 @@ All example prefab/part names are placeholders. No outfit asset accompanies them
 ```cpp
 hexappeal::WardrobeClient wardrobe;
 uint64_t registration = 0;
-// Normal initialization/update, after loader initialization:
 if (wardrobe.Connect() && !registration)
     Register_example_parts_dress(wardrobe, registration);
-// Once your mounted resources are ready:
 if (registration) wardrobe.Available(registration, true);
-// Normal shutdown, before unloading your provider:
 wardrobe.Unregister(registration);
 wardrobe.Reset();
 ```
@@ -87,7 +86,7 @@ Runtime calls serialize registry/settings access. Do not hold game/render locks 
 
 After saving and verifying a shared resource, call optional `HexAppeal_RequestWardrobeRefreshV1` (`WardrobeClient::Refresh`). It queues Default → selected replacement on visible owned instances without saving Default as the choice. Assemblies are acknowledged with a non-blocking settling interval. Rapid changes coalesce; another outfit selection cancels the old cycle.
 
-Native prefab changes apply automatically. Provider-owned files need refresh only after they are ready. `HA_UNAVAILABLE` can mean no owned matching replacement is visible; its next assembly uses current resources. The built-in Dancer colour selector already performs save → verify → refresh. Assembly acknowledgement alone does not establish correct materials.
+Native prefab changes apply automatically. Provider-owned files need refresh only after they are ready. `HA_UNAVAILABLE` can mean no owned matching replacement is visible; its next assembly uses current resources. Assembly acknowledgement alone does not establish correct materials.
 
 ## Build and compatibility
 

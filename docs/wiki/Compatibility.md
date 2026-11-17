@@ -2,21 +2,21 @@
 
 ## Checked references
 
-The reference setup is Crimson Desert **2.05.00 / Steam build 26636972**, DMM **5.0.1**, VENUS Elf Body **2.6**, Instant Surgery **0.9.6**, Hex **1.3 / 1.2**, optional Two Reasons Body Physics **1.0.7**, and optional Sexy Witches FOMOD **1.1**.
+The reference setup is Crimson Desert **2.05.00 / Steam build 26636972**, DMM **5.0.1**, VENUS Human/Elf Body **2.6**, Instant Surgery **0.9.6**, Hex **1.3 / 1.2**, optional Two Reasons Body Physics **1.0.7**, and optional Sexy Witches FOMOD **1.1**.
 
 These are checked versions, not a promise that every past or future release works. Unknown readable versions receive a soft warning and remain usable. Native layouts, function signatures, ownership and transaction checks must still pass. The static default-outfit refits were built against VENUS 2.6 and need a new fit review if its geometry changes.
 
-Development **0.5.8** adds separate **Feature checks** under Dependencies & paths, specific errors for actual interface failures, named-export validation independent of an export's address, and tolerant preset formatting. See [dependency compatibility](../DEPENDENCY-COMPATIBILITY.md) for recovery and the remaining private-interface limits. The verified 0.5.7 checkpoint and public 1.0.0 files remain preserved.
+The refreshed **1.0.0**, based on development **0.5.8**, includes separate **Feature checks** under Dependencies & paths, specific errors for actual interface failures, named-export validation independent of an export's address, and tolerant preset formatting. See [dependency compatibility](../DEPENDENCY-COMPATIBILITY.md) for recovery and the remaining private-interface limits. Earlier development checkpoints and the initial split release files remain backed up.
 
-Development 0.5.7 also warns when an unverified Spouse Overhaul or Character Creator is loaded. Its appearance-hook adapter checks bounded jump chains, executable destinations and recognized module ownership separately. An unreadable, cyclic or unrecognized hook, changed native interface or unowned outfit can still stop an operation. A version warning alone does not disable Wardrobe. With Character Creator 9.1.41 loaded, the corrected adapter passed a sampled Elowen check for saved Dancer restoration and automatic Black → White → Black refresh. That does not verify every interaction in that Character Creator version.
+The runtime also warns when an unverified Spouse Overhaul or Character Creator is loaded. Its appearance-hook adapter checks bounded jump chains, executable destinations and recognized module ownership separately. An unreadable, cyclic or unrecognized hook, changed native interface or unowned outfit can still stop an operation. A version warning alone does not disable Wardrobe. With Character Creator 9.1.41 loaded, the corrected adapter passed a sampled Elowen check for saved Dancer restoration and automatic Black → White → Black refresh. That does not verify every interaction in that Character Creator version.
 
-Development 0.5.7 adds checked Human Body recognition alongside Elf Body. Their body/hand skinning and physics match, so the existing default refits use the same baseline. Live Human checks on Elowen covered all nine combinations on Dancer, Default ↔ Dancer switching and independent minimum Height / maximum Weight on the default robe. See [VENUS compatibility](../VENUS-COMPATIBILITY.md) for the tested build and limits. A DMM priority rule tied to the Elf variant may need to be chosen again after switching to Human.
+Both Human Body and Elf Body are recognized. Their body/hand skinning and physics match, so the existing default refits use the same baseline. Live Human checks on Elowen covered all nine combinations on Dancer, Default ↔ Dancer switching and independent minimum Height / maximum Weight on the default robe. See [VENUS compatibility](../VENUS-COMPATIBILITY.md) for the tested build and limits. A DMM priority rule tied to the Elf variant may need to be chosen again after switching to Human.
 
 ## Conflicts
 
 | Overlap | Action |
 | --- | --- |
-| Another complete body replacement, including NaiK's Original Damiane Body | Let VENUS Elf Body win the body route |
+| Another complete body replacement, including NaiK's Original Damiane Body | Let the selected VENUS Human/Elf variant win the body route |
 | VENUS Armor Refit on boot routes 0160 / 0161 / 0163 | Choose the intended winner in DMM |
 | Another outfit using Dancer's shared 0191 resources or texture | Review the file winner; Dancer colours affect the shared texture |
 | Spouse Overhaul / barber custom outfits | Wardrobe avoids custom outfit ownership; return to a recognized default before replacing it |
@@ -47,7 +47,7 @@ Live evidence from the preceding clean build covers Elowen startup restoration, 
 
 **Outfit stays default:** confirm its resources are mounted and the actor is wearing a recognized default, rather than custom spouse/barber equipment. Let the world and assembly finish loading.
 
-**Outfit unavailable:** hover the status for the initialization error. In the current development adapter, an unverified appearance-mod version only warns; a changed or unrecognized native hook can still prevent switching. Saved choices are retained.
+**Outfit unavailable:** hover the status for the initialization error. In the current adapter, an unverified appearance-mod version only warns; a changed or unrecognized native hook can still prevent switching. Saved choices are retained.
 
 **Colour or materials look wrong:** check resource conflicts, test a fresh save load and full restart, and report whether it happens with original resources and neutral shaping. Include the selected colour/shape, witch, game/dependency versions and a screenshot. Do not assume every material issue comes from shaping.
 

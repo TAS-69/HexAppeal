@@ -15,6 +15,7 @@ Start with [Installation](Installation.md), then open the game panel with **F9**
 | Check conflicts or a problem | [Compatibility](Compatibility.md) |
 | Add my own outfit | [SDK quick start](SDK-quick-start.md) |
 | Author removable parts or alternate models | [SDK asset patches](SDK-asset-patches.md) |
+| Build combined variants or a custom renderer | [Advanced SDK examples](SDK-examples.md) |
 | Look up the API | [SDK reference](SDK-reference.md) |
 | Build or package the source | [Building](Building.md) |
 | Check dependencies and how they are used | [Credits](Credits.md) |

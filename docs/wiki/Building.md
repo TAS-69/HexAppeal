@@ -22,7 +22,7 @@ The optional paths enable the checked installed-dependency fixture tests. They r
 
 For the Human Body compatibility regression, also pass `--venus-human "path/to/the/original/Human Body/phw_00_nude_00_0001_damian.pac"`. It must remain outside this checkout; the test serves it through an isolated manifest and never changes your real selection.
 
-Packaging requires a **clean, committed Git checkout**, a matching successful full offline report, a public build and the unchanged requested `VERSION`. Clone the repository to package; the Source ZIP is sufficient to compile, but has no Git history. Packaging uses tracked files only, writes the component, runtime, SDK and source archives, checksums and a content inventory, and does not upload, change the version or alter a game install. See [Versioning](Versioning.md).
+Packaging requires a **clean, committed Git checkout**, a matching successful full offline report, a public build and the unchanged requested `VERSION`. Clone the repository to package; the Source ZIP is sufficient to compile, but has no Git history. Packaging uses tracked files only, writes the combined player, SDK and source archives, checksums and a content inventory, and does not upload, change the version or alter a game install. See [Versioning](Versioning.md).
 
 If Windows quarantines the preferences test, leave it quarantined. The verifier can record that specific check as blocked with `--skip-quarantined-interface-test`; `package_release.py --draft` can then prepare an explicitly incomplete draft if every other required check passed. It does not mark the package release-ready. Do not disable protection to obtain a passing report.
 
@@ -30,9 +30,9 @@ If Windows quarantines the preferences test, leave it quarantined. The verifier 
 
 The repository includes my seven appearance patches and forty game-derived vanilla garment refits, with the source/validation metadata needed to trace them. No VENUS geometry, Hex preset, Dancer assets or extracted vanilla originals are stored as build inputs.
 
-The Source archive omits the compiled plugin and garment PAC outputs. Obtain the matching Outfit Refits archive for those unchanged outputs, or rebuild them from your external inputs.
+The Source archive omits the compiled plugin and garment PAC outputs. Obtain the matching player archive for those checked outputs, or rebuild them from your external inputs.
 
-Rebuilding the garment assets additionally requires the separately obtained reference VENUS Elf Body, the matching installed game, NumPy/SciPy from `requirements.txt`, and external tools:
+Rebuilding the garment assets additionally requires the separately obtained reference VENUS Human/Elf Body, the matching installed game, NumPy/SciPy from `requirements.txt`, and external tools:
 
 - [CrimsonForge](https://github.com/hzeem/CrimsonForge), checked commit `09f821638da4e1f04b26be43af408b4d59337ad3`.
 - [CDUMM](https://github.com/faisalkindi/CDUMM), checked commit `4d5a0f8cc6ea841d246509d7b9f8c80954c2fe0d`.

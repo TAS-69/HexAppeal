@@ -90,6 +90,9 @@ subprocess.run([__import__('sys').executable,str(root/'sdk/tools/generate_provid
 extra(root/'sdk/examples/NativeOutfitProvider.cpp')
 subprocess.run([__import__('sys').executable,str(root/'sdk/tools/generate_provider.py'),str(root/'sdk/examples/parts-outfit.json'),'--output',str(build/'PartsDefinition.hpp'),'--force'],check=True,capture_output=True)
 extra(root/'sdk/examples/PartsOutfitProvider.cpp')
+for definition,header,source in [('advanced-outfit.json','AdvancedDefinition.hpp','AdvancedOutfitProvider.cpp'),('renderer-outfit.json','RendererDefinition.hpp','CustomRendererProvider.cpp')]:
+    subprocess.run([__import__('sys').executable,str(root/'sdk/tools/generate_provider.py'),str(root/'sdk/examples'/definition),'--output',str(build/header),'--force'],check=True,capture_output=True)
+    extra(root/'sdk/examples'/source)
 minhook=[obj for src,obj in objects.items() if src.startswith('vendor/minhook/')]
 link(build/'underwear_tests.exe',[model,runtime,*dependency_objects,objects['src/pose_access.cpp'],objects['src/outfit_visibility.cpp'],extra(root/'src/underwear.cpp','.visibility',['HEX_UNDERWEAR_TESTS']),extra(root/'tests/underwear_tests.cpp','',['HEX_UNDERWEAR_TESTS']),*minhook])
 preview_objs=[objects['vendor/imgui/'+n] for n in ['imgui.cpp','imgui_draw.cpp','imgui_widgets.cpp','imgui_tables.cpp']]

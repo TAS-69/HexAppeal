@@ -62,12 +62,13 @@ for name in sorted(filter(None,tracked)):
     source_files.append((rel.as_posix(),data))
 patches=list((ROOT/'Hex Appeal - Bodies/files').rglob('*.patch'))
 if len(patches)!=7:raise SystemExit('Expected seven appearance patches.')
-summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches':7,'vanilla_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':'Previous clean development binary: sampled Elowen idle startup restoration, nine Dancer shape combinations, White/Black automatic refresh and Default restoration. This release rebuild has version-string/configuration changes and has not had a fresh live session.','licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
+summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches':7,'vanilla_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':'Development 0.5.8: sampled Elowen feature readiness, unverified appearance-mod warning, isolated incompatible-preset block, automatic detection recovery, saved shape and Dancer restoration. Earlier sampled builds cover nine Human Body/Dancer combinations and White/Black refresh. This public version-stamped rebuild has exact offline checks and no separate fresh game session. Outfit SDK examples compile and validate but provide no playable assets.','licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
 summary['distribution']=distribution
+summary['source_commit']=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
 summary_bytes=(json.dumps(summary,indent=2)+'\n').encode()
 inventory=[];archives=[]
 def archive(label,files):
-    path=output/(f'Hex Appeal - {label}-{version}.zip' if label else f'Hex Appeal-{version}.zip')
+    path=output/(f'HexAppeal-{label.replace(" ","-")}-{version}.zip' if label else f'HexAppeal-{version}.zip')
     names=set()
     with zipfile.ZipFile(path,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as dest:
         for name,data in sorted(files):
@@ -79,7 +80,7 @@ def archive(label,files):
     with zipfile.ZipFile(path) as src:
         if src.testzip():raise SystemExit('ZIP integrity failure.')
     archives.append({'file':path.name,'bytes':path.stat().st_size,'sha256':sha(path.read_bytes())})
-repo_url='https://github.com/TAS-69/HexAppeal/blob/main/'
+repo_url='https://github.com/TAS-69/HexAppeal/blob/v'+version+'/'
 def package_doc(text,origin):
     def link(match):
         label,target=match.group(1),match.group(2)

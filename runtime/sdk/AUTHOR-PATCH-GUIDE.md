@@ -57,8 +57,8 @@ Use soft warnings for unverified but readable dependency releases. Missing insta
 
 Check all toggle/variant combinations, each supported witch, shape extremes and ordinary blends. Confirm visible skin, correct materials, every authored detail level and moving cloth. Test Base underwear override and restoration, including editing a choice while overridden. Test Default → outfit, leaving/re-entering the area, save reload, full restart, provider unavailable/available, rapid edits and custom spouse/barber clothing. Restore the player's settings after testing.
 
-Sampled native accessory visibility and Base underwear linkage were checked on Elowen. Embedded Dancer top removal is not supplied. Correct exposed skin and outfit asset authoring require their own rendered checks.
+Native accessory visibility and Base underwear linkage have sampled live coverage on Elowen. Each adopting outfit still needs its own rendered checks for exposed skin, materials and every authored state.
 
-Combined multi-control prefab matrices have offline coverage; rendered coverage is still required for an adopting patch. This guide does not claim third-party adoption, all-witch motion acceptance or a verified embedded-top removal patch for Dancer.
+Combined multi-control prefab matrices have offline coverage; rendered coverage is still required for an adopting outfit. See [advanced integrations](ADVANCED-EXAMPLES.md) for a complete eight-state matrix, independent accessory bindings, custom renderer code and refresh/error handling.
 
 My SDK code and examples are 0BSD. They confer no licence to game assets or another outfit mod. Obtain any permissions needed for your own patch and retain the original credits.

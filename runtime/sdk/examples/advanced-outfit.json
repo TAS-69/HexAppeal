@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "example/studio-outfit",
+  "label": "Example Collection / Studio Outfit",
+  "prefab": "example_studio_black_full",
+  "credit": "Your outfit credits",
+  "requirements": "Supply and mount your own eight outfit prefabs and their resources.",
+  "controls": [
+    {"id": "colour", "label": "Colour", "type": "choice", "default": "black", "options": [{"id": "black", "label": "Black"}, {"id": "white", "label": "White"}]},
+    {"id": "bra", "label": "Outfit bra", "type": "toggle", "default": true, "follow_base_underwear": true},
+    {"id": "briefs", "label": "Outfit briefs", "type": "toggle", "default": true, "follow_base_underwear": true},
+    {"id": "belt", "label": "Belt", "type": "toggle", "default": true}
+  ],
+  "native_controls": ["colour", "bra", "briefs"],
+  "states": [
+    {"values": {"colour": "black", "bra": false, "briefs": false}, "prefab": "example_studio_black_bare"},
+    {"values": {"colour": "black", "bra": false, "briefs": true}, "prefab": "example_studio_black_briefs"},
+    {"values": {"colour": "black", "bra": true, "briefs": false}, "prefab": "example_studio_black_bra"},
+    {"values": {"colour": "black", "bra": true, "briefs": true}, "prefab": "example_studio_black_full"},
+    {"values": {"colour": "white", "bra": false, "briefs": false}, "prefab": "example_studio_white_bare"},
+    {"values": {"colour": "white", "bra": false, "briefs": true}, "prefab": "example_studio_white_briefs"},
+    {"values": {"colour": "white", "bra": true, "briefs": false}, "prefab": "example_studio_white_bra"},
+    {"values": {"colour": "white", "bra": true, "briefs": true}, "prefab": "example_studio_white_full"}
+  ],
+  "part_visibility": [{"control": "belt", "part": "ExampleStudioBelt"}]
+}

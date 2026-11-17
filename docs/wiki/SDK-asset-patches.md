@@ -20,12 +20,12 @@ Declare `follow_base_underwear: true` on supported per-witch garment toggles. **
 
 Native parts and native prefab matrices apply effective values automatically. A provider-owned renderer must use the effective value and watch both revision counters. Merely adding the flag does not identify geometry for your renderer.
 
-## For a Dancer compatibility patch
+## Combine variants and independent parts
 
-The built-in integration uses the original external outfit and colours. Its embedded bra/top has no independent removable route. To supply one, author a separate top part or complete alternate upper assemblies with correct exposed skin, materials, rig and detail levels. Declare the real keys/prefabs in your provider, link supported garment toggles to Base underwear if wanted, and distribute that patch with your own mod. Hex Appeal should continue referencing it externally. No rejected private split-model resources are included as a shortcut.
+Use a complete native matrix for controls that change the full assembly, and separate `part_visibility` bindings for controls with their own engine parts. A single control cannot own both routes. For example, two colours and two garment switches require eight authored states; an independent belt can use one engine visibility key.
 
-## Acceptance checklist
+The [advanced examples](SDK-examples.md) include the complete JSON, generated-header commands, lifecycle code, a shared-colour/custom-renderer provider, revision handling and error handling. All names are placeholders for your own assets.
 
-Test every variant/toggle combination, supported witch, neutral shape, extremes and ordinary blends. Check front/rear views, exposed skin, materials, detail levels and moving cloth. Test Default restoration, area streaming, save reload, full restart, rapid edits, missing/returning providers and custom spouse/barber outfits. Check Base underwear hiding, saved edits during the override and restoration afterward.
+## Test the patch
 
-API/definition tests validate the contract. They do not establish rendered fitting. Combined matrices still need live acceptance on your authored outfit. See the SDK's `AUTHOR-PATCH-GUIDE.md` for the full procedure.
+Check every combination, supported witch, shape range, detail level and moving cloth. Verify Base underwear overrides and stored-choice restoration, actor rebuilds, missing resources, save reload, full restart and custom spouse/barber equipment. Registration alone cannot establish rendering or fitting correctness.
