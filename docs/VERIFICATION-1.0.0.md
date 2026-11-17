@@ -10,7 +10,7 @@ The packaged Windows x64 runtime SHA-256 is:
 | --- | --- |
 | Full offline suite against this exact public binary | **21/21 passed** |
 | SDK definition/example cases included within that suite | **29/29 passed** |
-| Packaging, body-variant and shading helper tests | **22/22 passed** |
+| Packaging, body-variant and shading helper tests | **23/23 passed** |
 | Appearance/default-garment validation | **47/47 passed** |
 | Isolated native Weight/preset/Height cases | **44/44 passed** |
 | Existing native pose output comparisons | **11/11 byte-identical** |
@@ -30,8 +30,10 @@ Wardrobe retains the generic provider API, variants, toggles, visibility parts, 
 
 The isolated native probe used a test copy of Instant Surgery and rig buffers, without supplying an outfit source. It exercised all nine regional combinations, native transaction/physics acknowledgement, repeat-upload stability, modifier conflict handling, 36 weighted regional/Height extreme cases and eight weighted VENUS/FLAT cases without a Hex preset. Original dependency inputs were unchanged. All eleven previous pose files matched exactly.
 
-Earlier development sessions sampled Lyselia/Elowen shaping and default outfits. Wider all-witch fit and moving-cloth checks were player-reported. Generic native accessory visibility/Base underwear linkage has sampled Elowen coverage. The combined one-manifest layout was previously imported and mounted in DMM 5.0.1 with seven appearance and forty garment routes verified; that unchanged layout acceptance is retained.
+Earlier development sessions sampled Lyselia/Elowen shaping and default outfits. Wider all-witch fit and moving-cloth checks were player-reported. Generic native accessory visibility/Base underwear linkage has sampled Elowen coverage. The combined one-manifest layout was previously imported and mounted in DMM 5.0.1 with seven appearance and forty garment routes verified; the current core-only package was also freshly imported and mounted with every route supplied by Hex Appeal.
 
-**This exact core-only public rebuild has not had a fresh in-game session or manager import.** Its binary, package contents and native-buffer behavior have the checks above. These results do not certify every witch in motion, every detail level, controller behavior, arbitrary clothing or long-term stability. See [Compatibility](wiki/Compatibility.md).
+**The core-only player ZIP was freshly imported and tested in game on 17 November 2026.** All 80 imported files matched the archive. Elowen's default robe was sampled at all nine combinations, independent Weight/Height extremes, and a partial blend with axis preservation. Auto-apply/save, the default-only Wardrobe, unavailable legacy selection recovery, Base underwear preference/native acknowledgement, Minimise/Restore, pins and camera input blocking/passing worked. Her robe covered base underwear, so this session does not add an exposed-body visibility result. The exact binary and native-buffer checks above remain applicable. These results do not certify every witch in motion, every detail level, controller behavior, arbitrary clothing or long-term stability. See [Compatibility](wiki/Compatibility.md).
 
-The release includes matching `VERIFICATION.json`, `CONTENTS.json` and `SHA256SUMS.txt`.
+The release includes `VERIFICATION.txt` inside the player folder and matching external `VERIFICATION.json`, `CONTENTS.json` and `SHA256SUMS.txt`.
+
+The player report uses `.txt` because DMM interprets extra `.json` files as patches. A fresh import caught this and the packaging checks now reject extra JSON documents.

@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-17T16:33:16.470626+00:00",
+  "runtime_sha256": "e11bc8df1fe41ea7722f4c55ec51a8e287abc0eddf1190709bf4b6c8ed8784b3",
+  "tested_package_sha256": "0d3eb9b79807348f0b1d63fe46cfe481615158a2465e9e049cf7b97eec5166e6",
+  "game": "2.05.00",
+  "manager": "DMM 5.0.1",
+  "witch": "Elowen",
+  "body": "VENUS 2.6 Elf",
+  "outfit": "Default witch robe",
+  "dancer_resources_active": false,
+  "fresh_import_passed": true,
+  "appearance_routes": 7,
+  "own_garment_routes": 40,
+  "preset_combinations": 9,
+  "all_recorded_preferences_applied_and_saved": true,
+  "weight_height_independent_extremes": true,
+  "blended_pad_and_axis_preservation": true,
+  "default_restoration_from_legacy_choice": true,
+  "base_underwear_toggle_persisted_and_native_log_acknowledged": true,
+  "base_underwear_visual_check": "Covered by robe; no fresh exposed-body confirmation.",
+  "minimise_restore": true,
+  "pin_unpin": true,
+  "camera_input_blocked_and_allowed": true,
+  "dependencies_ready": [
+    "Shaping",
+    "HEX preset",
+    "Weight",
+    "Wardrobe",
+    "Base underwear"
+  ],
+  "character_creator": "Unverified version warning remained usable.",
+  "crash_observed": false,
+  "limitations": [
+    "Close front idle Elowen only in this session.",
+    "No new controller, every-LOD or long-duration certification.",
+    "No live generic provider asset retest in the core-only session."
+  ]
+}

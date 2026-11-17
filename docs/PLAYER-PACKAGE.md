@@ -2,7 +2,7 @@
 
 The version 1.0.0 package combines the runtime, seven body-routing patches and forty game-derived default outfit refits under one Hex Appeal folder and manifest. DMM uses one Mods entry plus its normal ASI switch. Both controls are part of installation and removal.
 
-The combined layout was imported and mounted in DMM 5.0.1 on 17 November 2026. The seven appearance routes, forty garment routes and included ASI were checked. This packaging layout acceptance is retained for the core-only rebuild; the exact new binary receives separate offline checks. It has not had a fresh core-only game session.
+The corrected package was freshly imported and mounted in DMM 5.0.1 on 17 November 2026. All 80 imported files matched the ZIP; all seven appearance routes, forty own garment routes and the included ASI were verified. The core-only runtime also passed a close-view Elowen session. See [Verification](VERIFICATION-1.0.0.md) for the tested scope.
 
 ## Contents
 
@@ -16,7 +16,7 @@ Hex Appeal/
   licenses/...
   LICENSE
   DEPENDENCIES-AND-REFERENCES.md
-  VERIFICATION.json
+  VERIFICATION.txt
 ```
 
 No Dancer setup launcher, dependency helper, palette implementation, source scanner, models, properties, textures or local file references belong in this release. Its old implementation is preserved privately for a possible separate patch after permission. Weight remains part of native shaping and has no outfit dependency.
