@@ -37,6 +37,19 @@ WardrobePartKind wardrobePartKind(int witch,const char* prefab){
     if(!strcmp(prefab,defaults[witch])||(witch==1&&!strcmp(prefab,"cd_phw_00_ub_00_0157")))return WardrobePartKind::DefaultGarment;
     return WardrobePartKind::Other;
 }
+bool defaultOutfitPart(int witch,const char* prefab){
+    if(!prefab||witch<0||witch>5)return false;
+    if(wardrobePartKind(witch,prefab)==WardrobePartKind::DefaultGarment)return true;
+    static const char* parts[6][5]={
+        {"cd_phw_00_foot_0092","cd_phw_00_hel_0185","cd_phw_00_foot_00_0185",nullptr},
+        {"cd_phw_00_foot_00_0163","cd_phw_00_hel_00_0187","cd_phw_00_foot_0038",nullptr},
+        {"cd_phw_00_foot_00_0161_index01","cd_phw_00_hel_0177",nullptr},
+        {"cd_phw_00_foot_00_0160","cd_phw_00_hel_00_0186",nullptr},
+        {"cd_phw_00_foot_0038","cd_phw_00_hel_00_0206_dd","cd_nhw_so_cloak_20169_s",nullptr},
+        {"cd_phw_00_foot_0137_01_index01","cd_phw_00_hel_00_0164",nullptr}
+    };
+    for(const auto* part:parts[witch])if(part&&!strcmp(prefab,part))return true;return false;
+}
 bool captureWardrobeSnapshot(uintptr_t actor,int witch,uintptr_t gameBase,WardrobeSnapshot& output){
     if(!actor||witch<0||witch>5||!gameBase)return false;
     __try {

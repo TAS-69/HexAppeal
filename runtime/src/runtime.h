@@ -12,7 +12,7 @@ namespace hex {
 enum QuickPin : uint32_t {
     PinTop=1u<<0,PinBottom=1u<<1,PinPad=1u<<2,PinHeight=1u<<3,PinWeight=1u<<4,
     PinUnderwear=1u<<5,PinOutfit=1u<<6,PinCopy=1u<<7,PinPaste=1u<<8,PinReset=1u<<9,
-    AllQuickPins=(1u<<10)-1
+    PinHideOutfit=1u<<10,AllQuickPins=(1u<<11)-1
 };
 struct NativeState {
     bool instantLoaded=false;
@@ -39,6 +39,8 @@ struct Runtime {
     bool hasCopied=false;
     std::atomic<uint32_t> underwearHiddenMask{0};
     std::atomic<uint64_t> underwearVersion{1};
+    std::atomic<uint32_t> outfitHiddenMask{0};
+    std::atomic<uint64_t> outfitHiddenVersion{1};
     std::atomic<bool> weightAvailable{false};
     std::atomic<bool> shapingAvailable{false},hexAvailable{false};
     std::atomic<bool> dependencyScanned{false};
@@ -60,6 +62,8 @@ struct Runtime {
     bool save();
     bool saveInterface();
     bool saveUnderwearPreference(uint32_t mask,std::string& error);
+    bool saveOutfitHiddenPreference(uint32_t mask,std::string& error);
+    bool saveVisibilityPreference(const char* key,uint32_t mask,std::string& error);
     void loadInterface(const std::filesystem::path& file);
     DependencyPaths configuredDependencyPaths();
     DependencyStatus dependencyStatus();

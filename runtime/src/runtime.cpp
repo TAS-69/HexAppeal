@@ -102,6 +102,7 @@ void Runtime::loadInterface(const std::filesystem::path& ui) {
     compact=value(L"Compact",0)!=0;livePreview=value(L"LivePreview",0)!=0;
     blockGameInput=value(L"BlockGameInput",1)!=0;quickPins=uint32_t(value(L"QuickPins",PinUnderwear|PinOutfit))&AllQuickPins;
     uiScalePercent=std::clamp(value(L"ScalePercent",100),80,130);underwearHiddenMask=uint32_t(value(L"UnderwearHiddenMask",0))&63u;
+    outfitHiddenMask=uint32_t(value(L"OutfitHiddenMask",value(L"FullNudeMask",0)))&63u;
     ml::State::Get().blockGameInput=blockGameInput;
 }
 static HMODULE pinnedInstant=nullptr;
@@ -189,7 +190,7 @@ bool Runtime::saveInterface() {
     std::ofstream file(temp,std::ios::binary|std::ios::trunc);
     if(!file){model.message="Interface preferences could not be saved.";return false;}
     file<<"[Interface]\nVersion=1\nActivationKeyVK="<<key<<"\nScalePercent="<<uiScalePercent
-        <<"\nCompact="<<compact<<"\nLivePreview="<<livePreview<<"\nBlockGameInput="<<blockGameInput<<"\nQuickPins="<<quickPins<<"\nUnderwearHiddenMask="<<underwearHiddenMask.load()<<"\n";
+        <<"\nCompact="<<compact<<"\nLivePreview="<<livePreview<<"\nBlockGameInput="<<blockGameInput<<"\nQuickPins="<<quickPins<<"\nUnderwearHiddenMask="<<underwearHiddenMask.load()<<"\nOutfitHiddenMask="<<outfitHiddenMask.load()<<"\n";
     file.flush();const bool written=bool(file);file.close();
     if(!written||!MoveFileExW(temp.c_str(),path.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)) {
         model.message="Interface preferences could not be saved.";return false;
@@ -197,6 +198,12 @@ bool Runtime::saveInterface() {
     return true;
 }
 bool Runtime::saveUnderwearPreference(uint32_t mask,std::string& error) {
+    return saveVisibilityPreference("UnderwearHiddenMask",mask,error);
+}
+bool Runtime::saveOutfitHiddenPreference(uint32_t mask,std::string& error) {
+    return saveVisibilityPreference("OutfitHiddenMask",mask,error);
+}
+bool Runtime::saveVisibilityPreference(const char* key,uint32_t mask,std::string& error) {
     std::lock_guard<std::mutex> guard(interfaceSaveMutex);
     if(profiles.empty()){error="The settings folder is unavailable.";return false;}
     const auto path=profiles.parent_path()/L"interface.ini";
@@ -205,7 +212,7 @@ bool Runtime::saveUnderwearPreference(uint32_t mask,std::string& error) {
     if(ec){error="Interface preferences could not be read.";return false;}
     std::string pending;bool inInterface=false,inserted=false;
     const auto trim=[](const std::string& text){const auto first=text.find_first_not_of(" \t\r");return first==std::string::npos?std::string{}:text.substr(first,text.find_last_not_of(" \t\r")-first+1);};
-    const auto row="UnderwearHiddenMask="+std::to_string(mask&63u)+"\n";
+    const auto row=std::string(key)+'='+std::to_string(mask&63u)+"\n";
     if(exists){
         const auto bytes=std::filesystem::file_size(path,ec);if(ec||bytes>1048576){error="Interface preferences are too large or unreadable.";return false;}
         std::ifstream input(path,std::ios::binary);if(!input){error="Interface preferences could not be read.";return false;}
@@ -220,7 +227,7 @@ bool Runtime::saveUnderwearPreference(uint32_t mask,std::string& error) {
                 pending+=line+'\n';if(inInterface&&!inserted){pending+=row;inserted=true;}continue;
             }
             const auto equal=text.find('=');
-            if(inInterface&&equal!=std::string::npos&&_stricmp(trim(text.substr(0,equal)).c_str(),"UnderwearHiddenMask")==0)continue;
+            if(inInterface&&equal!=std::string::npos&&_stricmp(trim(text.substr(0,equal)).c_str(),key)==0)continue;
             pending+=line+'\n';
         }
         if(input.bad()){error="Interface preferences could not be read completely.";return false;}
@@ -228,7 +235,7 @@ bool Runtime::saveUnderwearPreference(uint32_t mask,std::string& error) {
     if(!inserted)pending+="[Interface]\nVersion=1\n"+row;
     std::ofstream output(temp,std::ios::binary|std::ios::trunc);output<<pending;output.flush();const bool written=bool(output);output.close();
     if(!written||!MoveFileExW(temp.c_str(),path.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)){
-        error="The underwear preference could not be saved atomically.";return false;
+        error="The visibility preference could not be saved atomically.";return false;
     }
     return true;
 }

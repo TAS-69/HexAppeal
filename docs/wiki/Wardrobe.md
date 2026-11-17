@@ -19,3 +19,7 @@ Unavailable providers retain their saved selection and wait. Older built-in outf
 **Hide base bra & panties** controls the game's combined base underwear part. Compatible SDK outfits can also follow this choice while retaining their individual saved garment preferences.
 
 The switch cannot remove geometry embedded inside another mesh or reconstruct omitted skin. Outfit-specific removal needs independently addressable parts, authored alternatives or a checked provider renderer. See [SDK asset patches](SDK-asset-patches.md) and [advanced examples](SDK-examples.md).
+
+## Hide outfit
+
+**Hide outfit** removes recognised default clothing, hat and footwear. Base underwear stays independent; tick both controls for full nudity. Other outfits must opt in through the SDK. See [Hide outfit](Outfit-Visibility.md) and [provider setup](SDK-Outfit-Visibility.md).

@@ -137,7 +137,7 @@ static void dependencySettings(hex::Runtime& r){
 static void pinSettings(hex::Runtime& r){
     const bool open=ImGui::CollapsingHeader("Quick panel pins");record("pinHeader");if(!open)return;
     struct Item{const char* label;uint32_t bit;};
-    const Item items[]={{"Top selector",hex::PinTop},{"Bottom selector",hex::PinBottom},{"Shape pad",hex::PinPad},{"Height",hex::PinHeight},{"Weight",hex::PinWeight},{"Base underwear",hex::PinUnderwear},{"Outfit switch",hex::PinOutfit},{"Copy",hex::PinCopy},{"Paste",hex::PinPaste},{"Reset",hex::PinReset}};
+    const Item items[]={{"Top selector",hex::PinTop},{"Bottom selector",hex::PinBottom},{"Shape pad",hex::PinPad},{"Height",hex::PinHeight},{"Weight",hex::PinWeight},{"Base underwear",hex::PinUnderwear},{"Hide outfit",hex::PinHideOutfit},{"Outfit switch",hex::PinOutfit},{"Copy",hex::PinCopy},{"Paste",hex::PinPaste},{"Reset",hex::PinReset}};
     for(const auto& item:items){bool selected=(r.quickPins&item.bit)!=0;if(ImGui::Checkbox(item.label,&selected)){r.quickPins^=item.bit;r.saveInterface();}record("pin"+std::to_string(item.bit));}
     ImGui::TextDisabled("Or right-click a control to pin it.");
 }
@@ -147,6 +147,15 @@ static void underwearControl(hex::Runtime& r,bool available){
     record("underwear");ImGui::EndDisabled();pinContext(hex::PinUnderwear);versionDecoration(underwearVersionWarning,true,1);if(underwearVersionWarning.empty())tip("Hides the game's base underwear and compatible Wardrobe bra/panties. Built-in outfit pieces need provider support.");
     if(compatibility.state==hex::CompatibilityState::Blocked){ImGui::SameLine();ImGui::TextColored(errorColour,"(!)");tip(compatibility.detail.c_str());}
     if(status.mixed){ImGui::SameLine();ImGui::TextColored(gold,"Mixed");}
+}
+static void outfitHiddenControl(hex::Runtime& r){
+    const auto status=hex::outfitHiddenStatus(r.model.target);bool hidden=status.hidden;
+    ImGui::BeginDisabled(!status.ready&&!status.hidden&&!status.mixed);
+    if(ImGui::Checkbox("Hide outfit",&hidden)){std::string error;if(!hex::setOutfitHidden(r.model.target,hidden,error))r.model.message=error;}
+    record("outfitHidden");ImGui::EndDisabled();pinContext(hex::PinHideOutfit);versionDecoration(underwearVersionWarning,true,1);
+    if(underwearVersionWarning.empty())tip("Hides the default outfit, hat and footwear, or clothing supplied by a compatible Wardrobe outfit. Base bra & panties stay separate. Tick both options for full nudity.");
+    if(status.mixed){ImGui::SameLine();ImGui::TextColored(gold,"Mixed");}
+    if(status.hidden&&status.pending){ImGui::SameLine();ImGui::TextDisabled("Waiting for supported outfit");}
 }
 static void outfitControl(){
     auto& runtime=hex::Runtime::get();const auto status=hex::wardrobeEditorStatus(runtime.model.target);
@@ -245,6 +254,7 @@ void Render(){
         if(r.quickPins&hex::PinPad)changed|=shapePad(model.draft,250*scale,shapingReady,hexReady);
         changed|=proportions(r,shapingReady,(r.quickPins&hex::PinHeight)!=0,(r.quickPins&hex::PinWeight)!=0);
         if(r.quickPins&hex::PinUnderwear)underwearControl(r,shapingReady);
+        if(r.quickPins&hex::PinHideOutfit)outfitHiddenControl(r);
         if(r.quickPins&hex::PinOutfit)outfitControl();
         providerWardrobeControls(r,true);
         changed|=profileActions(r,r.quickPins);
@@ -262,6 +272,7 @@ void Render(){
         if(wardrobe){
             ImGui::Spacing();ImGui::PushFont(titleFont);ImGui::TextUnformatted("WARDROBE");ImGui::PopFont();ImGui::Spacing();
             ImGui::TextColored(gold,"OUTFIT");outfitControl();providerWardrobeControls(r);
+            ImGui::Spacing();ImGui::Separator();ImGui::Spacing();ImGui::TextColored(gold,"OUTFIT VISIBILITY");outfitHiddenControl(r);
             ImGui::Spacing();ImGui::Separator();ImGui::Spacing();ImGui::TextColored(gold,"BASE UNDERWEAR");
             underwearControl(r,shapingReady);ImGui::TextDisabled("Hides base underwear and linked outfit parts.");
             ImGui::EndTabItem();

@@ -18,7 +18,7 @@ int wmain(int argc,wchar_t** argv){try{
     write(config,"{\"other\":{\"modsPath\":\"ignore\"},\"gamePath\":"+quoted(game)+",\"modsPath\":"+quoted(storage)+"}");
     hex::DependencyPaths paths;paths.managerConfig=config;paths.manifest=actual.manifest.path;paths.legacyOutfitSource=temp/L"old-outfit-reference.pac";
     auto found=hex::inspectDependencies(game,paths);
-    require(found.manager.valid&&found.hex.valid&&found.hex.path==preset&&found.bodyVerified,"portable config, renamed mods and Unicode storage detection");
+    if(!found.manager.valid||!found.hex.valid||!fs::equivalent(found.hex.path,preset)||!found.bodyVerified){std::cerr<<"Expected preset: "<<preset.u8string()<<"\nDetected preset: "<<found.hex.path.u8string()<<"\nSource preset: "<<actual.hex.path.u8string()<<"\nManager: "<<found.manager.detail<<"\nBody: "<<found.bodyDetail<<'\n';throw std::runtime_error("portable config, renamed mods and Unicode storage detection");}
     paths.hexPreset=temp/L"not installed.ini";found=hex::inspectDependencies(game,paths);require(!found.hex.valid&&found.bodyVerified,"bad explicit preset cannot fall back silently");
     paths.hexPreset=actual.hex.path;paths.venusBody=actual.venus.path;paths.manifest=temp/L"no mounted file list.tsv";
     found=hex::inspectDependencies(game,paths);require(found.venus.valid&&!found.bodyVerified,"installed source alone cannot prove active body");

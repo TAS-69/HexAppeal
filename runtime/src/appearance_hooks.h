@@ -1,10 +1,11 @@
 #pragma once
 #include "hooks/dx12/creation_chain.h"
+#include "creator_versions.h"
 #include <string>
 
 namespace hex::appearance {
 inline std::string versionWarning(const char* name,const std::string& digest,const char* verified){
-    return digest==verified?std::string{}:std::string("This version of ")+name+" has not been verified. Functionality is not guaranteed. Outfit hooks are checked separately.";
+    return digest==verified||(std::string(name)=="Character Creator"&&verifiedCreatorVersion(digest))?std::string{}:std::string("This version of ")+name+" has not been verified. Functionality is not guaranteed. Outfit hooks are checked separately.";
 }
 inline bool knownJump(void* address,HMODULE first,HMODULE second){
     const auto observed=creation::Observe(address,nullptr);

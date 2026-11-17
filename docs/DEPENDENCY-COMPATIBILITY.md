@@ -1,6 +1,6 @@
 # Dependency compatibility
 
-The refreshed **1.0.0** release, based on development **0.5.8**, separates the installed version from the checks needed to use each feature. A new hash produces an **Unverified** warning. Readable files and a passing native interface remain usable. Failed requirements produce a **Blocked** state with the specific reason.
+The dependency checks introduced in development **0.5.8** and retained in **1.0.0** separate the installed version from the checks needed to use each feature. A new hash produces an **Unverified** warning. Readable files and a passing native interface remain usable. Failed requirements produce a **Blocked** state with the specific reason.
 
 Open **F9 → Settings → Dependencies & paths**. File rows show which downloads were found and verified. **Feature checks** show whether the active integration is ready. Hover a blocked row or its error icon for the cause.
 

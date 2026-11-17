@@ -2,6 +2,7 @@
 #include "runtime.h"
 #include "hex_presets.h"
 #include "venus_bodies.h"
+#include "creator_versions.h"
 #include <TlHelp32.h>
 #include <algorithm>
 #include <cctype>
@@ -93,7 +94,7 @@ bool isOwnModContent(const std::filesystem::path& path) {
 }
 DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths& paths) {
     DependencyStatus result;result.scanned=true;const auto base=absolute(game,game);
-    const auto nativeFile=[&](const fs::path& path,const char* hash,const char* label){DependencyFile file;file.path=path;file.valid=readableDependency(path);file.verified=file.valid&&sha256(path)==hash;file.detail=!file.valid?std::string(label)+" is not installed or its file is unreadable.":file.verified?"Verified installed version":unverifiedDependency(label);return file;};
+    const auto nativeFile=[&](const fs::path& path,const char* hash,const char* label){DependencyFile file;file.path=path;file.valid=readableDependency(path);const auto digest=file.valid?sha256(path):std::string{};file.verified=file.valid&&(digest==hash||(std::string(label)=="Character Creator"&&verifiedCreatorVersion(digest)));file.detail=!file.valid?std::string(label)+" is not installed or its file is unreadable.":file.verified?"Verified installed version":unverifiedDependency(label);return file;};
     result.game=nativeFile(base/L"bin64/CrimsonDesert.exe","8be67178d9b9a149c361a731051665e0ba4d441e250ae1dfe645bd6e524345c8","Crimson Desert");
     result.instant=nativeFile(base/L"bin64/InstantSurgery.asi","92d7cab4e244004ea433d1079c42288a985627fce9cb585844030282e591f009","Instant Surgery");
     result.physics=nativeFile(base/L"bin64/BodyPhysics.asi","6ed64a5136b3fd8a36fc1a3fcd02e62e102e7d0915f1c184daabd31c588db524","Body Physics");

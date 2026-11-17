@@ -8,6 +8,7 @@ static void jump(unsigned char* from,const void* target){std::memset(from,0x90,1
 int main(){
     using namespace hex::appearance;
     check(versionWarning("Character Creator","known","known").empty(),"verified version has no warning");
+    check(versionWarning("Character Creator","9d78133641350e0776667efba765538c72cf37620a69f58cd8d9f8c44843f42b","legacy").empty(),"live-checked Character Creator 9.1.41 is recognized");
     check(versionWarning("Character Creator","new","known").find("Character Creator has not been verified")!=std::string::npos,"unknown version warns with mod name");
     auto* page=static_cast<unsigned char*>(VirtualAlloc(nullptr,4096,MEM_RESERVE|MEM_COMMIT,PAGE_EXECUTE_READWRITE));check(page!=nullptr,"allocate fixture");
     const auto owner=GetModuleHandleW(nullptr);const auto target=reinterpret_cast<void*>(&destination);

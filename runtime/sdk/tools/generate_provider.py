@@ -32,17 +32,19 @@ def validate(data):
     if not isinstance(raw,list) or len(raw)>8:raise ValueError('Declare at most eight controls')
     controls=[];ids=set();variant_count=0
     for number,c in enumerate(raw):
-        if not isinstance(c,dict) or set(c)-{'id','label','help','type','scope','default','options','prefab_variant','follow_base_underwear'}:
+        if not isinstance(c,dict) or set(c)-{'id','label','help','type','scope','default','options','prefab_variant','follow_base_underwear','follow_outfit_hide'}:
             raise ValueError(f'controls[{number}]: unknown fields')
         control={'id':identifier(c.get('id'),32,'control id'),'label':text(c.get('label'),64,'control label'),
                  'help':text(c.get('help',''),256,'control help',True),'type':c.get('type'),'scope':c.get('scope','per_witch')}
         if control['id'] in ids:raise ValueError('Duplicate control id: '+control['id'])
         ids.add(control['id'])
         if control['type'] not in {'toggle','choice'} or control['scope'] not in {'per_witch','global'}:raise ValueError('Invalid control type or scope')
-        follow=c.get('follow_base_underwear',False);variant=c.get('prefab_variant',False)
-        if not isinstance(follow,bool) or not isinstance(variant,bool):raise ValueError('Control flags must be booleans')
-        control['flags']=(2 if follow else 0)|(1 if variant else 0)
+        follow=c.get('follow_base_underwear',False);variant=c.get('prefab_variant',False);nude=c.get('follow_outfit_hide',False)
+        if not isinstance(follow,bool) or not isinstance(variant,bool) or not isinstance(nude,bool):raise ValueError('Control flags must be booleans')
+        control['flags']=(2 if follow else 0)|(1 if variant else 0)|(4 if nude else 0)
         if follow and (control['type']!='toggle' or control['scope']!='per_witch'):raise ValueError('Base underwear applies to per-witch visibility toggles only')
+        if nude and (control['type']!='toggle' or control['scope']!='per_witch'):raise ValueError('Hide outfit applies to per-witch visibility toggles only')
+        if follow and nude:raise ValueError('Keep clothing and base underwear on separate controls')
         if control['type']=='toggle':
             if variant or c.get('options') or not isinstance(c.get('default',False),bool):raise ValueError('Toggle defaults must be booleans; toggles have no options or prefab_variant flag')
             control.update(default=int(c.get('default',False)),options=[])

@@ -71,9 +71,19 @@
       "sha256": "6ed64a5136b3fd8a36fc1a3fcd02e62e102e7d0915f1c184daabd31c588db524",
       "purpose": "Optional external plugin. When loaded, its compatible pose acknowledgement interface is needed for coordinated updates.",
       "redistributed": false
+    },
+    {
+      "id": "character_creator",
+      "name": "Character Creator",
+      "creator": "Khione95",
+      "url": "https://www.nexusmods.com/crimsondesert/mods/837",
+      "version": "9.1.41",
+      "sha256": "9d78133641350e0776667efba765538c72cf37620a69f58cd8d9f8c44843f42b",
+      "purpose": "Optional external hook coexistence. Verified for Hex Appeal startup, shaping, default Wardrobe and base visibility integration on the checked game; this is not certification of every Character Creator feature. Native operation checks still apply.",
+      "redistributed": false
     }
   ],
-  "wardrobe_api": "Original 0BSD C ABI v1, C++17 helper, definition generator, copied schemas, native part bindings/complete matrices, Base underwear policy and optional resource refresh. Provider assets remain external.",
+  "wardrobe_api": "Original 0BSD C ABI v1, C++17 helper, definition generator, copied schemas, native part bindings/complete matrices, Base underwear policy and optional resource refresh. Provider assets remain external. Optional Hide outfit preference API and per-witch provider opt-in preserve the original v1 tables.",
   "version_policy": "Unverified versions warn and remain usable. Missing installations and incorrect/unreadable paths block affected features. Actual incompatible interfaces return operation errors.",
   "references": [
     {

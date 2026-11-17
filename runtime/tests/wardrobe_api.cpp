@@ -11,10 +11,15 @@
 extern "C" const HA_WardrobeAPI* HA_CALL HexAppeal_GetWardrobeAPI(uint32_t);
 extern "C" const HA_BaseUnderwearAPI* HA_CALL HexAppeal_GetBaseUnderwearAPI(uint32_t);
 extern "C" const HA_NativeWardrobeAPI* HA_CALL HexAppeal_GetNativeWardrobeAPI(uint32_t);
+extern "C" const HA_OutfitVisibilityAPI* HA_CALL HexAppeal_GetOutfitVisibilityAPI(uint32_t);
 extern "C" int HA_CALL HexAppeal_RequestWardrobeRefreshV1(int32_t,const char*);
 namespace hex {
 static std::string selection="hexappeal/default";static std::atomic<unsigned> reapplied{0};
 static UnderwearPreference preference{};static bool rejectUnderwearSave=false;
+static UnderwearPreference nudePreference{};
+UnderwearPreference outfitHiddenPreference(){return nudePreference;}
+UnderwearStatus outfitHiddenStatus(int){return {true,false,false,false,"Fixture"};}
+bool setOutfitHidden(int target,bool hidden,std::string& error){if(rejectUnderwearSave){error="Fixture save denied";return false;}const auto mask=target<0?63u:1u<<target;const auto next=hidden?(nudePreference.hiddenMask|mask):(nudePreference.hiddenMask&~mask);if(next!=nudePreference.hiddenMask){nudePreference.hiddenMask=next;++nudePreference.revision;}return true;}
 UnderwearPreference baseUnderwearPreference(){return preference;}
 UnderwearStatus underwearStatus(int){return {false,false,false,true,"Native fixture not loaded"};}
 bool setUnderwearHidden(int target,bool hidden,std::string& error){if(rejectUnderwearSave){error="Fixture save denied";return false;}const auto mask=target<0?63u:1u<<target;const auto next=hidden?(preference.hiddenMask|mask):(preference.hiddenMask&~mask);if(next!=preference.hiddenMask){preference.hiddenMask=next;++preference.revision;}return true;}
@@ -29,6 +34,9 @@ static const HA_WardrobeAPI* HA_CALL invalidClientFactory(uint32_t){return &inva
 int wmain(int argc,wchar_t** argv){try{
     check(argc==2,"fixture path required");const auto root=std::filesystem::path(argv[1]);std::filesystem::create_directories(root);const auto file=root/L"controls.ini";std::error_code ec;std::filesystem::remove(file,ec);
     const auto* base=HexAppeal_GetBaseUnderwearAPI(1);HA_BaseUnderwearState state{};state.size=sizeof state;
+    const auto* nude=HexAppeal_GetOutfitVisibilityAPI(1);HA_OutfitVisibilityState nudeState=hexappeal::Sized<HA_OutfitVisibilityState>();
+    check(nude&&nude->size==sizeof(HA_OutfitVisibilityAPI)&&!HexAppeal_GetOutfitVisibilityAPI(2),"Hide outfit is an optional versioned extension");
+    check(nude->GetState(3,&nudeState)==HA_NOT_READY&&nude->SetHidden(3,1)==HA_NOT_READY,"Hide outfit never publishes before initialization");
     check(base&&base->size==sizeof(HA_BaseUnderwearAPI)&&!HexAppeal_GetBaseUnderwearAPI(2),"optional versioned underwear ABI");
     check(base->GetState(3,&state)==HA_NOT_READY&&base->SetHidden(3,1)==HA_NOT_READY,"pre-initialization calls fail before publishing preferences");
     std::string error;check(hex::initializeWardrobeAPI(file,error),"initialize API settings");const auto* api=HexAppeal_GetWardrobeAPI(1);check(api&&api->size==72&&!HexAppeal_GetWardrobeAPI(2),"original versioned C ABI layout unchanged");
@@ -44,7 +52,7 @@ int wmain(int argc,wchar_t** argv){try{
     invalid=outfit;strcpy_s(invalid.id,"example/bad-flags");controls[1].scope=HA_GLOBAL;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"linked underwear cannot silently hide a global shared mesh");controls[1].scope=HA_PER_WITCH;
     controls[0].flags=HA_FOLLOW_BASE_UNDERWEAR;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"choices cannot use visibility semantics");controls[0].flags=HA_PREFAB_VARIANT;
     controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR|HA_PREFAB_VARIANT;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"linked visibility rejects incompatible flags");controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR;
-    controls[1].flags=4;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"unknown flags rejected");controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR;
+    controls[1].flags=8;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"unknown flags rejected");controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR;
     std::memset(controls,0,sizeof controls);std::memset(variants,0,sizeof variants);std::memset(&outfit,0,sizeof outfit);
     check(api->SelectOutfit(3,"example/dress")==HA_UNAVAILABLE,"unready dependency gate");check(api->SetAvailable(handle,1,"")==HA_OK&&api->SelectOutfit(3,"example/dress")==HA_OK,"provider can enable and select its copied definition");
     HA_ControlValue value{};value.size=sizeof value;check(api->GetControl(3,"example/dress","panties",&value)==HA_OK&&value.value==1,"default toggle supplied");
@@ -133,6 +141,39 @@ int wmain(int argc,wchar_t** argv){try{
     check(base->SetHidden(3,0)==HA_OK&&api->SetControl(3,"example/parts","bra",0)==HA_OK&&hex::resolveWardrobeProvider("example/parts",3,resolved,error)&&!resolved.visibilityParts[0].visible,"independent part toggle remains off after base show");
     check(hex::resolveWardrobeProvider("example/parts",2,resolved,error)&&resolved.visibilityParts[0].visible,"native part toggles remain per witch");
     check(client.Unregister(partHandle)==HA_OK&&!hex::resolveWardrobeProvider("example/parts",3,resolved,error),"removed provider no longer supplies native part policy");
-    client.Reset();check(!client.Connected()&&!client.HasNativeCombinations(),"explicit helper reset clears capabilities");
+    HA_Control nudeControl=hexappeal::Sized<HA_Control>();nudeControl.type=HA_TOGGLE;nudeControl.defaultValue=1;nudeControl.flags=HA_FOLLOW_OUTFIT_HIDE;
+    hexappeal::Text(nudeControl.id,"clothes");hexappeal::Text(nudeControl.label,"Clothes");
+    partOutfit.controls=&nudeControl;hexappeal::Text(partOutfit.id,"example/nude");hexappeal::Text(part.control,"clothes");hexappeal::Text(part.part,"OwnClothes");uint64_t nudeHandle=0;
+    nudeControl.scope=HA_GLOBAL;check(native->RegisterOutfit(&partDefinition,&nudeHandle)==HA_INVALID,"Hide outfit cannot hide globally shared parts");nudeControl.scope=HA_PER_WITCH;
+    nudeControl.flags=HA_FOLLOW_BASE_UNDERWEAR|HA_FOLLOW_OUTFIT_HIDE;check(native->RegisterOutfit(&partDefinition,&nudeHandle)==HA_INVALID,"clothing and underwear cannot share a follow control");nudeControl.flags=HA_FOLLOW_OUTFIT_HIDE;
+    check(native->RegisterOutfit(&partDefinition,&nudeHandle)==HA_OK&&api->SetAvailable(nudeHandle,1,"")==HA_OK,"explicit per-outfit Hide outfit opt-in");
+    check(nude->SetHidden(3,1)==HA_OK&&nude->GetState(3,&nudeState)==HA_OK&&nudeState.hiddenMask==8&&nudeState.hidden,"Hide outfit preference is per witch");
+    check(base->GetState(3,&state)==HA_OK&&!state.hidden,"Hide outfit does not rewrite Base underwear preference");
+    check(hex::resolveWardrobeProvider("example/nude",3,resolved,error)&&!resolved.visibilityParts[0].visible,"Hide outfit masks opted-in native parts");
+    check(base->GetEffectiveControl(3,"example/nude","clothes",&effective)==HA_OK&&!effective.value&&effective.storedValue==1,"effective renderer controls preserve original values");
+    check(base->GetEffectiveControl(2,"example/nude","clothes",&effective)==HA_OK&&effective.value==1,"another witch is unchanged");
+    check(base->GetEffectiveControl(3,"example/dress","panties",&effective)==HA_UNAVAILABLE,"unavailable provider stays unavailable under Hide outfit");
+    HA_Control pairControls[2]={nudeControl,partControl};HA_VisibilityPart pairParts[2]={part,part};
+    hexappeal::Text(pairParts[1].control,"bra");hexappeal::Text(pairParts[1].part,"OwnBra");
+    auto pairOutfit=partOutfit;hexappeal::Text(pairOutfit.id,"example/independent-visibility");pairOutfit.controlCount=2;pairOutfit.controls=pairControls;
+    auto pairDefinition=partDefinition;pairDefinition.outfit=&pairOutfit;pairDefinition.partCount=2;pairDefinition.parts=pairParts;uint64_t pairHandle=0;
+    check(native->RegisterOutfit(&pairDefinition,&pairHandle)==HA_OK&&api->SetAvailable(pairHandle,1,"")==HA_OK,"register clothing and underwear as independent native bindings");
+    for(int clothes=0;clothes<2;++clothes)for(int bra=0;bra<2;++bra){
+        check(nude->SetHidden(3,clothes)==HA_OK&&base->SetHidden(3,bra)==HA_OK&&hex::resolveWardrobeProvider(pairOutfit.id,3,resolved,error),"select the independent visibility combination");
+        check(resolved.visibilityParts[0].visible==!clothes&&resolved.visibilityParts[1].visible==!bra,"native clothing and underwear retain all four independent combinations");
+        check(base->GetEffectiveControl(3,pairOutfit.id,"bra",&effective)==HA_OK&&effective.value==!bra&&effective.baseUnderwearHidden==unsigned(bra)&&effective.storedValue==1,"custom renderer receives only its matching underwear override");
+    }
+    check(base->SetHidden(3,0)==HA_OK&&nude->GetState(3,&nudeState)==HA_OK&&client.Unregister(pairHandle)==HA_OK,"restore the matrix fixture without changing saved garment values");
+    auto ordinary=partOutfit;hexappeal::Text(ordinary.id,"example/ordinary");partDefinition.outfit=&ordinary;nudeControl.flags=HA_FOLLOW_BASE_UNDERWEAR;uint64_t ordinaryHandle=0;
+    check(native->RegisterOutfit(&partDefinition,&ordinaryHandle)==HA_OK&&api->SetAvailable(ordinaryHandle,1,"")==HA_OK&&hex::resolveWardrobeProvider("example/ordinary",3,resolved,error)&&resolved.visibilityParts[0].visible,"an outfit without Hide outfit opt-in is unchanged");
+    nudeControl.flags=HA_FOLLOW_OUTFIT_HIDE;partDefinition.outfit=&partOutfit;
+    const auto nudeRevision=nudeState.revision;hex::rejectUnderwearSave=true;
+    check(nude->SetHidden(3,0)==HA_UNAVAILABLE&&nude->GetState(3,&nudeState)==HA_OK&&nudeState.hidden&&nudeState.revision==nudeRevision,"failed Hide outfit save keeps state and revision");hex::rejectUnderwearSave=false;
+    check(nude->SetHidden(3,0)==HA_OK&&hex::resolveWardrobeProvider("example/nude",3,resolved,error)&&resolved.visibilityParts[0].visible,"Hide outfit off restores the outfit's stored visibility");
+    check(nude->SetHidden(-1,1)==HA_OK&&nude->GetState(-1,&nudeState)==HA_OK&&nudeState.hidden&&nudeState.hiddenMask==63,"All has six independent Hide outfit selections");
+    check(nude->SetHidden(3,0)==HA_OK&&nude->GetState(-1,&nudeState)==HA_OK&&nudeState.mixed&&!nudeState.hidden,"mixed All visibility is observable");
+    check(nude->SetHidden(6,1)==HA_INVALID&&nude->SetHidden(3,2)==HA_INVALID&&nude->GetState(-2,&nudeState)==HA_INVALID&&nude->GetState(3,reinterpret_cast<HA_OutfitVisibilityState*>(1))==HA_INVALID,"invalid Hide outfit calls fail safely");
+    check(client.Attach(HexAppeal_GetWardrobeAPI,HexAppeal_GetBaseUnderwearAPI,HexAppeal_GetNativeWardrobeAPI,HexAppeal_RequestWardrobeRefreshV1,HexAppeal_GetOutfitVisibilityAPI)&&client.HasOutfitVisibility()&&client.HideOutfit(-1,false)==HA_OK&&client.OutfitVisibilityState(3,nudeState)==HA_OK&&!nudeState.hidden,"client discovers and controls optional Hide outfit extension");
+    client.Reset();check(!client.Connected()&&!client.HasNativeCombinations()&&!client.HasOutfitVisibility(),"explicit helper reset clears capabilities");
     std::cout<<"PASS: original C ABI, native prefab combinations, complete-schema validation, linked bra/panties override/restoration, per-witch/All persistence, provider lifecycle, client capability discovery, concurrency, idempotency and failed-save preservation.\n";return 0;
 }catch(const std::exception& e){std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}}

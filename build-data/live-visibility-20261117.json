@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-17",
+  "runtime_sha256": "b98c327a7d177bce679036d6cc720cc81e5e1addfae3cd443360f3221e8e099b",
+  "development_version": "0.5.12",
+  "public_version": "1.0.0",
+  "game": "2.05.00 / Steam 26636972",
+  "body": "VENUS 2.6 Elf Body",
+  "witch": "Elowen",
+  "default_outfit_visibility_combinations": {
+    "neither": "Default robe visible",
+    "outfit_only": "Robe/hat removed; bra and panties visibly retained",
+    "both": "Robe/hat and underwear absent",
+    "underwear_only": "Default robe returned; underwear preference remained enabled"
+  },
+  "repeated_removal_restoration": true,
+  "saved_hide_outfit_restored_after_full_restart": true,
+  "quick_panel_pin_minimise_toggle_unpin_restore": true,
+  "non_participating_sdk_outfit_retained": true,
+  "refresh_delay_ms": 500,
+  "observed_wait_ms": [
+    625,
+    625,
+    625
+  ],
+  "refresh_cycles": 3,
+  "refresh_scope": "Explicit public SDK calls using an already-loaded original game robe, with native assembly acknowledgements and visual return to the selected robe. No external texture-cache acceptance.",
+  "temporary_helper_removed_after_game_closed": true,
+  "original_saved_profiles_exactly_preserved": true,
+  "global_bra_panties_split": "Not exposed separately by the inspected engine part and mounted underwear. Combined control retained.",
+  "crash_observed": false,
+  "limitations": [
+    "Close front/oblique idle Elowen only; not every witch, detail level, controller or long-duration test.",
+    "Base underwear can briefly reappear while an outfit rebuild settles.",
+    "The clean core layout was freshly imported earlier; this runtime was updated in that same entry. The final rebuilt ZIP was not imported again.",
+    "A provider must verify its own textures, skin coverage, visibility states and fitting."
+  ]
+}

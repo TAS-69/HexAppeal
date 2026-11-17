@@ -14,8 +14,8 @@ I made **Hex Appeal** to bring the actual installed **VENUS Human Body or Elf Bo
 | :--- | :--- | :--- |
 | Independent HEX / VENUS / FLAT top and bottom, blended on one pad | Default outfit or a separately installed SDK provider | Six saved witch profiles and All witches |
 | All nine combinations, with gentle sticky points | Provider-defined variants, toggles and refresh | Independent Height and Weight |
-| Compatible body and outfit pose deformation | Separate Base underwear section | F9, rescaling, input blocking and a pinnable quick panel |
-| Included default-outfit refits | Open SDK for outfit names, variants, toggles and underwear linkage | Automatic saves and restoration after loading |
+| Compatible body and outfit pose deformation | Independent Hide outfit and Base underwear sections | F9, rescaling, input blocking and a pinnable quick panel |
+| Included default-outfit refits | Open SDK for variants, toggles and opt-in clothing/underwear visibility | Automatic saves and restoration after loading |
 
 Supported human forms: **Lyselia, Bari, Areciel, Elowen, Sylvia and White Crow**, including the alternate Bari appearance. Bird/drone White Crow is outside this scope.
 
@@ -43,6 +43,6 @@ Register an outfit's real name and the options it actually supports. Wardrobe ha
 
 Base underwear does not remove arbitrary geometry from other outfits. Each provider declares what its resources support. Extreme proportions can still clip. See [compatibility and tested limits](docs/wiki/Compatibility.md).
 
-**Validation:** 21 runtime checks, 29 SDK cases within that suite, 22 helper tests and 47 body/refit checks. All four SDK example targets compile. See the [verification scope](docs/VERIFICATION-1.0.0.md) for the exact release binary, results and live-test limits.
+**Validation:** this binary passed 21 runtime checks, 33 SDK cases within that suite, 23 helper tests and 44 native shaping cases. The unchanged body/refit set retains its 47 checks. Live Elowen checks covered independent visibility, startup restoration and three SDK refresh cycles. All four SDK example targets compile. See the [verification scope](docs/VERIFICATION-1.0.0.md) for the exact release binary, results and live-test limits, and [Compatibility](docs/wiki/Compatibility.md) for tested limits.
 
 Downloaded bodies, presets, plugins and outfit files are **external dependencies**. They are not included here. My code and SDK are **0BSD**; compiled overlay/library adaptations retain their own notices. Game-derived default garment refits remain Pearl Abyss content. Thanks to **Kasprutz, Hex0x0, AlexeySova, Vincent1681**, and everyone credited in [dependency use & credits](DEPENDENCIES-AND-REFERENCES.md).

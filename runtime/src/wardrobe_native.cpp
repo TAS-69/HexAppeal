@@ -3,6 +3,7 @@
 #include "wardrobe_transport.h"
 #include "wardrobe_api.h"
 #include "wardrobe_refresh.h"
+#include "wardrobe_nude.h"
 #include "runtime.h"
 #include "underwear.h"
 #include "core/log.h"
@@ -12,6 +13,7 @@
 #include <cctype>
 #include <fstream>
 #include <map>
+#include <set>
 
 namespace hex {
 namespace {
@@ -24,7 +26,7 @@ std::array<std::string,6> witchDetail{};
 std::array<std::string,6> choiceErrors{};
 std::string detail="Wardrobe integration is not ready.";
 uintptr_t base=0;
-struct Owned {int witch=-1;uintptr_t node=0;uint64_t attempted=0,observedAt=0;bool installed=false,pending=false;DWORD deadline=0;std::string original,current,requested,removed,refreshOutfit,desired;WardrobeRefreshCycle refresh;};
+struct Owned {int witch=-1;uintptr_t node=0;uint64_t attempted=0,observedAt=0;bool installed=false,pending=false;DWORD deadline=0;std::string original,current,requested,removed,refreshOutfit,desired;WardrobeRefreshCycle refresh;WardrobeNudeCycle nude;std::vector<WardrobeRecord> nudeRecords;std::vector<std::string> nudeNames;};
 std::map<uintptr_t,Owned> owned;
 uintptr_t ptr(uintptr_t at){__try{return at?*reinterpret_cast<const uintptr_t*>(at):0;}__except(EXCEPTION_EXECUTE_HANDLER){return 0;}}
 uint32_t num(uintptr_t at){__try{return at?*reinterpret_cast<const uint32_t*>(at):0;}__except(EXCEPTION_EXECUTE_HANDLER){return 0;}}
@@ -42,6 +44,7 @@ bool pipeline(uintptr_t node,WardrobeVector* removals,WardrobeVector* additions,
     __try{reinterpret_cast<intptr_t(*)(uintptr_t,void*,void*,uint8_t)>(base+0x2f8c200)(node,removals,additions,flag);return true;}
     __except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
+bool rebuild(uintptr_t node,const WardrobeVector* ready,WardrobeVector* removals,WardrobeVector* additions,uint8_t flag){return rebuildWardrobePipeline(node,ready,removals,additions,flag,pipeline);}
 uintptr_t canonical(const char* name){
     const auto loader=ptr(base+0x7160288),table=loader+0x50;const auto count=num(table+4),capacity=num(table+8);const auto entries=ptr(table+0x18);
     if(!loader||!entries||count>capacity||count>100000)return 0;
@@ -60,9 +63,64 @@ bool readyRecord(const WardrobeSnapshot& snapshot,const char* expected,WardrobeR
             record=candidate;return true;}
     }return false;
 }
+bool readyRecords(const WardrobeSnapshot& snapshot,std::vector<WardrobeRecord>& records){
+    const auto data=ptr(snapshot.node+0x40);const auto count=num(snapshot.node+0x48),capacity=num(snapshot.node+0x4c);
+    if(!data||!count||count>64||count>capacity)return false;
+    records.resize(count);if(!read(data,records.data(),count*sizeof(WardrobeRecord)))return false;
+    for(const auto& record:records)if(!isSimpleWardrobeRecord(record,base))return false;
+    return ptr(snapshot.node+0x40)==data&&num(snapshot.node+0x48)==count;
+}
 std::string defaultGarment(const WardrobeSnapshot& snapshot){for(uint32_t i=0;i<snapshot.claimCount;++i)if(snapshot.claims[i].kind==WardrobePartKind::DefaultGarment)return snapshot.claims[i].prefab;return {};}
 WardrobeCapabilities capabilities(){WardrobeCapabilities result;result.switchReady=engineReady&&writesAllowed&&!faulted;return result;}
-uint32_t refreshDelay(){const auto ini=Runtime::get().folder/L"HexAppeal.ini";return std::clamp<uint32_t>(GetPrivateProfileIntW(L"Wardrobe",L"RefreshDelayMs",1500,ini.c_str()),100,10000);}
+uint32_t refreshDelay(){const auto ini=Runtime::get().folder/L"HexAppeal.ini";return std::clamp<uint32_t>(GetPrivateProfileIntW(L"Wardrobe",L"RefreshDelayMs",500,ini.c_str()),100,10000);}
+void failWardrobe(const char* message){faulted=true;detail=message;LOG("Wardrobe stopped: %s",message);Runtime::get().reportCompatibility(Feature::Wardrobe,CompatibilityState::Blocked,detail);}
+bool releaseNudeRecords(Owned& entry){
+    bool ok=true;for(const auto& record:entry.nudeRecords){uintptr_t wrapper=0;std::memcpy(&wrapper,record.bytes.data(),sizeof wrapper);if(!release(&wrapper))ok=false;}
+    entry.nudeRecords.clear();entry.nudeNames.clear();entry.nude={};return ok;
+}
+bool defaultNude(uintptr_t actor,int witch,const WardrobeSnapshot& snapshot,Owned& entry,bool requested,bool accessoryOnly,std::string& status){
+    const auto now=GetTickCount64();const auto present=[&](const std::string& name){for(uint32_t i=0;i<snapshot.claimCount;++i)if(name==snapshot.claims[i].prefab)return true;return false;};
+    bool any=false,all=!entry.nudeNames.empty(),outfitPresent=false;for(const auto& name:entry.nudeNames){const bool found=present(name);any|=found;all&=found;}
+    for(uint32_t i=0;i<snapshot.claimCount;++i)outfitPresent|=defaultOutfitPart(witch,snapshot.claims[i].prefab);
+    if(snapshot.customGarment&&(!entry.installed||!present(entry.current))){
+        if(!releaseNudeRecords(entry)){faulted=true;detail="Outfit references could not be released.";}
+        setOutfitHiddenActor(actor,snapshot.renderer,witch,false,!requested);status="Custom outfit retained";return false;
+    }
+    if(entry.nude.pending()){
+        const bool settled=entry.nude.observe(any,all,now);
+        if(entry.nude.phase==WardrobeNudeCycle::Failed){failWardrobe("Hide outfit outfit change was not acknowledged. Restart before retrying.");status=detail;return true;}
+        if(settled){Runtime::get().requestShapeReapply(witch);LOG("Hide outfit assembly acknowledged witch=%d hidden=%d.",witch,entry.nude.phase==WardrobeNudeCycle::Nude);}
+        if(entry.nude.phase==WardrobeNudeCycle::Dressed){if(!releaseNudeRecords(entry)){faulted=true;detail="Outfit references could not be released.";}setOutfitHiddenActor(actor,snapshot.renderer,witch,false,true);status="Outfit / active";return false;}
+        if(entry.nude.pending()){setOutfitHiddenActor(actor,snapshot.renderer,witch,requested,false);status="Hide outfit / refreshing";return true;}
+    }
+    if(!requested&&entry.nude.phase==WardrobeNudeCycle::Nude){
+        WardrobeSnapshot fresh;if(!captureWardrobeSnapshot(actor,witch,base,fresh)||fresh.node!=snapshot.node||fresh.claimData!=snapshot.claimData||fresh.claimCount!=snapshot.claimCount)return true;
+        std::vector<WardrobeRecord> ready;if(!readyRecords(snapshot,ready)){status="Hide outfit / waiting for outfit records";return true;}
+        const auto result=invokeWardrobeRebuild(snapshot.node,ready,{},entry.nudeRecords,base,{retain,release,destroy,pipeline,rebuild});
+        if(result!=WardrobeCallResult::Completed){failWardrobe("Hide outfit outfit restoration failed. Restart before retrying.");status=detail;return true;}
+        entry.nude.restoring(now);setOutfitHiddenActor(actor,snapshot.renderer,witch,false,false);status="Hide outfit / restoring outfit";LOG("Hide outfit restore call witch=%d records=%zu.",witch,entry.nudeRecords.size());return true;
+    }
+    if(!requested){setOutfitHiddenActor(actor,snapshot.renderer,witch,false,true);return false;}
+    if(entry.nude.phase==WardrobeNudeCycle::Nude&&!outfitPresent){setOutfitHiddenActor(actor,snapshot.renderer,witch,true,true);status="Hide outfit / active";return !accessoryOnly;}
+    if(entry.nude.phase==WardrobeNudeCycle::Dressed&&!snapshot.defaultGarment&&!accessoryOnly){setOutfitHiddenActor(actor,snapshot.renderer,witch,false,false);status="Hide outfit / waiting for default outfit";return true;}
+    std::vector<WardrobeRecord> removals;std::set<std::string> names;
+    for(uint32_t i=0;i<snapshot.claimCount;++i){const auto& claim=snapshot.claims[i];if(!defaultOutfitPart(witch,claim.prefab)||!names.insert(claim.prefab).second)continue;
+        if(removals.size()>=8){status="Hide outfit / outfit part limit reached";return true;}
+        WardrobeRecord record;if(!readyRecord(snapshot,claim.prefab,record)){status="Hide outfit / waiting for outfit records";return true;}removals.push_back(record);
+    }
+    if(removals.empty()){setOutfitHiddenActor(actor,snapshot.renderer,witch,accessoryOnly,accessoryOnly);status=accessoryOnly?"Hide outfit / active":"Hide outfit / waiting for outfit";return !accessoryOnly;}
+    for(const auto& name:names)if(std::find(entry.nudeNames.begin(),entry.nudeNames.end(),name)==entry.nudeNames.end()){
+        WardrobeRecord record;if(!readyRecord(snapshot,name.c_str(),record)){status="Hide outfit / waiting for outfit records";return true;}
+        uintptr_t wrapper=0;std::memcpy(&wrapper,record.bytes.data(),sizeof wrapper);if(!retain(wrapper)){status="Hide outfit / outfit reference unavailable";return true;}
+        entry.nudeRecords.push_back(record);entry.nudeNames.push_back(name);
+    }
+    WardrobeSnapshot fresh;if(!captureWardrobeSnapshot(actor,witch,base,fresh)||fresh.node!=snapshot.node||fresh.claimData!=snapshot.claimData||fresh.claimCount!=snapshot.claimCount)return true;
+    if(!restoreOutfitVisibility(reinterpret_cast<void*>(actor))){status="Hide outfit / waiting for garment visibility";return true;}
+    std::vector<WardrobeRecord> ready;if(!readyRecords(snapshot,ready)){status="Hide outfit / unsupported outfit record layout";return true;}
+    const auto result=invokeWardrobeRebuild(snapshot.node,ready,removals,{},base,{retain,release,destroy,pipeline,rebuild});
+    if(result!=WardrobeCallResult::Completed){failWardrobe("Hide outfit outfit removal failed. Restart before retrying.");status=detail;return true;}
+    entry.nude.removing(now);setOutfitHiddenActor(actor,snapshot.renderer,witch,true,false);status="Hide outfit / refreshing";LOG("Hide outfit removal call witch=%d records=%zu.",witch,removals.size());return true;
+}
 }
 bool initializeNativeWardrobe(std::string& error){
     auto& runtime=Runtime::get();std::lock_guard<std::mutex> lock(mutex);
@@ -101,8 +159,14 @@ void tickNativeWardrobe(uintptr_t actor,int witch){
     if(!isDefault){WardrobeProviderOutfit provider;std::string error;if(!resolveWardrobeProvider(choiceId,witch,provider,error)){status=error;return;}desired=provider.prefab;}
     const auto has=[&](const std::string& name){for(uint32_t i=0;i<snapshot.claimCount;++i)if(name==snapshot.claims[i].prefab)return true;return false;};
     if(owned.find(actor)==owned.end()&&owned.size()>=64){status="Instance limit reached; reload before adding more.";return;}auto& entry=owned[actor];
-    if(entry.node!=snapshot.node||entry.witch!=witch){entry={};entry.node=snapshot.node;entry.witch=witch;entry.observedAt=GetTickCount64();appliedGeneration[witch]=0;}
+    if(entry.node!=snapshot.node||entry.witch!=witch){if(!releaseNudeRecords(entry)){faulted=true;detail="Outfit references could not be released.";return;}entry={};entry.node=snapshot.node;entry.witch=witch;entry.observedAt=GetTickCount64();appliedGeneration[witch]=0;}
     if(GetTickCount64()-entry.observedAt<250){status="Outfit / waiting for witch";return;}
+    const bool nudeRequested=(Runtime::get().outfitHiddenMask.load()&(1u<<witch))!=0;
+    bool providerNude=false;if(!isDefault&&nudeRequested&&entry.installed&&!entry.pending&&has(entry.current)){WardrobeProviderOutfit provider;std::string ignored;if(resolveWardrobeProvider(choiceId,witch,provider,ignored))providerNude=std::any_of(provider.controls.begin(),provider.controls.end(),[](const auto& c){return (c.flags&HA_FOLLOW_OUTFIT_HIDE)!=0;});}
+    if(entry.nude.phase!=WardrobeNudeCycle::Dressed||(isDefault&&nudeRequested&&!entry.installed&&!entry.pending)||providerNude){
+        if(defaultNude(actor,witch,snapshot,entry,(isDefault&&nudeRequested&&!entry.installed)||providerNude,providerNude,status))return;
+    }
+    setOutfitHiddenActor(actor,snapshot.renderer,witch,providerNude,!nudeRequested||providerNude);
     if(entry.refresh.pending()&&entry.refreshOutfit==choiceId)entry.refresh.generation=selected.generations[witch];else entry.refresh.sync(selected.generations[witch]);
     if(entry.pending){
         const bool observed=has(entry.requested)&&!has(entry.removed);
@@ -138,6 +202,7 @@ void tickNativeWardrobe(uintptr_t actor,int witch){
     if(!restoreOutfitVisibility(reinterpret_cast<void*>(actor))){status="Outfit / waiting to restore garment visibility";return;}
     entry.attempted=selected.generations[witch];
     entry.refresh.applyingSelected();
+    if(entry.refresh.phase==WardrobeRefreshCycle::Selected)LOG("Wardrobe refresh restore witch=%d delay_ms=%u observed_wait_ms=%llu.",witch,entry.refresh.delayMs,static_cast<unsigned long long>(GetTickCount64()-(entry.refresh.restoreAt-entry.refresh.delayMs)));
     const auto result=invokeWardrobeSwap(snapshot.node,record,addWrapper,base,{retain,release,destroy,pipeline});
     LOG("Wardrobe switch call witch=%d actor=%p node=%p source=%s target=%s result=%d thread=%u.",witch,reinterpret_cast<void*>(actor),reinterpret_cast<void*>(snapshot.node),source,target,int(result),GetCurrentThreadId());
     if(result!=WardrobeCallResult::Completed){faulted=true;std::string ignored;if(entry.refresh.phase==WardrobeRefreshCycle::Idle)selections.change(witch,WardrobeField::Outfit,0,{true},ignored);detail="The outfit call failed. Reload before retrying.";return;}

@@ -7,10 +7,13 @@
   "requirements": "Example names only: supply and mount your own prefab and models.",
   "controls": [
     {"id": "bra", "label": "Outfit bra", "type": "toggle", "default": true, "follow_base_underwear": true},
-    {"id": "briefs", "label": "Outfit briefs", "type": "toggle", "default": true, "follow_base_underwear": true}
+    {"id": "briefs", "label": "Outfit briefs", "type": "toggle", "default": true, "follow_base_underwear": true},
+    {"id": "clothing", "label": "Clothing", "type": "toggle", "default": true, "follow_outfit_hide": true}
   ],
   "part_visibility": [
     {"control": "bra", "part": "ExampleOutfitBra"},
-    {"control": "briefs", "part": "ExampleOutfitBriefs"}
+    {"control": "briefs", "part": "ExampleOutfitBriefs"},
+    {"control": "clothing", "part": "ExampleOutfitDress"},
+    {"control": "clothing", "part": "ExampleOutfitAccessories"}
   ]
 }

@@ -44,5 +44,11 @@ int wmain(int argc,wchar_t** argv){try{
     check(!refresh.readyToRestore(2599)&&refresh.readyToRestore(2600),"restoration waits for the complete interval without sleeping the game thread");
     refresh.request(12,2000,1500);check(!refresh.readyToRestore(3499)&&refresh.readyToRestore(3500),"an edit while settling extends the interval for the latest resources");
     refresh.applyingSelected();check(refresh.acknowledged(true,3501)&&!refresh.pending(),"delayed restoration settles once");
+    for(const uint32_t delay:{250u,500u}){
+        refresh.request(13,1000,delay);check(refresh.begin(true)&&refresh.acknowledged(false,1100),"short refresh starts only after the original assembly is acknowledged");
+        check(!refresh.readyToRestore(1100+delay-1)&&refresh.readyToRestore(1100+delay),"short refresh respects its exact nonblocking boundary");
+        refresh.request(13,1150,delay);check(!refresh.readyToRestore(1150+delay-1)&&refresh.readyToRestore(1150+delay),"a later edit restarts the short window instead of restoring stale resources");
+        refresh.applyingSelected();check(refresh.acknowledged(true,1150+delay)&&!refresh.pending(),"short refresh completes once after selected assembly acknowledgement");
+    }
     std::cout<<"PASS: per-witch and All provider persistence, inert legacy preferences, Default restoration and atomic failure preservation.\n";return 0;
 }catch(const std::exception& e){std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}}

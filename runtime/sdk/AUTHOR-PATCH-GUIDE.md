@@ -25,7 +25,7 @@ For alternate prefabs, two independent toggles need all four states: both on, br
 
 ## Minimal provider
 
-Copy [parts-outfit.json](examples/parts-outfit.json) and [PartsOutfitProvider.cpp](examples/PartsOutfitProvider.cpp) into your x64 C++17 plugin project. Replace the namespaced outfit ID, display label, credits, requirements, prefab and both part keys with your actual values. If your outfit has no independently removable top, omit that control and binding.
+Copy [parts-outfit.json](examples/parts-outfit.json) and [PartsOutfitProvider.cpp](examples/PartsOutfitProvider.cpp) into your x64 C++17 plugin project. Replace the namespaced outfit ID, display label, credits, requirements, prefab and part keys with your actual values. The example separates bra, briefs, dress and accessories. Omit any control or binding your outfit does not support.
 
 ```powershell
 python sdk/tools/generate_provider.py your-outfit.json --output build/PartsDefinition.hpp
@@ -44,6 +44,8 @@ Stable IDs preserve saves; changing a display name does not require a new ID. Us
 Set `follow_base_underwear: true` on each supported per-witch garment toggle, with true/on meaning visible. Linked parts resolve hidden while **Hide base bra & panties** is checked. Each saved garment preference remains intact, including edits made during that override.
 
 Native parts and prefab matrices apply effective values automatically. A custom renderer must check `HasBaseUnderwear()`, poll `Effective(...)`, and apply the returned `value`, watching both revision counters and rebuilt instances. Ordinary `GetControl` returns the stored value. The flag alone cannot hide a component your code never addresses. Leave unrelated accessories unlinked.
+
+For optional Hide outfit support, link a clothing toggle with `follow_outfit_hide: true` and bind every part it controls. Keep complete skin underneath. See [Hide outfit integration](OUTFIT-VISIBILITY.md) for visibility parts, authored prefab states and a custom renderer example. Existing providers retain their current behavior until they opt in.
 
 ## Reloads, changes and missing dependencies
 

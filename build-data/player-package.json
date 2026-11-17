@@ -13,15 +13,20 @@
     "single_switch_synchronization_required": false,
     "appearance_routes_verified": 7,
     "default_garment_routes_verified": 40,
-    "deployed_runtime_sha256": "e11bc8df1fe41ea7722f4c55ec51a8e287abc0eddf1190709bf4b6c8ed8784b3",
+    "deployed_runtime_sha256": "b98c327a7d177bce679036d6cc720cc81e5e1addfae3cd443360f3221e8e099b",
     "asset_entry_does_not_disable_asi": true,
     "in_game_combined_package_launch_tested": true,
     "runtime_checks_passed": 21,
     "runtime_checks_blocked": [],
-    "development_runtime_version": "0.5.10",
-    "layout_acceptance_reused": false,
-    "acceptance_scope": "Fresh import and mount of the corrected core-only player ZIP in DMM 5.0.1: all 80 files matched, seven appearance routes and forty own garment routes passed. Elowen default robe sampled with all nine regional combinations, blend preservation, independent Weight/Height extremes, Wardrobe, quick panel, pins and camera input. Base underwear preference/native acknowledgement checked under the robe; exposed-body visuals not repeated.",
-    "current_core_only_package_live_tested": true
+    "development_runtime_version": "0.5.12",
+    "layout_acceptance_reused": true,
+    "acceptance_scope": "Fresh core-only layout import/mount previously verified all 80 files, seven appearance routes and forty own garment routes with runtime e11bc8df1fe41ea7722f4c55ec51a8e287abc0eddf1190709bf4b6c8ed8784b3. The current runtime/config were then updated in the same staged and deployed entry; unchanged asset routes remain. Current binary passed independent visibility, startup and three SDK refresh checks on Elowen. Final ZIP not freshly reimported.",
+    "current_core_only_package_live_tested": true,
+    "final_zip_freshly_imported": false,
+    "live_reports": [
+      "build-data/live-core-20261117.json",
+      "build-data/live-visibility-20261117.json"
+    ]
   },
   "external_outfit_dependencies": [],
   "dancer_patch_included": false,

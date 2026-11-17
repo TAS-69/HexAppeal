@@ -57,5 +57,15 @@ class DefinitionTests(unittest.TestCase):
         self.parts();self.invalid(lambda d:d['part_visibility'][0].update(control='unknown'))
     def test_visibility_rejects_mixed_ownership(self):
         self.invalid(lambda d:d.update(part_visibility=[{'control':'bra','part':'MyBra'}]))
+    def test_outfit_hide_parts_opt_in(self):
+        self.parts();self.definition['controls'][0].update(follow_base_underwear=False,follow_outfit_hide=True)
+        out=module.validate(self.definition)
+        self.assertEqual(out['controls'][0]['flags'],4)
+    def test_outfit_hide_and_underwear_stay_separate(self):
+        self.parts();self.invalid(lambda d:d['controls'][0].update(follow_base_underwear=True,follow_outfit_hide=True))
+    def test_outfit_hide_rejects_global_visibility(self):
+        self.parts();self.invalid(lambda d:d['controls'][0].update(scope='global',follow_base_underwear=False,follow_outfit_hide=True))
+    def test_outfit_hide_rejects_non_boolean_flag(self):
+        self.invalid(lambda d:d['controls'][0].update(follow_outfit_hide=1))
 
 if __name__=='__main__':unittest.main()

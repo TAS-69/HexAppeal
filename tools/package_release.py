@@ -33,6 +33,8 @@ if failed and not draft_exception:raise SystemExit('Incomplete/failed checks: no
 distribution=json.loads((ROOT/'build-data/player-package.json').read_text(encoding='utf-8'))
 manager_ready=distribution['manager_acceptance']['verified']
 if not manager_ready and not args.draft:raise SystemExit('The combined player package needs its manager import/deployment acceptance check before a public release.')
+live=json.loads((ROOT/'build-data/live-visibility-20261117.json').read_text(encoding='utf-8'))
+if live['runtime_sha256']!=sha(binary) or not live['temporary_helper_removed_after_game_closed']:raise SystemExit('Record the checked runtime and remove its temporary live test helper first.')
 ready=verification['pass'] and manager_ready and not args.draft
 settings=configparser.ConfigParser();settings.read(ROOT/'runtime/dist/HexAppeal.ini')
 if not all(settings.getboolean('Development',key,fallback=False) for key in ('ObserveNpcUploads','EnableNpcWrites','ObserveWardrobe','EnableWardrobeWrites')):raise SystemExit('Fresh-install features must be enabled.')
@@ -66,7 +68,8 @@ for name in sorted(filter(None,tracked)):
     source_files.append((rel.as_posix(),data))
 patches=list((ROOT/'Hex Appeal - Bodies/files').rglob('*.patch'))
 if len(patches)!=7:raise SystemExit('Expected seven appearance patches.')
-summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches':7,'vanilla_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':'Earlier development builds sampled Lyselia/Elowen shapes and default outfits; broader witch/moving-cloth checks were player-reported. The prior independent-Weight build passed native-buffer tests without an outfit dependency. This core-only public rebuild has exact offline checks and isolated native-buffer verification, not a fresh game session. SDK matrices compile and validate; adopting assets need their own rendered tests.','licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
+summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches':7,'vanilla_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':'This binary passed all four independent clothing/Base underwear combinations, repeated restoration, startup restoration, quick pins and unsupported-provider retention on close idle Elowen. Three public SDK game-robe refreshes passed at 500 ms configured delay (625 ms observed). The temporary helper was removed afterward. Earlier core layout import and nine-shape tests retain their original binary; final ZIP not freshly reimported. External colour caches, every witch/detail level/controller and long sessions are not certified. Adopting assets need rendered checks.','licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
+summary['live_verification']=live
 summary['distribution']=distribution
 summary['distribution_policy']=policy
 summary['source_commit']=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()

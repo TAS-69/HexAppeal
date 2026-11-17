@@ -20,5 +20,6 @@ struct WardrobeSnapshot {
 };
 int wardrobeWitchForAppearance(const char* path);
 WardrobePartKind wardrobePartKind(int witch,const char* prefab);
+bool defaultOutfitPart(int witch,const char* prefab);
 bool captureWardrobeSnapshot(uintptr_t actor,int witch,uintptr_t gameBase,WardrobeSnapshot& output);
 }

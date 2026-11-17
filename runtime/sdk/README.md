@@ -1,5 +1,7 @@
 # Wardrobe SDK
 
+Hide outfit is an optional extension. Add `follow_outfit_hide: true` to a per-witch clothing toggle, or set `HA_FOLLOW_OUTFIT_HIDE` in C. Link real outfit parts or provide every required prefab state. Keep bra/briefs on separate Base underwear controls; both player settings must be enabled to hide both. Existing providers remain unchanged. See the [outfit visibility guide](OUTFIT-VISIBILITY.md) for complete setup, custom renderer polling and verification.
+
 Wardrobe supplies a shared default-witch outfit selector, automatic saves, per-witch/All targeting, variants, toggles and individual quick-panel pins. Your mod supplies and installs its own resources. The SDK contains no outfits, game files or dependency binaries.
 
 The SDK is asset-free. Native accessory visibility has sampled live coverage on Elowen; authored prefab matrices have offline coverage and require rendered acceptance for each adopting outfit. Registration does not establish fitting or rendering correctness. See [the patch guide](AUTHOR-PATCH-GUIDE.md).
@@ -86,7 +88,7 @@ Runtime calls serialize registry/settings access. Do not hold game/render locks 
 
 After saving and verifying a shared resource, call optional `HexAppeal_RequestWardrobeRefreshV1` (`WardrobeClient::Refresh`). It queues Default → selected replacement on visible owned instances without saving Default as the choice. Assemblies are acknowledged with a non-blocking settling interval. Rapid changes coalesce; another outfit selection cancels the old cycle.
 
-Native prefab changes apply automatically. Provider-owned files need refresh only after they are ready. `HA_UNAVAILABLE` can mean no owned matching replacement is visible; its next assembly uses current resources. Assembly acknowledgement alone does not establish correct materials.
+Native prefab changes apply automatically. Provider-owned files need refresh only after they are ready. `HA_UNAVAILABLE` can mean no owned matching replacement is visible; its next assembly uses current resources. Assembly acknowledgement alone does not establish correct materials. The default `[Wardrobe] RefreshDelayMs=500` in HexAppeal.ini is clamped to 100–10000 ms. Three live game-robe refreshes passed at 500 ms, with 625 ms observed waits; your outfit still needs its own texture-cache checks and may require a longer interval.
 
 ## Build and compatibility
 
