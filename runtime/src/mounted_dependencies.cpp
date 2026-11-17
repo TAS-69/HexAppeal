@@ -1,5 +1,6 @@
 #include "mounted_dependencies.h"
 #include "runtime.h"
+#include "venus_bodies.h"
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -37,7 +38,7 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
 bool verifyMountedDependencies(const std::filesystem::path& game,const std::filesystem::path& manifest,std::string& error,std::string& warning) {
     warning.clear();
     std::ifstream in(manifest);
-    if(!in){error="Mount the Hex Appeal bodies and VENUS Elf Body through Desert Mod Manager first.";return false;}
+    if(!in){error="Mount the Hex Appeal bodies and one VENUS Human Body or Elf Body through Desert Mod Manager first.";return false;}
     std::map<std::string,std::filesystem::path> routes;std::string line;bool version=false;
     while(std::getline(in,line)) {
         if(!line.empty()&&line.back()=='\r')line.pop_back();
@@ -57,10 +58,11 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
     };
     for(const auto path:bodyPaths) {
         const auto found=routes.find(path);
+        if(found==routes.end()&&path==bodyPaths[1])continue;
         if(found==routes.end()||isOwnModContent(found->second)||!readableDependency(found->second,"PAR ")) {
             error="The mounted VENUS body path is missing, unreadable or not a PAC file. Check body priority and remount.";return false;
         }
-        if(sha256(found->second)!="8f101b8cc7d5c3af0b1ba2d38a6c2bfbbadecd733bd39f9491f1bf6a654466eb")warning=unverifiedDependency("VENUS Elf Body");
+        if(!venusBodyVersion(sha256(found->second)))warning=unverifiedDependency("VENUS Body");
     }
     struct Appearance {const char* path;const char* hash;};
     const Appearance appearances[]={

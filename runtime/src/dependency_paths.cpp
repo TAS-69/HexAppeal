@@ -1,6 +1,7 @@
 #include "mounted_dependencies.h"
 #include "runtime.h"
 #include "hex_presets.h"
+#include "venus_bodies.h"
 #include <TlHelp32.h>
 #include <algorithm>
 #include <cctype>
@@ -12,7 +13,6 @@
 namespace hex {
 namespace {
 namespace fs=std::filesystem;
-constexpr const char* venusHash="8f101b8cc7d5c3af0b1ba2d38a6c2bfbbadecd733bd39f9491f1bf6a654466eb";
 constexpr const char* weightHash="8a5af4474c1ae8655d56229f097eaee0103d765849fe01a37e2ece8a5d12e950";
 std::string lower(std::string value){std::transform(value.begin(),value.end(),value.begin(),[](unsigned char c){return char(std::tolower(c));});return value;}
 fs::path absolute(const fs::path& input,const fs::path& relativeTo) {
@@ -56,7 +56,12 @@ DependencyFile checked(const fs::path& p,const char* expected,const char* label)
     DependencyFile result;result.path=p;
     if(p.empty()||!regular(p)){result.detail=std::string(label)+" not found. Set its path in Settings.";return result;}
     if(isOwnModContent(p)){result.detail=std::string(label)+" must be a separate installed dependency, outside Hex Appeal.";return result;}
-    result.valid=readableDependency(p,"PAR ");result.verified=result.valid&&sha256(p)==expected;result.detail=!result.valid?std::string(label)+" is unreadable or not a PAC file.":result.verified?"Checked external dependency":unverifiedDependency(label);return result;
+    result.valid=readableDependency(p,"PAR ");result.verified=result.valid&&expected&&sha256(p)==expected;result.detail=!result.valid?std::string(label)+" is unreadable or not a PAC file.":result.verified?"Checked external dependency":unverifiedDependency(label);return result;
+}
+DependencyFile checkedVenus(const fs::path& path){
+    auto result=checked(path,nullptr,"VENUS Body");
+    if(result.valid){const auto* body=venusBodyVersion(sha256(path));result.verified=body!=nullptr;result.detail=body?std::string("Verified VENUS ")+body->version+" / "+body->variant:unverifiedDependency("VENUS Body");}
+    return result;
 }
 DependencyFile checkedHex(const fs::path& path){
     DependencyFile result;result.path=path;
@@ -112,10 +117,10 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
     const auto routes=readRoutes(result.manifest.path);
     const auto body=routes.find("character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac");
     if(body!=routes.end()){
-        if(paths.venusBody.empty())result.venus=checked(body->second,venusHash,"VENUS Elf Body");
+        if(paths.venusBody.empty())result.venus=checkedVenus(body->second);
         auto parent=body->second.parent_path();for(int i=0;i<16&&!parent.empty();++i){if(lower(parent.filename().u8string())=="mods"){result.searchRoots.push_back(parent);break;}const auto next=parent.parent_path();if(next==parent)break;parent=next;}
     }
-    if(!paths.venusBody.empty())result.venus=checked(absolute(paths.venusBody,base),venusHash,"VENUS Elf Body");
+    if(!paths.venusBody.empty())result.venus=checkedVenus(absolute(paths.venusBody,base));
     std::vector<fs::path> roots;std::set<std::string> seen;
     for(const auto& root:result.searchRoots)if(directory(root)&&!isOwnModContent(root)&&seen.insert(lower(root.u8string())).second)roots.push_back(root);result.searchRoots=roots;
     size_t hexPriority=hexPresetVersions.size();
@@ -144,7 +149,7 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
             }
         }
     }
-    if(result.venus.path.empty())result.venus.detail="VENUS active route not found. Mount the Elf Body through DMM.";
+    if(result.venus.path.empty())result.venus.detail="VENUS active route not found. Mount one Human Body or Elf Body variant through DMM.";
     if(result.hex.path.empty())result.hex.detail="Hex preset not found. Set its path to enable HEX.";
     if(result.weight.path.empty())result.weight.detail="Optional reference not found. Weight is disabled; Height remains available.";
     result.bodyVerified=result.venus.valid&&verifyMountedDependencies(base,result.manifest.path,result.bodyDetail,result.bodyWarning);

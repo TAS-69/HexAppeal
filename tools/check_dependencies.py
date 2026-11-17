@@ -1,5 +1,6 @@
 from pathlib import Path
 import json,hashlib,argparse,sys
+from venus_body import active_body,reference_hashes
 
 root=Path(__file__).resolve().parents[1]
 def dmm_config_path(game):
@@ -14,13 +15,15 @@ def check(game):
         hits=[]
         for pattern in dep['paths']:
             hits.extend(p for p in game.glob(pattern) if p.is_file())
-        matching=[p for p in hits if hashlib.sha256(p.read_bytes()).hexdigest()==dep['sha256']]
+        matching=[p for p in hits if hashlib.sha256(p.read_bytes()).hexdigest() in reference_hashes(dep)]
         passed=bool(matching)
         detail='matching local source present' if passed else 'missing or changed dependency'
         if dep['id']=='venus':
-            active=[s for s in config.get('activeBrowserMods',[]) if s.lower().startswith('venus') and '[02] Elf Body' in s]
-            passed=passed and len(active)==1
-            detail+='; Elf Body enabled' if len(active)==1 else '; Elf Body is not enabled exactly once in DMM'
+            try:
+                variant,body=active_body(config,config_path)
+                passed=body.is_file() and hashlib.sha256(body.read_bytes()).hexdigest() in reference_hashes(dep)
+                detail='checked '+variant.rsplit('/',1)[-1]+' enabled' if passed else 'The selected VENUS body is missing or differs from the checked references.'
+            except ValueError as error:passed=False;detail=str(error)
         checks.append({'id':dep['id'],'name':dep['name'],'status':'PASS' if passed else 'FAIL','detail':detail,'matches':[str(p) for p in matching],'runtime_loaded_verified':False})
     return {'status':'PASS' if all(c['status']=='PASS' for c in checks) else 'FAIL','checks':checks,'dmm_config':str(config_path),'enforcement':'Source availability preflight. Use verify_mount.py and runtime served-dependency guards for mounted assets; this does not prove runtime loading.','runtime_preset_integration':'See docs/wiki/Compatibility.md for tested scope.'}
 if __name__=='__main__':

@@ -8,6 +8,8 @@ Wardrobe is a shared **default witch outfit replacer menu**. Choose a witch or A
 
 The optional **Sexy Witches of Pywel Reshaped / Dancer Dress** uses the original external outfit. Each witch can independently use Default or Dancer. It does not take ownership of arbitrary custom spouse/barber clothing.
 
+In the next combined package, run **Setup Dancer.cmd before the first mount** to connect the original dependency to the main Hex Appeal entry. No separate Dancer resource entry is needed. This optional setup uses Python 3.12+ and leaves original file contents unchanged. [Installation](Installation.md) covers the steps and the older published 1.0.0 setup.
+
 Dancer supplies **Original White, Midnight Black, Crimson Red, Arcane Pink and Emerald Green**. Its texture route is shared, so its colour is **global**, even when outfit selection is per witch. A change saves the colour, verifies the external resource and queues a Default → selected refresh automatically. Allow a short settling interval. Rapid changes are combined. Saved outfit selections restore after loading into the world.
 
 ## Base underwear

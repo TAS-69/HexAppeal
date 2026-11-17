@@ -4,6 +4,7 @@ import sys,json,hashlib,xml.etree.ElementTree as ET,argparse
 root=Path(__file__).resolve().parents[1]
 (root/'reports').mkdir(exist_ok=True)
 from development_paths import SOURCES,dependency,use_toolchain
+from venus_body import active_body,refit_reference
 use_toolchain()
 from core.mesh_parser import parse_mesh
 from core.compression_engine import _decompress_type1_par
@@ -17,8 +18,10 @@ project=json.loads((root/'project.json').read_text(encoding="utf-8"))
 report=json.loads((root/'build-data'/'refit-validation.json').read_text(encoding="utf-8"))
 manifest=json.loads((root/'build-data'/'witch-assets.json').read_text(encoding="utf-8"))
 venus=dependency('venus',args.game)
-assert sha(venus)==project['required_body']['pac_sha256']
-assert report['method']['venus_sha256']==sha(venus)
+metadata=next(item for item in json.loads((root/'dependencies.json').read_text(encoding='utf-8'))['required'] if item['id']=='venus')
+baseline=refit_reference(metadata,project['required_body']['pac_sha256'])
+assert refit_reference(metadata,sha(venus))==baseline
+assert refit_reference(metadata,report['method']['venus_sha256'])==baseline
 assert not list((root/'Hex Appeal - Bodies').rglob('*.pac'))
 checks=[]
 for path in sorted({t['appearance'] for t in manifest}):
@@ -62,12 +65,9 @@ if args.game:
     (root/'reports'/'dependency-validation.json').write_text(json.dumps(dependencies,indent=2)+'\n')
     assert dependencies['status']=='PASS','One or more required local dependency files are missing or changed.'
     config=json.loads(dmm_config_path(args.game).read_text(encoding='utf-8'))
-    active=config.get('activeBrowserMods',[])
-    body=[x for x in active if x.lower().startswith('venus') and '[02] Elf Body' in x]
-    assert len(body)==1,'Enable exactly the installed VENUS Elf Body variant in DMM.'
-    current=dmm_config_path(args.game).parent/'mods'/body[0]/'files/0009/character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac'
-    assert sha(current)==project['required_body']['pac_sha256'],'VENUS changed: rebuild the outfit add-on before using it.'
-    runtime={'checked':True,'enabled_variant':body[0],'pac_sha256':sha(current)}
+    selected,current=active_body(config,dmm_config_path(args.game))
+    assert refit_reference(metadata,sha(current))==baseline,'VENUS changed: review the outfit add-on before using it.'
+    runtime={'checked':True,'enabled_variant':selected,'pac_sha256':sha(current),'shared_refit_reference_sha256':baseline}
 out={'scope':'Offline asset and source dependency checks only; see dmm-mount-verification.json and live-acceptance.json for separate live evidence.','offline_checks':len(checks),'status':'PASS','checks':checks,'venus_dependency':runtime,'in_game_tested':False,'dmm_mounted':False}
 (root/'reports'/'validation-summary.json').write_text(json.dumps(out,indent=2)+'\n')
 print('PASS:',len(checks),'offline asset checks; VENUS dependency', 'verified' if args.game else 'not checked against DMM')

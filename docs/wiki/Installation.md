@@ -17,7 +17,11 @@ Retain Hex's original preset file where the runtime can read it. If **Two Reason
 
 Unknown readable versions receive a warning and remain selectable. Missing or incorrect/unreadable paths disable the affected feature. An actual incompatible native interface can still reject an operation.
 
+Development 0.5.7 recognizes both VENUS 2.6 Human Body and Elf Body; choose one, then review body file priorities again. Release 1.0.0 and its original instructions below remain unchanged. See [the variant comparison](../VENUS-COMPATIBILITY.md).
+
 ## Choose the packages
+
+The next player package combines Bodies, Runtime and default Outfit Refits into **one ZIP**, checked in DMM 5.0.1 as one **Hex Appeal** entry on Mods plus its normal **HexAppeal** switch on ASI Mods. Enable both and mount with the game closed; disable both and remount to remove it. Development modules remain separate. This does not replace the published 1.0.0 downloads below. Source and SDK downloads are optional resources for creators. See [player packaging](../PLAYER-PACKAGE.md).
 
 | Release download | Install? | Contains |
 | --- | --- | --- |
@@ -37,7 +41,13 @@ Unknown readable versions receive a warning and remain selectable. Missing or in
 
 Give VENUS Elf Body priority over **NaiK Elf Ears V3 — Original Damiane Body** on the body PAC. Default boot routes `0160`, `0161` and `0163` overlap VENUS Armor Refit: choose which refit wins in DMM. See [Compatibility](Compatibility.md).
 
-## Optional Dancer setup
+## Dancer in the next combined package
+
+The combined package includes **Setup Dancer.cmd** and its helper. Keep the complete original five-colour FOMOD beside Hex Appeal in DMM's mods storage, on the same drive. With Python 3.12+ and its launcher installed, run Setup Dancer from the installed Hex Appeal folder **before mounting**. Then enable the main mod and its ASI switch and mount once. No separate External Dancer Resources entry or source download is needed. See [player packaging](../PLAYER-PACKAGE.md) for manual paths and upgrade details.
+
+The public ZIP contains the setup code only. Generated local references use the separately obtained originals and must never be redistributed as part of Hex Appeal.
+
+## Optional Dancer setup in published 1.0.0
 
 Keep the separately downloaded Sexy Witches FOMOD fully extracted, including all five colour folders. Avoid mounting its complete body replacement over VENUS. The helper creates a **separate local DMM resource entry** with four hard links to the original upper/lower models, material properties and selected supplied texture. It does not generate or refit Dancer meshes.
 

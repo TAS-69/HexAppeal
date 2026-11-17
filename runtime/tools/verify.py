@@ -5,9 +5,11 @@ root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description='Run offline runtime checks. Does not launch Crimson Desert.')
 parser.add_argument('--instant', type=Path, help='Installed InstantSurgery.asi; a test copy is made without modifying the original.')
 parser.add_argument('--game', type=Path, help='Read the actual DMM manifest and test conflicting-body rejection in an isolated fixture.')
+parser.add_argument('--venus-human', type=Path, help='Check the original VENUS 2.6 Human Body on both manifest aliases. Requires --game.')
 parser.add_argument('--skip-quarantined-interface-test', action='store_true', help='Do not open or execute the Windows-flagged interface_preferences.exe. Records an incomplete verification, never a full pass.')
 args = parser.parse_args()
-for name in ('instant','game'):
+if args.venus_human and not args.game:parser.error('--venus-human requires --game')
+for name in ('instant','game','venus_human'):
     value=getattr(args,name)
     if value is not None:setattr(args,name,value.resolve())
 temporary = tempfile.TemporaryDirectory(prefix='hexappeal-')
@@ -36,6 +38,7 @@ if args.game:
     commands.append(('dancer_global_palette', [str(build/'dancer_palette_tests.exe'),str(args.game),str(fixture/'dancer-palette')]))
     commands.append(('wardrobe_resource_detection', [str(build/'wardrobe_resources_tests.exe'),str(args.game),str(fixture/'wardrobe-resources')]))
     commands.append(('served_dependency_routes', [str(build/'dependency_routes.exe'), str(args.game), str(fixture/'dependency-routes')]))
+    if args.venus_human:commands[-1][1].append(str(args.venus_human))
     commands.append(('dependency_discovery', [str(build/'dependency_discovery.exe'), str(args.game), str(fixture/'discovery')]))
 source_hash = None
 blocked = []
@@ -53,7 +56,11 @@ if args.instant:
 
 def run(item):
     name, command = item
-    result = subprocess.run(command, cwd=root, capture_output=True, text=True, timeout=25)
+    try:result = subprocess.run(command, cwd=root, capture_output=True, text=True, timeout=25)
+    except OSError as error:
+        return {'name':name,'pass':False,'blocked':True,'reason':str(error),'stdout':'','stderr':''}
+    except subprocess.TimeoutExpired:
+        return {'name':name,'pass':False,'reason':'The test exceeded its 25-second limit.','stdout':'','stderr':''}
     return {'name': name, 'pass': result.returncode == 0, 'exit_code': result.returncode,
             'stdout': result.stdout.strip(), 'stderr': result.stderr.strip()}
 
@@ -88,6 +95,7 @@ report = {
     'saved_shapes_restore_automatically':True,
     'wardrobe_observation_default':wardrobe_observe,
     'wardrobe_writes_default':wardrobe_writes,
+    'venus_human_body_checked':bool(args.venus_human) and any(row['name']=='served_dependency_routes' and row['pass'] for row in results),
 }
 (report_dir/'offline-verification.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
 for item in results: print(('PASS' if item['pass'] else 'FAIL')+': '+item['name'])

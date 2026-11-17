@@ -1,0 +1,21 @@
+{
+  "version": "VENUS 2.6",
+  "human_sha256": "f8c7f181d42b50e441251553630b708f9780ef54c319464db4ed4a17af6189f1",
+  "elf_sha256": "8f101b8cc7d5c3af0b1ba2d38a6c2bfbbadecd733bd39f9491f1bf6a654466eb",
+  "body_and_hand_stored_vertex_records_identical": true,
+  "body_and_hand_skin_weights_identical": true,
+  "stored_lod_layouts_identical": true,
+  "physics_byte_identical": true,
+  "head_geometry_differs": true,
+  "refit_head_delta_is_zero": true,
+  "refit_algorithm_result": "Both variants supply the same non-head target; the refit field ignores target head displacement. Existing default-outfit outputs are unchanged.",
+  "upstream_assets_included": false,
+  "live_tested": true,
+  "live_scope": "Elowen, close front/oblique idle view: nine Dancer shape combinations, Default-Dancer round trip, default robe FLAT/FLAT and HEX/HEX, independent minimum Height with maximum Weight. No new transparency or pale blotches visible in these samples. Not exhaustive motion, detail-level or all-witch acceptance.",
+  "live_date": "2026-11-17",
+  "live_runtime_sha256": "9767b1c04624d9225e03b0db74a702a13936eb382b582283bef5e222674ee6a1",
+  "final_runtime_sha256": "4a83d8013abf9ebc355caae9cb268b9b34e9dcffbafeabb45c8f9bd826cb0c87",
+  "final_runtime_difference": "Settings uses the general VENUS Body label; no shaping or asset changes after the live check.",
+  "final_runtime_offline_checks_passed": 21,
+  "public_release_unchanged": "1.0.0"
+}

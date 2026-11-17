@@ -3,6 +3,8 @@ import importlib.util
 import json
 import tempfile
 import unittest
+import shutil
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('dancer_dependencies', Path(__file__).resolve().parents[1] / 'prepare_dancer_dependencies.py')
 module = importlib.util.module_from_spec(spec)
@@ -67,6 +69,70 @@ class ExternalDancerBindings(unittest.TestCase):
     def test_nested_target_rejected(self):
         with self.assertRaisesRegex(ValueError, 'must be separate'):
             module.plan(self.source, self.source / 'binding')
+
+    def main_package(self):
+        self.target.mkdir()
+        (self.target/module.PLAYER_MARKER).write_text(module.PLAYER_MARKER_TEXT,encoding='ascii',newline='\n')
+        (self.target/'mod.json').write_text(json.dumps({'modinfo':{'title':'Hex Appeal','author':'TAS-69'}}),encoding='utf-8')
+        (self.target/'HexAppeal.asi').write_bytes(b'own runtime')
+        (self.target/'HexAppeal.ini').write_bytes(b'own settings')
+        (self.target/'README.txt').write_bytes(b'preserve player guide')
+        return {p:p.read_bytes() for p in self.target.iterdir() if p.is_file()}
+
+    def test_integrated_setup_retains_the_main_manifest_runtime_and_guide(self):
+        preserved=self.main_package()
+        report=module.apply(module.plan(self.source,self.target,'black',integrated=True))
+        self.assertTrue(report['integrated_player_package'])
+        self.assertEqual(preserved,{p:p.read_bytes() for p in preserved})
+        self.assertEqual([p.name for p in self.target.glob('*.json')],['mod.json'])
+        for row in report['files']:self.assertTrue(Path(row['target']).samefile(row['link_source']))
+        self.assertTrue((self.target/'DANCER-SETUP.txt').is_file())
+
+    def test_integrated_setup_requires_a_recognized_installed_package(self):
+        self.target.mkdir()
+        with self.assertRaisesRegex(ValueError,'package marker'):module.plan(self.source,self.target,integrated=True)
+
+    def test_integrated_existing_asset_is_never_replaced(self):
+        self.main_package()
+        target=self.target/'files/0009'/module.UPPER
+        target.parent.mkdir(parents=True);target.write_bytes(b'keep my installed outfit')
+        with self.assertRaisesRegex(ValueError,'already exist'):module.plan(self.source,self.target,integrated=True)
+        self.assertEqual(target.read_bytes(),b'keep my installed outfit')
+
+    def test_integrated_setup_checks_package_identity_again_before_writing(self):
+        self.main_package()
+        report=module.plan(self.source,self.target,integrated=True)
+        (self.target/'mod.json').write_text(json.dumps({'modinfo':{'title':'Another outfit','author':'Someone else'}}),encoding='utf-8')
+        with self.assertRaisesRegex(ValueError,'not the combined'):module.apply(report)
+        self.assertFalse((self.target/'files').exists())
+
+    def test_failed_link_creation_rolls_back_only_new_links(self):
+        preserved=self.main_package()
+        report=module.plan(self.source,self.target,integrated=True)
+        link=module.os.link
+        calls=0
+        def interrupted(source,target):
+            nonlocal calls
+            calls+=1
+            if calls==2:raise OSError('simulated interruption')
+            link(source,target)
+        with patch.object(module.os,'link',side_effect=interrupted),self.assertRaises(OSError):module.apply(report)
+        self.assertEqual(preserved,{p:p.read_bytes() for p in preserved})
+        self.assertFalse(any(Path(row['target']).exists() for row in report['files']))
+
+    def test_integrated_source_detection_uses_contents_instead_of_folder_name(self):
+        self.main_package()
+        self.assertEqual(module.detect_source(self.target),self.source)
+
+    def test_integrated_multiple_readable_sources_require_a_choice(self):
+        self.main_package()
+        shutil.copytree(self.source,self.root/'another download')
+        with self.assertRaisesRegex(ValueError,'Several Dancer downloads'):module.detect_source(self.target)
+
+    def test_integrated_missing_source_is_a_clear_installation_error(self):
+        self.main_package()
+        (self.source/module.COLOURS['emerald'][0]/module.TEXTURE).unlink()
+        with self.assertRaisesRegex(ValueError,'Dancer source not found'):module.detect_source(self.target)
 
 if __name__ == '__main__':
     unittest.main()

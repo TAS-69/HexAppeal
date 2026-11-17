@@ -1,6 +1,7 @@
 """External inputs for local development; game-mod source files are never staged here."""
 from pathlib import Path
 import hashlib, json, os, sys
+from venus_body import reference_hashes
 
 ROOT=Path(__file__).resolve().parents[1]
 settings=ROOT/'development-paths.json'
@@ -33,5 +34,5 @@ def dependency(identifier,game=None):
                     target=Path(parts[2]);candidates.insert(0,target if target.is_absolute() else manifest.parent/target)
     for path in candidates:
         path=path.resolve()
-        if not path.is_relative_to(ROOT) and path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==meta['sha256']:return path
+        if not path.is_relative_to(ROOT) and path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() in reference_hashes(meta):return path
     raise FileNotFoundError(f'External {meta["name"]} {meta["version"]} not found. Set dependencyFiles.{identifier} in development-paths.json.')

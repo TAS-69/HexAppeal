@@ -2,14 +2,29 @@
   "required": [
     {
       "id": "venus",
-      "name": "Venus Body for Damiane \u2014 Elf Body",
+      "name": "Venus Body for Damiane \u2014 Human Body or Elf Body",
       "version": "2.6",
       "url": "https://www.nexusmods.com/crimsondesert/mods/3318",
       "sha256": "8f101b8cc7d5c3af0b1ba2d38a6c2bfbbadecd733bd39f9491f1bf6a654466eb",
       "paths": [
         "mods/Venus*/*Elf Body/files/0009/character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac",
-        "nexus_downloads/dmm_update/mods/Venus*/*Elf Body/files/0009/character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac"
-      ]
+        "nexus_downloads/dmm_update/mods/Venus*/*Elf Body/files/0009/character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac",
+        "mods/Venus*/*Human Body/files/0009/character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac",
+        "nexus_downloads/dmm_update/mods/Venus*/*Human Body/files/0009/character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac"
+      ],
+      "verified_variants": [
+        {
+          "variant": "Elf Body",
+          "sha256": "8f101b8cc7d5c3af0b1ba2d38a6c2bfbbadecd733bd39f9491f1bf6a654466eb",
+          "refit_reference_sha256": "8f101b8cc7d5c3af0b1ba2d38a6c2bfbbadecd733bd39f9491f1bf6a654466eb"
+        },
+        {
+          "variant": "Human Body",
+          "sha256": "f8c7f181d42b50e441251553630b708f9780ef54c319464db4ed4a17af6189f1",
+          "refit_reference_sha256": "8f101b8cc7d5c3af0b1ba2d38a6c2bfbbadecd733bd39f9491f1bf6a654466eb"
+        }
+      ],
+      "variant_policy": "Enable one variant. Checked 2.6 body/hand vertex records, skin weights and physics match; only head data and the separate Elf cloak-rule patch differ. Unknown readable versions remain usable with a runtime warning."
     },
     {
       "id": "hex",

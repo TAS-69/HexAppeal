@@ -1,0 +1,30 @@
+{
+  "player_download": "One ZIP containing one Hex Appeal folder, one manifest, the runtime, body routing and default outfit refits.",
+  "development_modules_remain_separate": true,
+  "source_and_sdk_downloads_are_for_creators": true,
+  "downloaded_dependencies_remain_external": true,
+  "optional_dancer_setup": {
+    "mode": "Local references inside the installed main package; no separate resource entry.",
+    "public_archive_contains_dependency_files": false,
+    "setup_before_initial_mount": true,
+    "fresh_install_mounts": 1,
+    "source_detection": "Complete original FOMOD beside the installed mod, or an explicit source path.",
+    "setup_requirement": "Python 3.12+ with its launcher",
+    "native_resource_and_palette_readiness_verified": true,
+    "in_game_integrated_path_tested": false
+  },
+  "manager_acceptance": {
+    "required": true,
+    "verified": true,
+    "manager": "DMM",
+    "reference_version": "5.0.1",
+    "checked_date": "2026-11-17",
+    "controls": "One Hex Appeal entry on Mods plus its normal HexAppeal switch on ASI Mods. Separate switches were explicitly accepted.",
+    "single_switch_synchronization_required": false,
+    "appearance_routes_verified": 7,
+    "default_garment_routes_verified": 40,
+    "deployed_runtime_sha256": "4a83d8013abf9ebc355caae9cb268b9b34e9dcffbafeabb45c8f9bd826cb0c87",
+    "asset_entry_does_not_disable_asi": true,
+    "in_game_combined_package_launch_tested": false
+  }
+}

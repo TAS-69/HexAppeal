@@ -4,6 +4,8 @@
 
 I made **Hex Appeal** to bring the actual installed **VENUS Elf Body** to Crimson Desert's human witches, with an in-game shape editor and a shared **Wardrobe** for compatible outfits. Pick a witch, mix the top and bottom, and carry on. Changes save and apply automatically.
 
+**Development:** 0.5.7 recognizes VENUS Human Body and Elf Body; the Human setup passed the sampled Elowen checks. The next player download combines the runtime, bodies and default refits in one ZIP, checked with one Mods entry and its normal ASI switch in DMM. The 1.0.0 download remains unchanged. See [VENUS compatibility](docs/VENUS-COMPATIBILITY.md) and [player packaging](docs/PLAYER-PACKAGE.md) for the exact scope.
+
 **[Downloads](https://github.com/TAS-69/HexAppeal/releases) · [Install](docs/wiki/Installation.md) · [Player guide](docs/wiki/Home.md) · [Wardrobe SDK](docs/wiki/SDK-quick-start.md) · [Requirements & credits](DEPENDENCIES-AND-REFERENCES.md)**
 
 ## A little witchcraft

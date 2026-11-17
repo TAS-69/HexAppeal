@@ -1,9 +1,10 @@
 from pathlib import Path
 import argparse,configparser,hashlib,json,re,subprocess,zipfile
+from player_package import player_package
 
 ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser(description='Package the requested public version. Does not increment versions, install files or upload.')
-parser.add_argument('--draft',action='store_true',help='Allow the specifically recorded blocked interface-preferences test. Keeps release readiness false.')
+parser.add_argument('--draft',action='store_true',help='Allow the recorded blocked preferences test or pending manager acceptance. Keeps release readiness false.')
 args=parser.parse_args()
 checkout=Path(subprocess.check_output(['git','-C',str(ROOT),'rev-parse','--show-toplevel'],text=True).strip()).resolve()
 if checkout!=ROOT:raise SystemExit('Package from a clean Hex Appeal Git checkout.')
@@ -26,16 +27,20 @@ if not required<=checks.keys():raise SystemExit('Run the full installed-dependen
 failed=[row for row in verification['checks'] if not row['pass']]
 draft_exception=args.draft and len(failed)==1 and failed[0]['name']=='interface_preferences' and failed[0].get('blocked')
 if failed and not draft_exception:raise SystemExit('Incomplete/failed checks: no release package created. A recorded blocked preferences test may be packaged only with --draft.')
-ready=verification['pass'] and not args.draft
+distribution=json.loads((ROOT/'build-data/player-package.json').read_text(encoding='utf-8'))
+manager_ready=distribution['manager_acceptance']['verified']
+if not manager_ready and not args.draft:raise SystemExit('The combined player package needs its manager import/deployment acceptance check before a public release.')
+ready=verification['pass'] and manager_ready and not args.draft
 settings=configparser.ConfigParser();settings.read(ROOT/'runtime/dist/HexAppeal.ini')
 if not all(settings.getboolean('Development',key,fallback=False) for key in ('ObserveNpcUploads','EnableNpcWrites','ObserveWardrobe','EnableWardrobeWrites')):raise SystemExit('Fresh-install features must be enabled.')
 output=ROOT/'release'/version
 output.mkdir(parents=True,exist_ok=True)
 if list(output.iterdir()):raise SystemExit('Output already exists. Preserve it and choose a fresh requested version or move the previous local output aside.')
-denied_suffixes={'.asi','.dll','.exe','.obj','.pdb','.lib','.exp','.pyc','.pab','.dds','.bin'}
+denied_suffixes={'.asi','.dll','.exe','.obj','.pdb','.lib','.exp','.pyc','.pab','.dds','.bin','.hkx','.pac_xml','.app_xml'}
 private_parts={'.git','__pycache__','build','dist','reports','release','permission','backups','research','sources','toolchain','development-assets'}
 dependency=json.loads((ROOT/'dependencies.json').read_text(encoding='utf-8-sig'))
 denied_hashes={item['sha256'] for item in dependency['required']}
+denied_hashes.update(body['sha256'] for item in dependency['required'] for body in item.get('verified_variants',[]))
 denied_hashes.add(dependency['optional'][0]['source_body_sha256'])
 refits=json.loads((ROOT/'build-data/refit-validation.json').read_text(encoding='utf-8-sig'))
 allowed_pacs={'Hex Appeal - Outfit Refits/files/'+row['path']:row['output_sha256'] for row in refits['models']}
@@ -57,10 +62,11 @@ for name in sorted(filter(None,tracked)):
 patches=list((ROOT/'Hex Appeal - Bodies/files').rglob('*.patch'))
 if len(patches)!=7:raise SystemExit('Expected seven appearance patches.')
 summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches':7,'vanilla_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':'Previous clean development binary: sampled Elowen idle startup restoration, nine Dancer shape combinations, White/Black automatic refresh and Default restoration. This release rebuild has version-string/configuration changes and has not had a fresh live session.','licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
+summary['distribution']=distribution
 summary_bytes=(json.dumps(summary,indent=2)+'\n').encode()
 inventory=[];archives=[]
 def archive(label,files):
-    path=output/f'Hex Appeal - {label}-{version}.zip'
+    path=output/(f'Hex Appeal - {label}-{version}.zip' if label else f'Hex Appeal-{version}.zip')
     names=set()
     with zipfile.ZipFile(path,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as dest:
         for name,data in sorted(files):
@@ -92,18 +98,21 @@ def guides(prefix):
         files.append((prefix+'Player Guide/'+path.name,text.encode()))
     for path in sorted((ROOT/'docs/assets').iterdir()):files.append((prefix+'assets/'+path.name,path.read_bytes()))
     return files
-for component,label in (('Hex Appeal - Bodies','Bodies'),('Hex Appeal - Outfit Refits','Outfit Refits')):
-    files=[(p.relative_to(ROOT).as_posix(),p.read_bytes()) for p in (ROOT/component).rglob('*') if p.is_file()]
+assets=[]
+for component in ('Hex Appeal - Bodies','Hex Appeal - Outfit Refits'):
     metadata=json.loads((ROOT/component/'mod.json').read_text(encoding='utf-8-sig'))
     if metadata['modinfo']['version']!=version:raise SystemExit('Component version mismatch.')
-    files +=[(component+'/LICENSE', (ROOT/'LICENSE').read_bytes()),(component+'/DEPENDENCIES-AND-REFERENCES.md',package_doc((ROOT/'DEPENDENCIES-AND-REFERENCES.md').read_text(encoding='utf-8-sig'),'').encode()),(component+'/VERIFICATION.json',summary_bytes)]
-    archive(label,files)
-files=[('bin64/HexAppeal.asi',binary),('bin64/HexAppeal.ini',(ROOT/'runtime/dist/HexAppeal.ini').read_bytes()),('bin64/HexAppeal/VERIFICATION.json',summary_bytes)]
-for name in ('README.md','INTEGRATION.md','LICENSE'):files.append(('bin64/HexAppeal/'+name,package_doc((ROOT/'runtime'/name).read_text(encoding='utf-8-sig'),'runtime').encode()))
-files.append(('bin64/HexAppeal/DEPENDENCIES-AND-REFERENCES.md',package_doc((ROOT/'DEPENDENCIES-AND-REFERENCES.md').read_text(encoding='utf-8-sig'),'').encode()))
-files += [('bin64/HexAppeal/licenses/'+p.name,p.read_bytes()) for p in (ROOT/'runtime/licenses').iterdir() if p.is_file()]
-files+=guides('bin64/HexAppeal/')
-archive('Runtime',files)
+    assets.append([(p.relative_to(ROOT/component).as_posix(),p.read_bytes()) for p in (ROOT/component/'files').rglob('*') if p.is_file()])
+documents=[('VERIFICATION.json',summary_bytes),('LICENSE',(ROOT/'LICENSE').read_bytes()),
+           ('DEPENDENCIES-AND-REFERENCES.md',package_doc((ROOT/'DEPENDENCIES-AND-REFERENCES.md').read_text(encoding='utf-8-sig'),'').encode())]
+documents.append(('tools/prepare_dancer_dependencies.py',(ROOT/'tools/prepare_dancer_dependencies.py').read_bytes()))
+documents.append(('Setup Dancer.cmd',(ROOT/'tools/Setup Dancer.cmd').read_bytes()))
+for name in ('README.md','INTEGRATION.md'):documents.append(('docs/'+name,package_doc((ROOT/'runtime'/name).read_text(encoding='utf-8-sig'),'runtime').encode()))
+documents += [('licenses/'+p.name,p.read_bytes()) for p in (ROOT/'runtime/licenses').iterdir() if p.is_file()]
+documents+=guides('docs/')
+models={name.removeprefix('Hex Appeal - Outfit Refits/'):digest for name,digest in allowed_pacs.items()}
+files=player_package(version,*assets,[('HexAppeal.asi',binary),('HexAppeal.ini',(ROOT/'runtime/dist/HexAppeal.ini').read_bytes())],documents,models,denied_hashes)
+archive('',files)
 sdk=[(p.relative_to(ROOT/'runtime/sdk').as_posix(),p.read_bytes()) for p in (ROOT/'runtime/sdk').rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix!='.pyc']
 sdk.append(('VERIFICATION.json',summary_bytes))
 archive('Wardrobe SDK',sdk)

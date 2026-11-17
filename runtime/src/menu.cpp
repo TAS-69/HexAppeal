@@ -118,7 +118,7 @@ static void dependencySettings(hex::Runtime& r){
     const auto status=r.dependencyStatus();
     const auto state=[&](const char* label,bool available,const std::string& detail){ImGui::TextColored(available?green:muted,"%s  /  %s",label,available?"Ready":"Unavailable");tip(detail.c_str());};
     const auto fileState=[&](const char* label,const hex::DependencyFile& file){ImGui::TextColored(!file.valid?muted:file.verified?green:gold,"%s / %s%s",label,!file.valid?"File needed":file.verified?"Verified":"Unverified",file.valid&&!file.verified?"  (!)":"");tip(file.detail.c_str());};
-    fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);fileState("VENUS Elf Body",status.venus);fileState("Hex's Hentai Preset",status.hex);fileState("Sexy Witches reference",status.weight);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
+    fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);fileState("VENUS Body",status.venus);fileState("Hex's Hentai Preset",status.hex);fileState("Sexy Witches reference",status.weight);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
     if(!status.bodyWarning.empty()){ImGui::TextColored(gold,"Active body routes / unverified  (!)");tip(status.bodyWarning.c_str());}
     static std::array<std::array<char,32768>,6> buffers{};static std::array<std::string,6> synced{};static std::array<bool,6> editing{};
     auto paths=r.configuredDependencyPaths();bool changed=false;

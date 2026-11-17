@@ -20,6 +20,8 @@ python tools/package_release.py
 
 The optional paths enable the checked installed-dependency fixture tests. They read original files and use isolated copies for the native export check. The native export fixture accepts the inspected Instant Surgery 0.9.6 binary only; runtime unknown-version policy remains separate. Tests do not launch or mount the game. Outputs and reports are ignored by Git.
 
+For the Human Body compatibility regression, also pass `--venus-human "path/to/the/original/Human Body/phw_00_nude_00_0001_damian.pac"`. It must remain outside this checkout; the test serves it through an isolated manifest and never changes your real selection.
+
 Packaging requires a **clean, committed Git checkout**, a matching successful full offline report, a public build and the unchanged requested `VERSION`. Clone the repository to package; the Source ZIP is sufficient to compile, but has no Git history. Packaging uses tracked files only, writes the component, runtime, SDK and source archives, checksums and a content inventory, and does not upload, change the version or alter a game install. See [Versioning](Versioning.md).
 
 If Windows quarantines the preferences test, leave it quarantined. The verifier can record that specific check as blocked with `--skip-quarantined-interface-test`; `package_release.py --draft` can then prepare an explicitly incomplete draft if every other required check passed. It does not mark the package release-ready. Do not disable protection to obtain a passing report.
