@@ -25,11 +25,14 @@
     "single_switch_synchronization_required": false,
     "appearance_routes_verified": 7,
     "default_garment_routes_verified": 40,
-    "deployed_runtime_sha256": "de392658026ea59427df2adc0998f51fceb12904f14648caed0bb4f04dbd33c2",
+    "deployed_runtime_sha256": "25640380fe36d4e511a3924c5f62a32bd3ceecabe17f5e85002db267b0114a6a",
     "asset_entry_does_not_disable_asi": true,
     "in_game_combined_package_launch_tested": true,
     "live_wardrobe_acceptance_passed": true,
-    "runtime_checks_passed": 22,
-    "runtime_checks_blocked": []
+    "runtime_checks_passed": 23,
+    "runtime_checks_blocked": [],
+    "development_runtime_version": "0.5.8",
+    "compatibility_live_scope": "Elowen: all six feature checks ready with unverified Character Creator warning; incompatible external preset blocked only HEX with its specific error; clearing the override restored automatic detection and the saved shape. Dancer/Arcane Pink retained.",
+    "prior_colour_refresh_tested_runtime_sha256": "de392658026ea59427df2adc0998f51fceb12904f14648caed0bb4f04dbd33c2"
   }
 }

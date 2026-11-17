@@ -122,7 +122,7 @@ void* jumpGuard(void* address) {
 }
 }
 bool initializeUnderwear(HMODULE surgery,std::string& error) {
-    const auto fail=[&](const char* message){error=message;std::lock_guard<std::mutex> lock(statusMutex);status=message;return false;};
+    const auto fail=[&](const char* message){error=message;Runtime::get().reportCompatibility(Feature::Underwear,CompatibilityState::Blocked,message);std::lock_guard<std::mutex> lock(statusMutex);status=message;return false;};
     auto* game=reinterpret_cast<unsigned char*>(GetModuleHandleW(nullptr));
     static const unsigned char showBytes[]={0x48,0x83,0xec,0x68,0x8b,0x02,0x4c,0x8d,0x44,0x24,0x40,0x45,0x33,0xd2};
     static const unsigned char getBytes[]={0x48,0x83,0xec,0x28,0x48,0x8b,0x01,0x4c,0x8b,0x40,0x08};
@@ -148,6 +148,7 @@ bool initializeUnderwear(HMODULE surgery,std::string& error) {
         return fail("The underwear visibility route could not be installed.");
     }
     ready=true;{std::lock_guard<std::mutex> lock(statusMutex);status="Ready. Controls the base Underwear part and opted-in Wardrobe providers.";}
+    Runtime::get().reportCompatibility(Feature::Underwear,CompatibilityState::Ready,"Base visibility functions and hook ownership checks passed.");
     LOG("Underwear part query installed for the checked game. Original body and equipped outfit assets are retained.");return true;
 }
 UnderwearStatus underwearStatus(int target) {

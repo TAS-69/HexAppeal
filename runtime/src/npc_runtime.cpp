@@ -7,6 +7,7 @@
 #include "underwear.h"
 #include "wardrobe.h"
 #include "wardrobe_native.h"
+#include "native_interface.h"
 #include "core/log.h"
 #include <MinHook.h>
 #include <array>
@@ -189,7 +190,7 @@ int poll(uint64_t id,char* out,uint32_t cap) {
     return transaction.state==2?1:transaction.state<0?-1:0;
 }
 const HexAppealBackendV1 backend={sizeof(HexAppealBackendV1),HEX_APPEAL_BACKEND_ABI,255,
-    "Instant Surgery 0.9.6 - Hex Appeal NPC integration",ready,begin,prepare,commit,abort,poll};
+    "Instant Surgery - Hex Appeal NPC integration",ready,begin,prepare,commit,abort,poll};
 const HexAppealBackendV1* factory(std::string& detail) {
     auto& s=state();std::lock_guard<std::mutex> lock(s.mutex);detail=s.status;return s.hooked?&backend:nullptr;
 }
@@ -201,7 +202,7 @@ void reject(uint64_t version,const std::string& message,bool stop=false) {
         if(std::atomic_load(&s.active)->version==version)std::atomic_store(&s.active,transaction.previous);
         transaction.state=-1;transaction.reason=message;
     }
-    if(stop)s.failed=true;
+    if(stop){s.failed=true;Runtime::get().shapingAvailable=false;Runtime::get().reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,message);}
 }
 void acknowledge(uint64_t version,int witch,size_t parts) {
     auto& s=state();std::lock_guard<std::mutex> lock(s.mutex);const auto found=s.transactions.find(version);
@@ -351,18 +352,18 @@ DWORD WINAPI worker(void*) {
         if(ec)s.observations.clear();
     }
     const auto game=r.folder.parent_path();
-    std::string error;DependencyStatus dependencies;uint64_t scannedRevision=0;DWORD scannedAt=0;bool engineBound=false;std::filesystem::path loadedPreset;std::string loadedPresetHash;
+    std::string error,hexError;DependencyStatus dependencies;uint64_t scannedRevision=0;DWORD scannedAt=0;bool engineBound=false;std::filesystem::path loadedPreset;std::string loadedPresetHash;
     const auto rescan=[&](bool force=false){
         const auto revision=r.dependencyRevision.load();const auto now=GetTickCount();if(!force&&revision==scannedRevision&&now-scannedAt<15000)return;
         scannedAt=now;scannedRevision=revision;
         try {dependencies=inspectDependencies(game,r.configuredDependencyPaths());}
         catch(...){dependencies={};dependencies.scanned=true;dependencies.bodyDetail="Dependency detection failed. Check the paths in Settings.";}
-        bool hexReady=false;
+        bool hexReady=false;hexError.clear();
         {std::lock_guard<std::mutex> engineLock(s.engineMutex);
             if(engineBound&&dependencies.hex.valid){
                 const auto digest=sha256(dependencies.hex.path);
                 if(loadedPreset==dependencies.hex.path&&loadedPresetHash==digest)hexReady=true;
-                else if(s.engine.readHex(dependencies.hex.path,error)){loadedPreset=dependencies.hex.path;loadedPresetHash=digest;hexReady=true;LOG("Hex preset uses external installed dependency: %ls.",loadedPreset.c_str());}
+                else if(s.engine.readHex(dependencies.hex.path,hexError)){loadedPreset=dependencies.hex.path;loadedPresetHash=digest;hexReady=true;LOG("Hex preset uses external installed dependency: %ls.",loadedPreset.c_str());}
             }
             if(!hexReady){s.engine.forgetHex();loadedPreset.clear();loadedPresetHash.clear();}
             s.engine.setWeightAvailable(engineBound&&dependencies.weight.valid);
@@ -374,29 +375,35 @@ DWORD WINAPI worker(void*) {
         else if(dependencies.bodyVerified&&!s.hooked)dependencies.bodyDetail=error.empty()?"Waiting for the separately installed Instant Surgery plugin.":error;
         r.publishDependencies(dependencies);
         refreshWardrobeResources(dependencies);
-        if(!s.hooked)setStatus(!dependencies.bodyVerified?dependencies.bodyDetail:!dmmLoaded?dependencies.bodyDetail:"Waiting for the separately installed Instant Surgery plugin.");
+        const auto shapeIssue=!dependencies.bodyVerified?dependencies.bodyDetail:!dependencies.instant.valid?dependencies.instant.detail:!dmmLoaded?std::string("DMM's runtime is not loaded. Enable it and restart the game."):!error.empty()?error:std::string("Waiting for the installed Instant Surgery plugin to initialize.");
+        if(!s.failed)r.reportCompatibility(Feature::Shaping,r.shapingAvailable?CompatibilityState::Ready:!dependencies.bodyVerified||!dependencies.instant.valid||!dmmLoaded||!error.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,r.shapingAvailable?"Native shaping and active body checks passed.":shapeIssue);
+        r.reportCompatibility(Feature::Hex,hexReady?CompatibilityState::Ready:!dependencies.hex.valid||!hexError.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,hexReady?"The external preset was parsed by the installed shaping adapter.":!hexError.empty()?hexError:!dependencies.hex.valid?dependencies.hex.detail:"Waiting for the native shaping adapter.");
+        r.reportCompatibility(Feature::Weight,r.weightAvailable?CompatibilityState::Ready:!dependencies.weight.valid?CompatibilityState::Blocked:CompatibilityState::Waiting,r.weightAvailable?"External reference is readable; native proportion controls are available.":dependencies.weight.detail);
+        if(!s.hooked)setStatus(shapeIssue);
     };
+    const auto stopShaping=[&](const std::string& message){error=message;r.shapingAvailable=false;r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,message);setStatus(message);};
+    const auto startupAt=GetTickCount();
     for(int attempt=0;;++attempt) {
         rescan();
         const auto module=GetModuleHandleW(L"InstantSurgery.asi");
         if(module&&dependencies.bodyVerified&&GetModuleHandleW(L"DmmRuntime.asi")&&(engineBound||s.engine.bind(module,error))) {
-            engineBound=true;rescan(true);
+            engineBound=true;error.clear();rescan(true);
             HMODULE retained=nullptr;
-            if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,reinterpret_cast<LPCWSTR>(module),&retained))return 0;
+            if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,reinterpret_cast<LPCWSTR>(module),&retained)){stopShaping("The loaded Instant Surgery module could not be retained. Restart the game before retrying.");return 0;}
             s.module=retained;
             const auto target=reinterpret_cast<unsigned char*>(module)+0x18D70;
             const auto resolver=reinterpret_cast<unsigned char*>(module)+0x17FB0;
-            const auto physics=tracePhysics?reinterpret_cast<void*>(GetProcAddress(module,"InstantSurgeryDeformPoseV1")):nullptr;
-            if(tracePhysics&&physics!=reinterpret_cast<unsigned char*>(module)+0x22B00){setStatus("The inspected physics integration export has changed.");return 0;}
+            const auto physics=tracePhysics?reinterpret_cast<void*>(pluginExport(module,"InstantSurgeryDeformPoseV1",error)):nullptr;
+            if(tracePhysics&&!physics){stopShaping("Instant Surgery: "+error);return 0;}
             const auto bodyPhysics=GetModuleHandleW(L"BodyPhysics.asi");
-            if(tracePhysics&&!bodyPhysics&&std::filesystem::exists(r.folder/L"BodyPhysics.asi")){Sleep(250);continue;}
+            if(tracePhysics&&!bodyPhysics&&std::filesystem::exists(r.folder/L"BodyPhysics.asi")){const std::string message="Body Physics is installed but has not loaded. Enable its ASI and restart, or remove the unused plugin file before relaunching.";r.reportCompatibility(Feature::Shaping,GetTickCount()-startupAt<15000?CompatibilityState::Waiting:CompatibilityState::Blocked,message);setStatus(message);Sleep(250);continue;}
             if(tracePhysics&&bodyPhysics) {
                 wchar_t path[32768]{};GetModuleFileNameW(bodyPhysics,path,32768);
-                const auto query=GetProcAddress(bodyPhysics,"TwoReasonsEditorPoseAppliedV1");
+                const auto query=pluginExport(bodyPhysics,"TwoReasonsEditorPoseAppliedV1",error);
                 if(!query) {
-                    setStatus("Body Physics is present, but its pose acknowledgement interface could not be found.");return 0;
+                    stopShaping("Body Physics: "+error+". Shaping is held to preserve its physics route; install a compatible version and restart.");return 0;
                 }
-                HMODULE pinned=nullptr;if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,reinterpret_cast<LPCWSTR>(query),&pinned))return 0;
+                HMODULE pinned=nullptr;if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,reinterpret_cast<LPCWSTR>(query),&pinned)){stopShaping("The loaded Body Physics interface could not be retained. Restart before retrying.");return 0;}
                 s.physicsApplied=reinterpret_cast<int(*)(void*)>(query);s.physicsRoute=true;
             }
             const bool updateCreated=MH_CreateHook(target,reinterpret_cast<void*>(&hookedUpdate),reinterpret_cast<void**>(&originalUpdate))==MH_OK;
@@ -407,18 +414,19 @@ DWORD WINAPI worker(void*) {
                 if(updateCreated){MH_DisableHook(target);MH_RemoveHook(target);}
                 if(tracePhysics&&physicsCreated){MH_DisableHook(physics);MH_RemoveHook(physics);}
                 if(tracePhysics&&resolverCreated){MH_DisableHook(resolver);MH_RemoveHook(resolver);}
-                setStatus("The version-checked NPC observation hooks could not be installed.");return 0;
+                stopShaping("The required NPC hooks could not be installed. Another hook may own these functions; restart before retrying.");return 0;
             }
             std::string visibilityError;
             if(!initializeUnderwear(module,visibilityError))LOG_ERR("Underwear controls unavailable: %s",visibilityError.c_str());
-            if(s.wardrobeObservation){std::string error;if(!initializeWardrobeObservation(error)){reportWardrobeUnavailable(error);LOG_ERR("Wardrobe observation unavailable: %s",error.c_str());}}
+            if(s.wardrobeObservation){std::string wardrobeError;if(!initializeWardrobeObservation(wardrobeError)){reportWardrobeUnavailable(wardrobeError);LOG_ERR("Wardrobe observation unavailable: %s",wardrobeError.c_str());}}
             s.hooked=true;setStatus("NPC route ready. Saved shapes restore when a selected witch becomes visible.");
             rescan(true);
             LOG("Instant Surgery NPC adapter installed. Body/outfit writes require a validated transaction and witch identity; version verification is reported separately.");
             if(tracePhysics)LOG("Native profile resolver and physics route installed; selected profile supplied only after an explicit Apply. Physics upload receipts enabled=%d.",s.physicsRoute);
             break;
         }
-        if(!error.empty())setStatus(error);
+        if(!error.empty()){r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,error);setStatus(error);}
+        else if(!module&&dependencies.instant.valid&&GetTickCount()-startupAt>=15000){const std::string message="Instant Surgery is installed but is not loaded. Enable its ASI and restart Crimson Desert.";r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,message);setStatus(message);}
         Sleep(500);
     }
     uint64_t persisted=0;

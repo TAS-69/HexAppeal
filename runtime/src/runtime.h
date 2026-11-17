@@ -6,6 +6,7 @@
 #include <mutex>
 #include "model.h"
 #include "mounted_dependencies.h"
+#include "compatibility.h"
 
 namespace hex {
 enum QuickPin : uint32_t {
@@ -46,6 +47,8 @@ struct Runtime {
     std::mutex dependencyMutex;
     DependencyPaths dependencyPaths;
     DependencyStatus dependencies;
+    std::mutex compatibilityMutex;
+    CompatibilitySnapshot compatibility;
     bool preview=false;
     uint32_t queuedMask=0;
     std::atomic<uint32_t> requestedRefitMask{0};
@@ -63,6 +66,9 @@ struct Runtime {
     DependencyStatus dependencyStatus();
     bool setDependencyPaths(const DependencyPaths& paths,std::string& error);
     void publishDependencies(const DependencyStatus& status);
+    FeatureCompatibility featureCompatibility(Feature feature);
+    CompatibilitySnapshot compatibilityStatus();
+    void reportCompatibility(Feature feature,CompatibilityState state,const std::string& detail);
     void selectionChanged();
     void requestShapeReapply(int witch);
     void tickAuto(uint64_t now=GetTickCount64(),bool flush=false);

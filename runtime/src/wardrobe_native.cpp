@@ -87,10 +87,12 @@ bool initializeNativeWardrobe(std::string& error){
     if(!engineReady){error=detail;return false;}
     armed=selections.snapshot().generations;
     LOG("Saved Wardrobe choices queued; application waits for live witch ownership, outfit records and dependencies.");
+    runtime.reportCompatibility(Feature::Wardrobe,writesAllowed?CompatibilityState::Ready:CompatibilityState::Blocked,writesAllowed?"Native outfit functions and assembly observation checks passed.":"Wardrobe writes are disabled in this development configuration.");
     return true;
 }
 void reportWardrobeUnavailable(const std::string& error){
     std::lock_guard<std::mutex> lock(mutex);engineReady=false;detail=error;
+    Runtime::get().reportCompatibility(Feature::Wardrobe,CompatibilityState::Blocked,error);
     const auto& profiles=Runtime::get().profiles;std::string ignored;
     if(!profiles.empty())selections.load(profiles.parent_path()/L"wardrobe.ini",ignored);
 }
@@ -101,6 +103,7 @@ void refreshWardrobeResources(const DependencyStatus& dependencies){
     if(previous!=checked.detail){LOG("Wardrobe resources: %s",checked.detail.c_str());previous=checked.detail;}
     resourcesReady=checked.ready;
     dancerResources=checked;
+    Runtime::get().reportCompatibility(Feature::DancerColours,checked.paletteReady?CompatibilityState::Ready:CompatibilityState::Blocked,checked.paletteReady?"Managed bindings and the supplied external palette are readable.":checked.paletteDetail);
     if(startupColour<0&&checked.ready)startupColour=checked.colour;
     resourceDetail=checked.detail;
     if(engineReady&&writesAllowed&&!resourcesReady)detail=checked.detail;
@@ -162,6 +165,8 @@ void tickNativeWardrobe(uintptr_t actor,int witch){
 }
 WardrobeEditorStatus wardrobeEditorStatus(int target){
     const auto selected=selections.snapshot();std::lock_guard<std::mutex> lock(mutex);WardrobeEditorStatus result;result.available=capabilities();result.detail=detail;result.dependencyDetail=resourceDetail;result.resourceFilesReady=resourcesReady;result.versionWarning=dancerResources.warning;
+    if(resourcesReady&&!Runtime::get().shapingAvailable)result.dependencyDetail=Runtime::get().featureCompatibility(Feature::Shaping).detail;
+    if(faulted)Runtime::get().reportCompatibility(Feature::Wardrobe,CompatibilityState::Blocked,detail);
     if(target< -1||target>5){result.available={};return result;}result.selected=selected.choices[target<0?0:target];
     if(target<0)for(const auto& choice:selected.choices){result.mixedOutfit|=wardrobeOutfitId(choice)!=wardrobeOutfitId(result.selected);result.mixedUnderwear|=choice.underwear!=result.selected.underwear;result.mixedDancer|=choice.dancer!=result.selected.dancer;}
     if(result.available.switchReady){
@@ -176,7 +181,7 @@ WardrobeEditorStatus wardrobeEditorStatus(int target){
         }
     }
     if(result.available.switchReady)result.caption=result.detail;
-    if(!result.available.dancerAssets&&result.available.switchReady&&result.selected.outfit==WitchOutfit::Dancer){result.caption="Dancer / dependency needed";result.detail=resourceDetail;result.warning=true;}
+    if(!result.available.dancerAssets&&result.available.switchReady&&result.selected.outfit==WitchOutfit::Dancer){result.caption="Dancer / dependency needed";result.detail=result.dependencyDetail;result.warning=true;}
     for(int witch=0;witch<6;++witch)if((target<0||target==witch)&&!choiceErrors[witch].empty()){
         result.caption="Selection not saved";result.detail=choiceErrors[witch];result.warning=true;break;
     }
@@ -184,6 +189,7 @@ WardrobeEditorStatus wardrobeEditorStatus(int target){
 }
 bool changeWardrobeChoice(int target,WardrobeField field,int value,std::string& error){
     const auto status=wardrobeEditorStatus(target);if(!selections.change(target,field,value,status.available,error)){
+        if(field==WardrobeField::Outfit&&value==1&&status.available.switchReady&&!status.available.dancerAssets)error=status.dependencyDetail;
         std::lock_guard<std::mutex> lock(mutex);for(int witch=0;witch<6;++witch)if(target<0||target==witch)choiceErrors[witch]=error;
         LOG_ERR("Wardrobe selection rejected target=%d field=%d: %s",target,int(field),error.c_str());return false;
     }

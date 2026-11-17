@@ -68,7 +68,7 @@ DependencyFile checkedHex(const fs::path& path){
     if(path.empty()||!regular(path)){result.detail="Hex preset not found. Set its path in Settings.";return result;}
     if(isOwnModContent(path)){result.detail="Hex must remain a separate installed dependency.";return result;}
     const auto* version=hexPresetVersion(sha256(path));const auto text=readText(path);
-    result.valid=text.find("InstantSurgeryOutfit=")!=std::string::npos&&text.find("Shape.")!=std::string::npos;result.verified=version!=nullptr;
+    result.valid=text.find("InstantSurgeryOutfit")!=std::string::npos&&text.find("Shape.")!=std::string::npos;result.verified=version!=nullptr;
     result.detail=!result.valid?"The Hex preset file is unreadable or not an Instant Surgery preset.":version?std::string("Checked external Hex ")+version->version:unverifiedDependency("Hex's Hentai Preset");return result;
 }
 std::vector<fs::path> configCandidates(const fs::path& game) {

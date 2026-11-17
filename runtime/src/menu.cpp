@@ -22,6 +22,7 @@ namespace ml::gui {
 static float scale=1.f,pending=0.f;
 static ImFont *bodyFont=nullptr,*titleFont=nullptr;
 static constexpr ImVec4 accent{.91f,.38f,.66f,1},gold{.94f,.77f,.48f,1},muted{.60f,.55f,.65f,1},green{.48f,.84f,.69f,1};
+static constexpr ImVec4 errorColour{.96f,.43f,.43f,1};
 static constexpr const char* defaultOutfitLabel="Default witch outfit";
 static constexpr const char* dancerOutfitLabel="Sexy Witches of Pywel Reshaped / Dancer Dress";
 static std::string baseVersionWarning,hexVersionWarning,weightVersionWarning,underwearVersionWarning;
@@ -119,6 +120,8 @@ static void dependencySettings(hex::Runtime& r){
     const auto state=[&](const char* label,bool available,const std::string& detail){ImGui::TextColored(available?green:muted,"%s  /  %s",label,available?"Ready":"Unavailable");tip(detail.c_str());};
     const auto fileState=[&](const char* label,const hex::DependencyFile& file){ImGui::TextColored(!file.valid?muted:file.verified?green:gold,"%s / %s%s",label,!file.valid?"File needed":file.verified?"Verified":"Unverified",file.valid&&!file.verified?"  (!)":"");tip(file.detail.c_str());};
     fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);fileState("VENUS Body",status.venus);fileState("Hex's Hentai Preset",status.hex);fileState("Sexy Witches reference",status.weight);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
+    ImGui::Spacing();ImGui::TextDisabled("Feature checks");const auto capabilities=r.compatibilityStatus();
+    for(size_t i=0;i<capabilities.size();++i){const auto& feature=capabilities[i];ImGui::TextColored(feature.state==hex::CompatibilityState::Ready?green:feature.state==hex::CompatibilityState::Blocked?errorColour:muted,"%s / %s%s",hex::featureName(hex::Feature(i)),feature.state==hex::CompatibilityState::Ready?"Ready":feature.state==hex::CompatibilityState::Blocked?"Blocked":"Checking",feature.state==hex::CompatibilityState::Blocked?"  (!)":"");tip(feature.detail.c_str());record("feature"+std::to_string(i));}
     if(!status.bodyWarning.empty()){ImGui::TextColored(gold,"Active body routes / unverified  (!)");tip(status.bodyWarning.c_str());}
     static std::array<std::array<char,32768>,6> buffers{};static std::array<std::string,6> synced{};static std::array<bool,6> editing{};
     auto paths=r.configuredDependencyPaths();bool changed=false;
@@ -141,9 +144,10 @@ static void pinSettings(hex::Runtime& r){
     ImGui::TextDisabled("Or right-click a control to pin it.");
 }
 static void underwearControl(hex::Runtime& r,bool available){
-    const auto status=hex::underwearStatus(r.model.target);const auto dependency=r.dependencyStatus();const bool filesReady=dependency.scanned&&dependency.game.valid&&dependency.instant.valid&&dependency.venus.valid&&dependency.bodyVerified;bool hidden=status.hidden;ImGui::BeginDisabled(!available||(!status.ready&&!filesReady));
+    const auto status=hex::underwearStatus(r.model.target);const auto dependency=r.dependencyStatus();const auto compatibility=r.featureCompatibility(hex::Feature::Underwear);const bool filesReady=dependency.scanned&&dependency.game.valid&&dependency.instant.valid&&dependency.venus.valid&&dependency.bodyVerified;bool hidden=status.hidden;ImGui::BeginDisabled(!available||compatibility.state==hex::CompatibilityState::Blocked||(!status.ready&&!filesReady));
     if(ImGui::Checkbox("Hide base bra & panties",&hidden)){std::string error;if(!hex::setUnderwearHidden(r.model.target,hidden,error))r.model.message=error;}
     record("underwear");ImGui::EndDisabled();pinContext(hex::PinUnderwear);versionDecoration(underwearVersionWarning,true,1);if(underwearVersionWarning.empty())tip("Hides the game's base underwear and compatible Wardrobe bra/panties. Built-in outfit pieces need provider support.");
+    if(compatibility.state==hex::CompatibilityState::Blocked){ImGui::SameLine();ImGui::TextColored(errorColour,"(!)");tip(compatibility.detail.c_str());}
     if(status.mixed){ImGui::SameLine();ImGui::TextColored(gold,"Mixed");}
 }
 static void outfitControl(){
@@ -151,12 +155,12 @@ static void outfitControl(){
     const auto selected=hex::wardrobeOutfitId(status.selected);const auto providers=hex::wardrobeProviderOutfits();
     std::string label=selected=="hexappeal/default"?defaultOutfitLabel:selected=="hexappeal/dancer"?dancerOutfitLabel:"Provider unavailable";
     for(const auto& provider:providers)if(provider.id==selected)label=provider.label;
-    const auto dependencies=runtime.dependencyStatus();const bool uiReady=status.available.switchReady||(dependencies.scanned&&dependencies.game.valid);
+    const auto dependencies=runtime.dependencyStatus();const auto compatibility=runtime.featureCompatibility(hex::Feature::Wardrobe);const bool uiReady=status.available.switchReady||(compatibility.state==hex::CompatibilityState::Waiting&&dependencies.scanned&&dependencies.game.valid);
     ImGui::BeginDisabled(!uiReady);ImGui::SetNextItemWidth(-1);
     const bool opened=ImGui::BeginCombo("##outfit",status.mixedOutfit?"Mixed":label.c_str());record("outfit");
     if(opened){
         for(int choice=0;choice<2;++choice){
-            const bool missing=choice==1&&!status.available.dancerAssets&&!status.resourceFilesReady;ImGui::BeginDisabled(missing);
+            const bool missing=choice==1&&(!status.resourceFilesReady||runtime.featureCompatibility(hex::Feature::Shaping).state==hex::CompatibilityState::Blocked);ImGui::BeginDisabled(missing);
             const char* id=choice?"hexappeal/dancer":"hexappeal/default";
             if(ImGui::Selectable(choice?dancerOutfitLabel:defaultOutfitLabel,selected==id)){std::string error;if(!hex::requestWardrobeOutfit(runtime.model.target,id,error))runtime.model.message=error;}
             ImGui::EndDisabled();tip(missing?status.dependencyDetail.c_str():choice?"Sexy Witches of Pywel Reshaped - Color Variants, by Vincent1681. Dancer Dress; supplied colours appear below.":"Uses the currently mounted default witch outfit, including Hex Appeal's separate refit add-on when enabled.");
@@ -168,7 +172,7 @@ static void outfitControl(){
     }
     ImGui::EndDisabled();if(!opened){pinContext(hex::PinOutfit);auto warning=dependencies.game.valid&&!dependencies.game.verified?dependencies.game.detail:std::string{};const auto hooks=hex::wardrobeProbeStatus().versionWarning;if(!hooks.empty()){if(!warning.empty())warning+='\n';warning+=hooks;}if(selected=="hexappeal/dancer"&&!status.versionWarning.empty()){if(!warning.empty())warning+='\n';warning+=status.versionWarning;}versionDecoration(warning,true,3);if(warning.empty())tip(status.detail.c_str());}
     if(status.mixedOutfit)ImGui::TextColored(gold,"Mixed outfits");
-    ImGui::TextColored(status.warning?gold:muted,"%s",status.caption.c_str());tip(status.detail.c_str());
+    ImGui::TextColored(compatibility.state==hex::CompatibilityState::Blocked?errorColour:status.warning?gold:muted,"%s",compatibility.state==hex::CompatibilityState::Blocked?"Wardrobe / blocked  (!)":status.caption.c_str());tip(compatibility.state==hex::CompatibilityState::Blocked?compatibility.detail.c_str():status.detail.c_str());
 }
 static void providerWardrobeControls(hex::Runtime& runtime,bool pinnedOnly=false){
     const auto state=hex::wardrobeEditorStatus(runtime.model.target);if(state.mixedOutfit){if(!pinnedOnly)ImGui::TextDisabled("Choose one outfit to edit its options.");return;}
@@ -237,7 +241,8 @@ void Render(){
     for(const auto* file:{&dependencies.game,&dependencies.instant,&dependencies.venus,&dependencies.physics})appendWarning(baseVersionWarning,*file);
     if(!dependencies.bodyWarning.empty()){if(!baseVersionWarning.empty())baseVersionWarning+="\n\n";baseVersionWarning+=dependencies.bodyWarning;}
     appendWarning(hexVersionWarning,dependencies.hex);appendWarning(weightVersionWarning,dependencies.weight);underwearVersionWarning=baseVersionWarning;appendWarning(underwearVersionWarning,dependencies.creator);
-    const bool shapingReady=dependencies.scanned?dependencies.game.valid&&dependencies.instant.valid&&dependencies.venus.valid&&dependencies.bodyVerified:r.shapingAvailable.load(),hexReady=dependencies.scanned?dependencies.hex.valid:r.hexAvailable.load();sourceWeightReady=dependencies.scanned?dependencies.weight.valid:r.weightAvailable.load();
+    const bool shapingFiles=dependencies.scanned?dependencies.game.valid&&dependencies.instant.valid&&dependencies.venus.valid&&dependencies.bodyVerified:r.shapingAvailable.load();
+    const bool shapingReady=r.featureCompatibility(hex::Feature::Shaping).allows(shapingFiles),hexReady=r.featureCompatibility(hex::Feature::Hex).allows(dependencies.scanned?dependencies.hex.valid:r.hexAvailable.load());sourceWeightReady=r.featureCompatibility(hex::Feature::Weight).allows(dependencies.scanned?dependencies.weight.valid:r.weightAvailable.load());
     auto& io=ImGui::GetIO();io.MouseDrawCursor=true;const float maxW=std::max(300.f,io.DisplaySize.x-24),maxH=std::max(200.f,io.DisplaySize.y-24);
     static bool first=true,previous=false;static uint32_t previousPins=0;static size_t previousProviderPins=0;
     float quickHeight=190;for(uint32_t bit=1;bit<=hex::PinDancerColour;bit<<=1)if(r.quickPins&bit)quickHeight+=bit==hex::PinPad?260:bit==hex::PinTop||bit==hex::PinBottom?40:bit==hex::PinOutfit||bit==hex::PinUnderwearColour||bit==hex::PinDancerColour?65:35;
@@ -305,8 +310,9 @@ void Render(){
     ImGui::EndChild();ImGui::EndChild();
     model.draft.autoFit=true;if(changed)r.selectionChanged();r.tickAuto(GetTickCount64(),!io.MouseDown[0]);
     ImGui::Separator();model.applied=model.draftIsApplied();
-    const auto dependencyIssue=hex::profileDependencyIssue(model.draft,r.shapingAvailable,r.hexAvailable,r.weightAvailable);
-    const bool waiting=(r.queuedMask&(model.target<0?63u:1u<<model.target))||model.pendingTransaction;ImGui::TextColored(r.autoError?gold:waiting||!dependencyIssue.empty()?muted:green,r.savePending?"Shape / saving...":!dependencyIssue.empty()?"Shape / dependency needed":waiting?"Shape / waiting":model.applied?"Shape / active":"Shape / saved");
+    auto dependencyIssue=hex::profileDependencyIssue(model.draft,r.shapingAvailable,r.hexAvailable,r.weightAvailable);bool blocked=false;
+    for(const auto feature:{hex::Feature::Shaping,hex::Feature::Hex,hex::Feature::Weight}){if(feature==hex::Feature::Hex&&!(model.draft.top==hex::Preset::Hex&&model.draft.topBlend>0)&&!(model.draft.bottom==hex::Preset::Hex&&model.draft.bottomBlend>0))continue;if(feature==hex::Feature::Weight&&model.draft.weight==0)continue;const auto compatibility=r.featureCompatibility(feature);if(compatibility.state==hex::CompatibilityState::Blocked){dependencyIssue=compatibility.detail;blocked=true;break;}}
+    const bool waiting=(r.queuedMask&(model.target<0?63u:1u<<model.target))||model.pendingTransaction;ImGui::TextColored(blocked?errorColour:r.autoError?gold:waiting||!dependencyIssue.empty()?muted:green,r.savePending?"Shape / saving...":blocked?"Shape / blocked  (!)":!dependencyIssue.empty()?"Shape / dependency needed":waiting?"Shape / waiting":model.applied?"Shape / active":"Shape / saved");
     char shortcut[32]{};GetKeyNameTextA(LONG(MapVirtualKeyA(UINT(r.key),MAPVK_VK_TO_VSC)<<16),shortcut,32);
     tip(dependencyIssue.empty()?model.message.c_str():dependencyIssue.c_str());ImGui::SameLine();ImGui::TextDisabled("AUTO");ImGui::SameLine(ImGui::GetWindowWidth()-82*scale);ImGui::TextDisabled("%s  |  ?",shortcut[0]?shortcut:"Menu");tip("Changes apply and save automatically. Right-click a control to pin it. Use Block game input to choose whether gameplay receives input while open.");
     state.mouseActive=ImGui::IsAnyItemActive()||ImGui::IsPopupOpen(nullptr,ImGuiPopupFlags_AnyPopupId);state.textEditing=io.WantTextInput;

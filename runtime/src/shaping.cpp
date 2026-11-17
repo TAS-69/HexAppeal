@@ -101,15 +101,17 @@ bool NativeShapeEngine::bind(HMODULE module,std::string& error) {
 float NativeShapeEngine::minimumScale() const{__try{return base?*reinterpret_cast<const float*>(base+0x129A80):0.f;}__except(EXCEPTION_EXECUTE_HANDLER){return 0.f;}}
 bool NativeShapeEngine::readHex(const std::filesystem::path& path,std::string& error) {
     if(!base){error="The native shaping engine is unavailable.";return false;}
-    const auto* preset=hexPresetVersion(sha256(path));
-    SurgeryProfile next=identity();std::ifstream in(path);std::string line;bool marker=false;
+    hasHex=false;std::error_code ec;const auto size=std::filesystem::file_size(path,ec);
+    if(ec||size>1024*1024){error="The external Hex preset is unreadable or exceeds the supported 1 MB limit.";return false;}
+    SurgeryProfile next=identity();std::ifstream in(path);if(!in){error="The external Hex preset could not be opened.";return false;}std::string line;bool marker=false,first=true;
+    const auto trim=[](const std::string& value){const auto begin=value.find_first_not_of(" \t\r");return begin==std::string::npos?std::string{}:value.substr(begin,value.find_last_not_of(" \t\r")-begin+1);};
     while(std::getline(in,line)) {
-        if(!line.empty()&&line.back()=='\r')line.pop_back();
-        if(line.rfind("InstantSurgeryOutfit=",0)==0){marker=line.size()>sizeof("InstantSurgeryOutfit=")-1;continue;}
-        if(line.empty())continue;
+        if(first&&line.rfind("\xef\xbb\xbf",0)==0)line.erase(0,3);first=false;line=trim(line);
+        if(line.empty()||line[0]=='#'||line[0]==';')continue;
         const auto eq=line.find('=');if(eq==std::string::npos){error="Malformed Hex profile.";return false;}
-        const auto key=line.substr(0,eq);float value;
-        if(!number(line.substr(eq+1),value)){error="Invalid Hex profile number.";return false;}
+        const auto key=trim(line.substr(0,eq)),text=trim(line.substr(eq+1));float value;
+        if(key=="InstantSurgeryOutfit"){marker=!text.empty();continue;}
+        if(!number(text,value)){error="Invalid Hex profile number: "+key;return false;}
         if(key=="Symmetry"){if(value!=1){error="This Hex dependency must use its original symmetry setting.";return false;}continue;}
         if(key=="BreastTeardropCurve"){next.teardrop=value;continue;}
         bool found=false;
@@ -123,6 +125,7 @@ bool NativeShapeEngine::readHex(const std::filesystem::path& path,std::string& e
         for(size_t i=0;i<4;++i)if(key==std::string("Contour.")+contourNames[i]){next.contours[i]=value;found=true;break;}
         if(!found){error="Unrecognized Hex profile setting: "+key;return false;}
     }
+    if(in.bad()){error="The external Hex preset could not be read completely.";return false;}
     if(!marker){error="The original Hex outfit-profile marker is missing.";return false;}
     originalHex=next;hasHex=true;return true;
 }

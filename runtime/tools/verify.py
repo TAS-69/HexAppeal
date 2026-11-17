@@ -28,6 +28,7 @@ commands = [
     ('interface_preferences', [str(build/'interface_preferences.exe'),str(build/'preferences-fixture'/'profiles.ini')]),
     ('creation_chain', [str(build/'creation_chain_tests.exe')]),
     ('appearance_hook_compatibility', [str(build/'appearance_hook_tests.exe')]),
+    ('feature_compatibility', [str(build/'compatibility_tests.exe')]),
     ('wardrobe_instance_ownership', [str(build/'wardrobe_snapshot_tests.exe')]),
     ('wardrobe_selection', [str(build/'wardrobe_selection_tests.exe'),str(build/'wardrobe-fixture'/'wardrobe.ini')]),
     ('wardrobe_transport_abi', [str(build/'wardrobe_transport_tests.exe')]),
@@ -53,6 +54,10 @@ if args.instant:
         raise SystemExit('The native menu test only supports the inspected Instant Surgery 0.9.6 binary.')
     copy = fixture / 'InstantSurgery-test-copy.asi'
     shutil.copyfile(args.instant, copy)
+    compatibility=next(command for name,command in commands if name=='feature_compatibility')
+    compatibility.append(str(copy))
+    if args.game and (args.game/'bin64/BodyPhysics.asi').is_file():
+        physics=fixture/'BodyPhysics-test-copy.asi';shutil.copyfile(args.game/'bin64/BodyPhysics.asi',physics);compatibility.append(str(physics))
     commands.append(('native_menu_export', [str(build/'native_menu_test.exe'), str(copy)]))
 
 def run(item):

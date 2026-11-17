@@ -26,6 +26,9 @@ void Write(const char* level,const char* fmt,...) {
 }
 }
 namespace hex {
+FeatureCompatibility Runtime::featureCompatibility(Feature feature){std::lock_guard<std::mutex> lock(compatibilityMutex);return effectiveCompatibility(compatibility,feature);}
+CompatibilitySnapshot Runtime::compatibilityStatus(){std::lock_guard<std::mutex> lock(compatibilityMutex);auto result=compatibility;for(size_t i=0;i<result.size();++i)result[i]=effectiveCompatibility(compatibility,Feature(i));return result;}
+void Runtime::reportCompatibility(Feature feature,CompatibilityState state,const std::string& detail){std::lock_guard<std::mutex> lock(compatibilityMutex);const auto index=size_t(feature);if(index<compatibility.size())compatibility[index]={state,detail};}
 Runtime& Runtime::get(){static Runtime r;return r;}
 std::string sha256(const std::filesystem::path& path) {
     std::error_code ec;auto file=std::filesystem::absolute(path,ec).lexically_normal().make_preferred();

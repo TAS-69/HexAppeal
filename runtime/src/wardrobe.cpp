@@ -134,7 +134,7 @@ bool initializeWardrobeObservation(std::string& error) {
     std::string frameError;
     if(!initializeFrameDispatch(refreshFrame,frameError)){error="Outfit frame dispatch unavailable: "+frameError;return false;}
     refreshReady=true;{std::lock_guard<std::mutex> guard(mutex);refreshStatus="Read-only assembly observation and checked game-thread refresh are ready.";}
-    std::string wardrobeError;if(!initializeNativeWardrobe(wardrobeError))LOG_ERR("Wardrobe switching unavailable: %s",wardrobeError.c_str());
+    std::string wardrobeError;if(!initializeNativeWardrobe(wardrobeError)){reportWardrobeUnavailable(wardrobeError);LOG_ERR("Wardrobe switching unavailable: %s",wardrobeError.c_str());}
     return true;
 }
 void observeWardrobeActor(void* actor,const ActorIdentity& identity) {
