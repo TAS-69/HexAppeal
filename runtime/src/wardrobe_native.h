@@ -12,6 +12,7 @@ struct WardrobeEditorStatus {
     bool warning=true;
 };
 bool initializeNativeWardrobe(std::string& error);
+void reportWardrobeUnavailable(const std::string& error);
 void refreshWardrobeResources(const DependencyStatus& dependencies);
 void tickNativeWardrobe(uintptr_t actor,int witch);
 WardrobeEditorStatus wardrobeEditorStatus(int target);

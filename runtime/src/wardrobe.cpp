@@ -4,6 +4,7 @@
 #include "runtime.h"
 #include "core/log.h"
 #include "hooks/frame_dispatch.h"
+#include "appearance_hooks.h"
 #include <MinHook.h>
 #include <array>
 #include <cstring>
@@ -28,6 +29,7 @@ std::atomic<bool> refreshReady{false};
 std::atomic<uint32_t> refreshMask{0};
 std::array<std::atomic<uint64_t>,6> assemblyGeneration{};
 std::string refreshStatus="Outfit refresh diagnostics are disabled.";
+std::string appearanceWarning;
 bool textGuard(uintptr_t wrapper,char* output,size_t capacity) {
     __try {
         if(!wrapper)return false;const auto* text=*reinterpret_cast<const char*const*>(wrapper);const auto length=*reinterpret_cast<const uint32_t*>(wrapper+8);
@@ -64,17 +66,7 @@ intptr_t copy(uintptr_t destination,uintptr_t source) {
 }
 bool bytesGuard(void* address,const unsigned char* bytes,size_t size){__try{return memcmp(address,bytes,size)==0;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
 bool knownJump(void* address) {
-    __try {
-        void* next=address;
-        for(int hop=0;hop<4;++hop){auto* p=static_cast<unsigned char*>(next);
-            if(p[0]==0xe9)next=p+5+*reinterpret_cast<int32_t*>(p+1);
-            else if(p[0]==0xff&&p[1]==0x25)next=*reinterpret_cast<void**>(p+6+*reinterpret_cast<int32_t*>(p+2));
-            else if(p[0]==0x48&&p[1]==0xb8&&p[10]==0xff&&p[11]==0xe0)next=*reinterpret_cast<void**>(p+2);
-            else return false;
-            if(!next)return false;HMODULE owner=nullptr;
-            if(GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,reinterpret_cast<LPCWSTR>(next),&owner)&&owner&&(owner==GetModuleHandleW(L"SpouseOverhaul.asi")||owner==GetModuleHandleW(L"CharacterCreator.asi")))return true;
-        }return false;
-    }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
+    return appearance::knownJump(address,GetModuleHandleW(L"SpouseOverhaul.asi"),GetModuleHandleW(L"CharacterCreator.asi"));
 }
 void registry() {
     const auto base=reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));const auto loader=pointerGuard(base+0x7160288);if(!loader)return;
@@ -124,8 +116,11 @@ void refreshFrame() noexcept {
 bool initializeWardrobeObservation(std::string& error) {
     auto* game=reinterpret_cast<unsigned char*>(GetModuleHandleW(nullptr));
     const auto spouse=GetModuleHandleW(L"SpouseOverhaul.asi"),creator=GetModuleHandleW(L"CharacterCreator.asi");
+    std::string warnings;
     for(const auto mod:{spouse,creator})if(mod){wchar_t path[32768]{};GetModuleFileNameW(mod,path,32768);const auto digest=sha256(path);
-        if(digest!="653a650945ee0fcfd5e3c70bf584b27a860bda88098e58e44abd4715b8df4513"&&digest!="de9b8b3acf79dce35d219cc9daf2f1daf7f6e482950cab389fc2dd4b8f236b32"){error="Uninspected appearance hook";return false;}}
+        const auto warning=appearance::versionWarning(mod==spouse?"Spouse Overhaul":"Character Creator",digest,mod==spouse?"653a650945ee0fcfd5e3c70bf584b27a860bda88098e58e44abd4715b8df4513":"de9b8b3acf79dce35d219cc9daf2f1daf7f6e482950cab389fc2dd4b8f236b32");
+        if(!warning.empty()){if(!warnings.empty())warnings+='\n';warnings+=warning;LOG("Wardrobe compatibility: %s SHA256=%s",warning.c_str(),digest.c_str());}}
+    {std::lock_guard<std::mutex> guard(mutex);appearanceWarning=warnings;}
     static const unsigned char mergeBytes[]={0x48,0x89,0x54,0x24,0x10,0x55,0x53,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57};
     static const unsigned char copyBytes[]={0x48,0x89,0x5c,0x24,0x18,0x48,0x89,0x6c,0x24,0x20,0x48,0x89,0x4c,0x24,0x08};
     auto* mergeTarget=game+0x2f94ce0;auto* copyTarget=game+0x5477a0;
@@ -135,9 +130,9 @@ bool initializeWardrobeObservation(std::string& error) {
     if(MH_QueueEnableHook(mergeTarget)!=MH_OK||MH_QueueEnableHook(copyTarget)!=MH_OK||MH_ApplyQueued()!=MH_OK){MH_DisableHook(mergeTarget);MH_DisableHook(copyTarget);MH_RemoveHook(mergeTarget);MH_RemoveHook(copyTarget);error="Appearance observer could not start";return false;}
     registry();LOG("Wardrobe observation installed. Outfit writes use a separate development gate; source records are not modified.");
     static const unsigned char rebuildBytes[]={0x48,0x89,0x5c,0x24,0x10,0x55,0x56,0x57,0x48,0x8b,0xec,0x48,0x81,0xec,0x80,0x00,0x00,0x00};
-    if(!bytesGuard(game+0x82d7f0,rebuildBytes,sizeof(rebuildBytes))&&!knownJump(game+0x82d7f0)){LOG_ERR("Wardrobe refresh disabled: the rebuild entry differs.");return true;}
+    if(!bytesGuard(game+0x82d7f0,rebuildBytes,sizeof(rebuildBytes))&&!knownJump(game+0x82d7f0)){error="The outfit rebuild entry differs from the supported interface.";return false;}
     std::string frameError;
-    if(!initializeFrameDispatch(refreshFrame,frameError)){LOG_ERR("Wardrobe refresh disabled: %s",frameError.c_str());return true;}
+    if(!initializeFrameDispatch(refreshFrame,frameError)){error="Outfit frame dispatch unavailable: "+frameError;return false;}
     refreshReady=true;{std::lock_guard<std::mutex> guard(mutex);refreshStatus="Read-only assembly observation and checked game-thread refresh are ready.";}
     std::string wardrobeError;if(!initializeNativeWardrobe(wardrobeError))LOG_ERR("Wardrobe switching unavailable: %s",wardrobeError.c_str());
     return true;
@@ -162,7 +157,7 @@ void observeWardrobeActor(void* actor,const ActorIdentity& identity) {
     observedActors.insert(address);
     LOG("Wardrobe actor witch=%d actor=%p control=%p customization=%p appearance_table=%p renderer=%p.",identity.witch,actor,reinterpret_cast<void*>(control),reinterpret_cast<void*>(customization),reinterpret_cast<void*>(pointerGuard(customization+0x138)),reinterpret_cast<void*>(pointerGuard(control+0x130)));
 }
-WardrobeProbeStatus wardrobeProbeStatus(){std::lock_guard<std::mutex> guard(mutex);return {refreshReady.load(),refreshMask.load()!=0,refreshStatus};}
+WardrobeProbeStatus wardrobeProbeStatus(){std::lock_guard<std::mutex> guard(mutex);return {refreshReady.load(),refreshMask.load()!=0,refreshStatus,appearanceWarning};}
 bool requestWardrobeRefresh(int target,std::string& error){
     if(!refreshReady||target< -1||target>5){error="Outfit refresh is unavailable.";return false;}
     refreshMask.fetch_or(target<0?63u:1u<<target);return true;

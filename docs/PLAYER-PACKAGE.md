@@ -2,7 +2,9 @@
 
 The next public player package combines **Bodies, Runtime and default Outfit Refits**. Players download one ZIP and enable **Hex Appeal** on Mods and its **HexAppeal** switch on ASI Mods, then mount. The development source keeps its separate modules. SDK and source downloads are optional creator resources, not extra installation steps for players.
 
-The combined layout was imported and mounted with **DMM 5.0.1** on 17 November 2026. All seven appearance routes and forty default garment routes matched, and the deployed ASI matched the checked development binary. DMM keeps data and plugin switches separate; turning off only Mods leaves the ASI enabled. Both normal switches are part of installation and removal. Other managers need their own acceptance check. The combined archive has not had a new in-game launch; its runtime/assets match the separately checked development files.
+The combined layout was imported and mounted with **DMM 5.0.1** on 17 November 2026. All seven appearance routes and forty default garment routes matched. DMM keeps data and plugin switches separate; turning off only Mods leaves the ASI enabled. Both normal switches are part of installation and removal. Other managers need their own acceptance check.
+
+The first fresh launch exposed an outdated Character Creator whole-file gate. After correcting it to warn on an unverified version while separately checking executable hook ownership and native interfaces, the combined installation passed a live check on Elowen: saved Dancer restored, and Midnight Black → Original White → Midnight Black refreshed automatically. The old external resource entry stayed disabled. Her saved shape remained active; no new pale blotches or transparency appeared in the close oblique view. This is sampled acceptance, not every witch, motion or detail level. The checked runtime was `de392658026ea59427df2adc0998f51fceb12904f14648caed0bb4f04dbd33c2`.
 
 ## Contents
 
@@ -34,7 +36,7 @@ With the game closed and the previous development setup backed up:
 3. Disable the previous separate Hex Appeal modules to avoid duplicate patches or plugins.
 4. Enable the combined Mods entry and its ASI switch. Mount and verify the intended appearance/model routes and the exact deployed HexAppeal.asi hash.
 5. To remove it, disable both controls and remount. DMM's Mods checkbox alone does not disable its plugin.
-6. Restore the development setup and saved choices. Record the manager version, mounted-route hashes and deployed plugin hash in `build-data/player-package.json`.
+6. Preserve the saved choices and record the manager version, mounted-route hashes, deployed plugin hash and live result in `build-data/player-package.json`. The current private test installation uses the combined entry; the old separate entries remain disabled.
 
 Separate Mods and ASI controls are accepted. Hex Appeal does not deploy plugins from its runtime or alter the manager's settings to synchronize those controls.
 
@@ -47,7 +49,7 @@ Separate Mods and ASI controls are accepted. Hex Appeal does not deploy plugins 
 
 There is no separate Dancer resource entry in this mode. If upgrading from the older setup, disable that old entry before mounting. The setup preserves the main manifest, runtime, default refits and player guide. Existing Dancer files are never overwritten; a partial link failure removes only the links created by that attempt.
 
-The actual main-entry mount passed native checks for Dancer readiness, managed colour switching and all five supplied palette sources on 17 November 2026. This resource-path check did not launch the game. Runtime switching and fitting retain the earlier live-test scope.
+The actual main-entry mount passed native checks for Dancer readiness, managed colour switching and all five supplied palette sources on 17 November 2026. The later live check above confirmed startup restoration and automatic White/Black refresh using those references. Original dependency contents remained unchanged.
 
 The original models and textures are never inside the public ZIP. The configured local installation contains links to their complete contents, so do not repackage that installed folder. Keep the original FOMOD available. Updating the main package may require preparing the references again **before** the update's mount. This setup does not run after a first mount or generate assets on game startup.
 

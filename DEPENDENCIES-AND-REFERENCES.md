@@ -27,6 +27,8 @@ Hard links expose the complete dependency file contents and can retain data if t
 | **Khione95 — [Character Creator](https://www.nexusmods.com/crimsondesert/mods/837)** | Barber/character ownership compatibility research. No implementation or assets copied; no blanket licence permission is inferred. |
 | **Desert Mod Manager** | External install/mount manager and loaded runtime/manifest. My own reader checks active resource routes and configured storage. DMM executables/parser code are not bundled. The current adapter does not guarantee other managers' formats. |
 
+For Spouse Overhaul and Character Creator, my adapter inspects loaded module identity and appearance-hook destinations. An unverified file version produces a compatibility warning; native signatures, bounded executable hook chains, live actor ownership and assembly acknowledgement remain separate operation checks. It neither edits their files nor copies their implementation.
+
 ## Openly licensed code and tools
 
 These are code/tool credits with explicit upstream licences. Their terms and required notices are retained where code is distributed; they are distinct from downloaded content-mod dependencies.

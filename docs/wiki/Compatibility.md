@@ -6,6 +6,8 @@ The reference setup is Crimson Desert **2.05.00 / Steam build 26636972**, DMM **
 
 These are checked versions, not a promise that every past or future release works. Unknown readable versions receive a soft warning and remain usable. Native layouts, function signatures, ownership and transaction checks must still pass. The static default-outfit refits were built against VENUS 2.6 and need a new fit review if its geometry changes.
 
+Development 0.5.7 also warns when an unverified Spouse Overhaul or Character Creator is loaded. Its appearance-hook adapter checks bounded jump chains, executable destinations and recognized module ownership separately. An unreadable, cyclic or unrecognized hook, changed native interface or unowned outfit can still stop an operation. A version warning alone does not disable Wardrobe. With Character Creator 9.1.41 loaded, the corrected adapter passed a sampled Elowen check for saved Dancer restoration and automatic Black → White → Black refresh. That does not verify every interaction in that Character Creator version.
+
 Development 0.5.7 adds checked Human Body recognition alongside Elf Body. Their body/hand skinning and physics match, so the existing default refits use the same baseline. Live Human checks on Elowen covered all nine combinations on Dancer, Default ↔ Dancer switching and independent minimum Height / maximum Weight on the default robe. See [VENUS compatibility](../VENUS-COMPATIBILITY.md) for the tested build and limits. A DMM priority rule tied to the Elf variant may need to be chosen again after switching to Human.
 
 ## Conflicts
@@ -42,6 +44,8 @@ Live evidence from the preceding clean build covers Elowen startup restoration, 
 **Saved / waiting:** bring the selected witch into view and inspect Dependencies & paths. Downloaded files and active mounted files are different checks.
 
 **Outfit stays default:** confirm its resources are mounted and the actor is wearing a recognized default, rather than custom spouse/barber equipment. Let the world and assembly finish loading.
+
+**Outfit unavailable:** hover the status for the initialization error. In the current development adapter, an unverified appearance-mod version only warns; a changed or unrecognized native hook can still prevent switching. Saved choices are retained.
 
 **Colour or materials look wrong:** check resource conflicts, test a fresh save load and full restart, and report whether it happens with original resources and neutral shaping. Include the selected colour/shape, witch, game/dependency versions and a screenshot. Do not assume every material issue comes from shaping.
 

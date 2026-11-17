@@ -411,7 +411,7 @@ DWORD WINAPI worker(void*) {
             }
             std::string visibilityError;
             if(!initializeUnderwear(module,visibilityError))LOG_ERR("Underwear controls unavailable: %s",visibilityError.c_str());
-            if(s.wardrobeObservation){std::string error;if(!initializeWardrobeObservation(error))LOG_ERR("Wardrobe observation unavailable: %s",error.c_str());}
+            if(s.wardrobeObservation){std::string error;if(!initializeWardrobeObservation(error)){reportWardrobeUnavailable(error);LOG_ERR("Wardrobe observation unavailable: %s",error.c_str());}}
             s.hooked=true;setStatus("NPC route ready. Saved shapes restore when a selected witch becomes visible.");
             rescan(true);
             LOG("Instant Surgery NPC adapter installed. Body/outfit writes require a validated transaction and witch identity; version verification is reported separately.");

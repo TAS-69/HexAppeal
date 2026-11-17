@@ -89,6 +89,11 @@ bool initializeNativeWardrobe(std::string& error){
     LOG("Saved Wardrobe choices queued; application waits for live witch ownership, outfit records and dependencies.");
     return true;
 }
+void reportWardrobeUnavailable(const std::string& error){
+    std::lock_guard<std::mutex> lock(mutex);engineReady=false;detail=error;
+    const auto& profiles=Runtime::get().profiles;std::string ignored;
+    if(!profiles.empty())selections.load(profiles.parent_path()/L"wardrobe.ini",ignored);
+}
 void refreshWardrobeResources(const DependencyStatus& dependencies){
     const auto checked=inspectDancerResources(dependencies,GetModuleHandleW(L"DmmRuntime.asi")!=nullptr);
     std::lock_guard<std::mutex> lock(mutex);

@@ -166,7 +166,7 @@ static void outfitControl(){
             ImGui::EndDisabled();tip((provider.available?provider.requirements:provider.reason).c_str());ImGui::PopID();}
         ImGui::EndCombo();
     }
-    ImGui::EndDisabled();if(!opened){pinContext(hex::PinOutfit);const auto warning=dependencies.game.valid&&!dependencies.game.verified?dependencies.game.detail:std::string{};versionDecoration(warning+((selected=="hexappeal/dancer")?status.versionWarning:""),true,3);if(warning.empty()&&status.versionWarning.empty())tip(status.detail.c_str());}
+    ImGui::EndDisabled();if(!opened){pinContext(hex::PinOutfit);auto warning=dependencies.game.valid&&!dependencies.game.verified?dependencies.game.detail:std::string{};const auto hooks=hex::wardrobeProbeStatus().versionWarning;if(!hooks.empty()){if(!warning.empty())warning+='\n';warning+=hooks;}if(selected=="hexappeal/dancer"&&!status.versionWarning.empty()){if(!warning.empty())warning+='\n';warning+=status.versionWarning;}versionDecoration(warning,true,3);if(warning.empty())tip(status.detail.c_str());}
     if(status.mixedOutfit)ImGui::TextColored(gold,"Mixed outfits");
     ImGui::TextColored(status.warning?gold:muted,"%s",status.caption.c_str());tip(status.detail.c_str());
 }

@@ -104,6 +104,7 @@ input_objs+=[extra(root/'src'/'hooks'/'xinput_hook.cpp','.test',['MODACTIVATOR_T
 link(build/'input_lifecycle.exe',input_objs)
 link(build/'interface_preferences.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'interface_preferences.cpp')])
 link(build/'creation_chain_tests.exe',[extra(root/'tests'/'creation_chain.cpp')])
+link(build/'appearance_hook_tests.exe',[extra(root/'tests'/'appearance_hooks.cpp')])
 link(build/'wardrobe_snapshot_tests.exe',[objects['src/wardrobe_snapshot.cpp'],extra(root/'tests'/'wardrobe_snapshot.cpp')])
 link(build/'wardrobe_selection_tests.exe',[objects['src/wardrobe_selection.cpp'],extra(root/'tests'/'wardrobe_selection.cpp')])
 link(build/'wardrobe_transport_tests.exe',[objects['src/wardrobe_transport.cpp'],extra(root/'tests'/'wardrobe_transport.cpp')])

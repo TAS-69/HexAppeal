@@ -11,7 +11,9 @@
     "source_detection": "Complete original FOMOD beside the installed mod, or an explicit source path.",
     "setup_requirement": "Python 3.12+ with its launcher",
     "native_resource_and_palette_readiness_verified": true,
-    "in_game_integrated_path_tested": false
+    "in_game_integrated_path_tested": true,
+    "live_scope": "Elowen close oblique idle view with saved shape and Elf Body: Dancer restored on load; Midnight Black to Original White to Midnight Black refreshed automatically. No new pale blotches or transparency visible. Separate external resource entry disabled; original dependency contents unchanged.",
+    "initial_live_issue": "The first launch stopped Wardrobe at the old Character Creator whole-file gate. Corrected to warn on unknown versions while independently validating hook ownership and native interfaces; the restart check passed."
   },
   "manager_acceptance": {
     "required": true,
@@ -23,8 +25,11 @@
     "single_switch_synchronization_required": false,
     "appearance_routes_verified": 7,
     "default_garment_routes_verified": 40,
-    "deployed_runtime_sha256": "4a83d8013abf9ebc355caae9cb268b9b34e9dcffbafeabb45c8f9bd826cb0c87",
+    "deployed_runtime_sha256": "de392658026ea59427df2adc0998f51fceb12904f14648caed0bb4f04dbd33c2",
     "asset_entry_does_not_disable_asi": true,
-    "in_game_combined_package_launch_tested": false
+    "in_game_combined_package_launch_tested": true,
+    "live_wardrobe_acceptance_passed": true,
+    "runtime_checks_passed": 21,
+    "runtime_checks_blocked": "interface_preferences: Windows error 225; full offline verification remains incomplete."
   }
 }

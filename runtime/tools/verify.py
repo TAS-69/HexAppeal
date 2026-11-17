@@ -27,6 +27,7 @@ commands = [
     ('input_lifecycle', [str(build/'input_lifecycle.exe')]),
     ('interface_preferences', [str(build/'interface_preferences.exe'),str(build/'preferences-fixture'/'profiles.ini')]),
     ('creation_chain', [str(build/'creation_chain_tests.exe')]),
+    ('appearance_hook_compatibility', [str(build/'appearance_hook_tests.exe')]),
     ('wardrobe_instance_ownership', [str(build/'wardrobe_snapshot_tests.exe')]),
     ('wardrobe_selection', [str(build/'wardrobe_selection_tests.exe'),str(build/'wardrobe-fixture'/'wardrobe.ini')]),
     ('wardrobe_transport_abi', [str(build/'wardrobe_transport_tests.exe')]),
