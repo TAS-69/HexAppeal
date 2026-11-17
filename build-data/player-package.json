@@ -29,7 +29,7 @@
     "asset_entry_does_not_disable_asi": true,
     "in_game_combined_package_launch_tested": true,
     "live_wardrobe_acceptance_passed": true,
-    "runtime_checks_passed": 21,
-    "runtime_checks_blocked": "interface_preferences: Windows error 225; full offline verification remains incomplete."
+    "runtime_checks_passed": 22,
+    "runtime_checks_blocked": []
   }
 }
