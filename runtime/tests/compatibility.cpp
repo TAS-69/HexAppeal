@@ -22,6 +22,7 @@ int wmain(int argc,wchar_t** argv){try{
     check(runtime.featureCompatibility(Feature::Hex).allows(true),"fixed dependency recovers after a passing probe");
     runtime.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,"Native interface missing.");
     check(runtime.featureCompatibility(Feature::Wardrobe).state==CompatibilityState::Blocked&&runtime.featureCompatibility(Feature::Underwear).detail.find("Native interface missing")!=std::string::npos,"uninitialized dependent features explain their upstream block");
+    check(runtime.featureCompatibility(Feature::Weight).state==CompatibilityState::Blocked&&runtime.featureCompatibility(Feature::Weight).detail.find("Native interface missing")!=std::string::npos,"Weight depends on native shaping rather than an outfit file");
     runtime.reportCompatibility(Feature::Shaping,CompatibilityState::Ready,"Native checks passed.");
     check(runtime.featureCompatibility(Feature::Wardrobe).state==CompatibilityState::Waiting,"upstream recovery resumes pending feature checks");
     runtime.reportCompatibility(Feature::Count,CompatibilityState::Ready,"invalid");

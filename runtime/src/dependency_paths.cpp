@@ -13,7 +13,7 @@
 namespace hex {
 namespace {
 namespace fs=std::filesystem;
-constexpr const char* weightHash="8a5af4474c1ae8655d56229f097eaee0103d765849fe01a37e2ece8a5d12e950";
+constexpr const char* dancerSourceHash="8a5af4474c1ae8655d56229f097eaee0103d765849fe01a37e2ece8a5d12e950";
 std::string lower(std::string value){std::transform(value.begin(),value.end(),value.begin(),[](unsigned char c){return char(std::tolower(c));});return value;}
 fs::path absolute(const fs::path& input,const fs::path& relativeTo) {
     if(input.empty())return {};
@@ -91,7 +91,7 @@ fs::path optionalIn(const fs::path& root,bool manual=false) {
     const wchar_t* colors[]={L"00 Color - Original White",L"10 Color - Midnight Black",L"20 Color - Crimson Red",L"30 Color - Arcane Pink",L"40 Color - Emerald Green"};
     std::vector<fs::path> candidates={root/suffix,root/L"files/0009"/suffix};for(const auto* color:colors)candidates.push_back(root/color/suffix);
     fs::path unverified;const auto name=lower(root.u8string());const bool named=manual||(name.find("sexy")!=std::string::npos&&name.find("witch")!=std::string::npos);
-    for(const auto& p:candidates)if(!isOwnModContent(p)&&regular(p)){if(sha256(p)==weightHash)return p;if(unverified.empty()&&named&&readableDependency(p,"PAR "))unverified=p;}return unverified;
+    for(const auto& p:candidates)if(!isOwnModContent(p)&&regular(p)){if(sha256(p)==dancerSourceHash)return p;if(unverified.empty()&&named&&readableDependency(p,"PAR "))unverified=p;}return unverified;
 }
 }
 bool isOwnModContent(const std::filesystem::path& path) {
@@ -125,9 +125,9 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
     for(const auto& root:result.searchRoots)if(directory(root)&&!isOwnModContent(root)&&seen.insert(lower(root.u8string())).second)roots.push_back(root);result.searchRoots=roots;
     size_t hexPriority=hexPresetVersions.size();
     if(!paths.hexPreset.empty())result.hex=checkedHex(absolute(paths.hexPreset,base));
-    if(!paths.weightReference.empty()){
-        const auto path=absolute(paths.weightReference,base);
-        result.weight=checked(directory(path)?optionalIn(path,true):path,weightHash,"Sexy Witches weight reference");
+    if(!paths.dancerSource.empty()){
+        const auto path=absolute(paths.dancerSource,base);
+        result.dancer=checked(directory(path)?optionalIn(path,true):path,dancerSourceHash,"Sexy Witches Dancer source");
     }
     for(const auto& root:roots){
         std::vector<std::pair<fs::path,int>> directories={{root,0}};size_t cursor=0;
@@ -139,8 +139,8 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
             if(paths.hexPreset.empty()&&!result.hex.valid){std::error_code scanError;for(const auto& entry:fs::directory_iterator(row.first,fs::directory_options::skip_permission_denied,scanError)){
                 const auto name=lower(entry.path().filename().u8string());if(!entry.is_regular_file(scanError)||name.rfind("preset-f-hentaibody",0)!=0||entry.path().extension()!=L".ini")continue;auto found=checkedHex(entry.path());if(found.valid){result.hex=found;break;}
             }}
-            if(paths.weightReference.empty()&&!result.weight.valid){const auto p=optionalIn(row.first);if(!p.empty())result.weight=checked(p,weightHash,"Weight reference");}
-            if(result.hex.valid&&result.weight.valid&&(!paths.hexPreset.empty()||hexPriority==0))break;
+            if(paths.dancerSource.empty()&&!result.dancer.valid){const auto p=optionalIn(row.first);if(!p.empty())result.dancer=checked(p,dancerSourceHash,"Dancer source");}
+            if(result.hex.valid&&result.dancer.valid&&(!paths.hexPreset.empty()||hexPriority==0))break;
             if(row.second>=3)continue;std::error_code ec;
             for(const auto& entry:fs::directory_iterator(row.first,fs::directory_options::skip_permission_denied,ec)){
                 if(!entry.is_directory(ec)||entry.is_symlink(ec)||isOwnModContent(entry.path()))continue;
@@ -151,35 +151,35 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
     }
     if(result.venus.path.empty())result.venus.detail="VENUS active route not found. Mount one Human Body or Elf Body variant through DMM.";
     if(result.hex.path.empty())result.hex.detail="Hex preset not found. Set its path to enable HEX.";
-    if(result.weight.path.empty())result.weight.detail="Optional reference not found. Weight is disabled; Height remains available.";
+    if(result.dancer.path.empty())result.dancer.detail="Optional Dancer source not found. Weight and Height remain available.";
     result.bodyVerified=result.venus.valid&&verifyMountedDependencies(base,result.manifest.path,result.bodyDetail,result.bodyWarning);
     if(result.bodyVerified)result.bodyDetail=result.bodyWarning.empty()?"VENUS and witch body routes verified in the active file list.":result.bodyWarning;
     else if(result.bodyDetail.empty())result.bodyDetail=result.venus.detail;
     return result;
 }
 bool loadDependencyPaths(const fs::path& file,DependencyPaths& paths,std::string& error) {
-    if(!regular(file))return true;std::ifstream input(file);if(!input){error="Dependency paths could not be read.";return false;}DependencyPaths next;std::string line;
+    if(!regular(file))return true;std::ifstream input(file);if(!input){error="Dependency paths could not be read.";return false;}DependencyPaths next;std::string line;bool hasDancerSource=false;
     try {while(std::getline(input,line)){
         if(line.size()>32768){error="A dependency path is too long.";return false;}if(!line.empty()&&line.back()=='\r')line.pop_back();const auto eq=line.find('=');if(eq==std::string::npos)continue;
         const auto key=line.substr(0,eq),value=line.substr(eq+1);
         if(std::any_of(value.begin(),value.end(),[](unsigned char c){return c<32;})){error="A dependency path contains a control character.";return false;}
         const auto path=fs::u8path(value);
-        if(key=="ManagerConfig")next.managerConfig=path;else if(key=="ModsDirectory")next.modsDirectory=path;else if(key=="ActiveManifest")next.manifest=path;else if(key=="HexPreset")next.hexPreset=path;else if(key=="VenusBody")next.venusBody=path;else if(key=="WeightReference")next.weightReference=path;
+        if(key=="ManagerConfig")next.managerConfig=path;else if(key=="ModsDirectory")next.modsDirectory=path;else if(key=="ActiveManifest")next.manifest=path;else if(key=="HexPreset")next.hexPreset=path;else if(key=="VenusBody")next.venusBody=path;else if(key=="DancerSource"){next.dancerSource=path;hasDancerSource=true;}else if(key=="WeightReference"&&!hasDancerSource)next.dancerSource=path;
     }}catch(...){error="A dependency path is not valid UTF-8.";return false;}paths=next;return true;
 }
 bool saveDependencyPaths(const fs::path& file,const DependencyPaths& paths,std::string& error) {
-    for(const auto& path:{paths.managerConfig,paths.modsDirectory,paths.manifest,paths.hexPreset,paths.venusBody,paths.weightReference}){
+    for(const auto& path:{paths.managerConfig,paths.modsDirectory,paths.manifest,paths.hexPreset,paths.venusBody,paths.dancerSource}){
         const auto value=path.native();if(value.size()>32767||std::any_of(value.begin(),value.end(),[](wchar_t c){return c<32;})){error="A dependency path is too long or contains a control character.";return false;}
     }
     const fs::path temporary=file.wstring()+L".tmp";std::error_code ec;fs::create_directories(file.parent_path(),ec);if(ec){error="Dependency settings folder is unavailable.";return false;}
     std::ofstream out(temporary,std::ios::binary|std::ios::trunc);if(!out){error="Dependency paths could not be saved.";return false;}
-    out<<"[Dependencies]\nVersion=1\nManagerConfig="<<paths.managerConfig.u8string()<<"\nModsDirectory="<<paths.modsDirectory.u8string()<<"\nActiveManifest="<<paths.manifest.u8string()<<"\nHexPreset="<<paths.hexPreset.u8string()<<"\nVenusBody="<<paths.venusBody.u8string()<<"\nWeightReference="<<paths.weightReference.u8string()<<'\n';
+    out<<"[Dependencies]\nVersion=1\nManagerConfig="<<paths.managerConfig.u8string()<<"\nModsDirectory="<<paths.modsDirectory.u8string()<<"\nActiveManifest="<<paths.manifest.u8string()<<"\nHexPreset="<<paths.hexPreset.u8string()<<"\nVenusBody="<<paths.venusBody.u8string()<<"\nDancerSource="<<paths.dancerSource.u8string()<<'\n';
     out.flush();const bool written=bool(out);out.close();if(!written||!MoveFileExW(temporary.c_str(),file.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)){error="Dependency paths could not be saved atomically.";return false;}return true;
 }
-std::string profileDependencyIssue(const Profile& profile,bool shaping,bool hasHex,bool hasWeight) {
+std::string profileDependencyIssue(const Profile& profile,bool shaping,bool hasHex,bool weightReady) {
     if(!shaping)return "Shaping is unavailable. Check VENUS, Instant Surgery and active body files in Settings.";
     if(((profile.top==Preset::Hex&&profile.topBlend>0)||(profile.bottom==Preset::Hex&&profile.bottomBlend>0))&&!hasHex)return "HEX is unavailable. Install or locate Hex's required preset in Settings.";
-    if(profile.weight!=0&&!hasWeight)return "This saved Weight needs the optional reference. Locate it in Settings or return Weight to zero.";
+    if(profile.weight!=0&&!weightReady)return "Native Weight controls are unavailable. Check shaping status in Settings; no outfit dependency is required.";
     return {};
 }
 }

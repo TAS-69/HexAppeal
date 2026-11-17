@@ -48,5 +48,7 @@ int main(int argc,char** argv){try{
     pollState=1;r.tickAuto(10920);require(commits==refitsBefore+2&&supplied.size()==1&&supplied[0].top==1,"next fitting request proceeds after acknowledgement");
     r.tickAuto(11000);std::ifstream newFile(r.profiles,std::ios::binary);const std::string fileAfter((std::istreambuf_iterator<char>(newFile)),{});
     require(r.model.saved==savedBefore&&fileAfter==fileBefore,"outfit refits preserve every saved profile and do not rewrite settings");
+    r.weightAvailable=true;r.model.saved[0].weight=1;r.queuedMask=1;r.tickAuto(11500,true);
+    require(supplied.size()==1&&supplied[0].weight==1&&r.queuedMask==0&&!r.dependencyStatus().dancer.valid,"saved Weight applies without an installed outfit source");
     std::cout<<"PASS: nine light detents, continuous pad mapping, independent proportions, automatic persistence/application, drag coalescing, cross-witch batches, legacy migration and per-profile dependency hold/resume.\n";return 0;
 }catch(const std::exception& e){std::cerr<<"FAIL: "<<e.what()<<'\n';return 1;}}

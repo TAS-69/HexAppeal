@@ -14,7 +14,7 @@ VENUS uses the actual installed VENUS Human/Elf body with a neutral native defor
 
 ## Height and Weight
 
-Both are separate from the pad and from each other. **Shortest height with maximum Weight is valid.** Height scales the full rig proportionally by up to ±10%. Weight adjusts waist and limbs, while keeping the selected breast/butt shaping parameters. Weight requires the optional Sexy Witches reference. It is a native approximation inspired by that body, not a live mesh refit or an exact recreation of it.
+Both are separate from the pad and from each other. **Shortest height with maximum Weight is valid.** Height scales the full rig proportionally by up to ±10%. Weight adjusts waist and limbs, while keeping the selected breast/butt shaping parameters. In development **0.5.9**, Weight uses the native shaping adapter directly and needs no outfit dependency. Sexy Witches is optional for Dancer and its supplied colours only. The adjustment remains a native approximation informed by the earlier body reference, not a live mesh refit or an exact recreation. The published 1.0.0 package predates this separation; see [Weight controls](../WEIGHT-CONTROLS.md).
 
 ## Profiles and status
 

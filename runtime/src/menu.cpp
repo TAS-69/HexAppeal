@@ -25,8 +25,8 @@ static constexpr ImVec4 accent{.91f,.38f,.66f,1},gold{.94f,.77f,.48f,1},muted{.6
 static constexpr ImVec4 errorColour{.96f,.43f,.43f,1};
 static constexpr const char* defaultOutfitLabel="Default witch outfit";
 static constexpr const char* dancerOutfitLabel="Sexy Witches of Pywel Reshaped / Dancer Dress";
-static std::string baseVersionWarning,hexVersionWarning,weightVersionWarning,underwearVersionWarning;
-static bool sourceWeightReady=false;
+static std::string baseVersionWarning,hexVersionWarning,underwearVersionWarning;
+static bool weightReady=false;
 static void versionDecoration(const std::string& warning,bool tooltip=true,int placement=0){
     if(warning.empty())return;const auto lo=ImGui::GetItemRectMin(),hi=ImGui::GetItemRectMax();auto* draw=ImGui::GetWindowDrawList();
     draw->AddRectFilled(lo,hi,IM_COL32(239,161,97,18),5*scale);draw->AddRect(lo,hi,IM_COL32(239,175,99,125),5*scale);
@@ -119,7 +119,7 @@ static void dependencySettings(hex::Runtime& r){
     const auto status=r.dependencyStatus();
     const auto state=[&](const char* label,bool available,const std::string& detail){ImGui::TextColored(available?green:muted,"%s  /  %s",label,available?"Ready":"Unavailable");tip(detail.c_str());};
     const auto fileState=[&](const char* label,const hex::DependencyFile& file){ImGui::TextColored(!file.valid?muted:file.verified?green:gold,"%s / %s%s",label,!file.valid?"File needed":file.verified?"Verified":"Unverified",file.valid&&!file.verified?"  (!)":"");tip(file.detail.c_str());};
-    fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);fileState("VENUS Body",status.venus);fileState("Hex's Hentai Preset",status.hex);fileState("Sexy Witches reference",status.weight);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
+    fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);fileState("VENUS Body",status.venus);fileState("Hex's Hentai Preset",status.hex);fileState("Sexy Witches Dancer source",status.dancer);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
     ImGui::Spacing();ImGui::TextDisabled("Feature checks");const auto capabilities=r.compatibilityStatus();
     for(size_t i=0;i<capabilities.size();++i){const auto& feature=capabilities[i];ImGui::TextColored(feature.state==hex::CompatibilityState::Ready?green:feature.state==hex::CompatibilityState::Blocked?errorColour:muted,"%s / %s%s",hex::featureName(hex::Feature(i)),feature.state==hex::CompatibilityState::Ready?"Ready":feature.state==hex::CompatibilityState::Blocked?"Blocked":"Checking",feature.state==hex::CompatibilityState::Blocked?"  (!)":"");tip(feature.detail.c_str());record("feature"+std::to_string(i));}
     if(!status.bodyWarning.empty()){ImGui::TextColored(gold,"Active body routes / unverified  (!)");tip(status.bodyWarning.c_str());}
@@ -132,7 +132,7 @@ static void dependencySettings(hex::Runtime& r){
         if(ImGui::IsItemDeactivatedAfterEdit()){path=std::filesystem::u8path(buffers[i].data());synced[i]=path.u8string();changed=true;}
     };
     field(0,"Mod manager config","pathManager",paths.managerConfig);field(1,"Mods folder","pathMods",paths.modsDirectory);field(2,"Active file list (DMM manifest.tsv)","pathManifest",paths.manifest);
-    field(3,"Hex preset file","pathHex",paths.hexPreset);field(4,"VENUS body file (optional source override)","pathVenus",paths.venusBody);field(5,"Weight reference file or mod folder","pathWeight",paths.weightReference);
+    field(3,"Hex preset file","pathHex",paths.hexPreset);field(4,"VENUS body file (optional source override)","pathVenus",paths.venusBody);field(5,"Dancer source file or mod folder","pathDancer",paths.dancerSource);
     if(changed){std::string error;if(!r.setDependencyPaths(paths,error))r.model.message=error;}
     if(ImGui::Button("Detect again"))++r.dependencyRevision;record("dependencyRescan");tip("Paths are saved automatically. Empty fields use detection. Active body verification currently requires DMM's loaded runtime and file list; another manager's source folder alone cannot prove which body the game uses. Installing or changing runtime plugins requires a restart.");
 }
@@ -163,7 +163,7 @@ static void outfitControl(){
             const bool missing=choice==1&&(!status.resourceFilesReady||runtime.featureCompatibility(hex::Feature::Shaping).state==hex::CompatibilityState::Blocked);ImGui::BeginDisabled(missing);
             const char* id=choice?"hexappeal/dancer":"hexappeal/default";
             if(ImGui::Selectable(choice?dancerOutfitLabel:defaultOutfitLabel,selected==id)){std::string error;if(!hex::requestWardrobeOutfit(runtime.model.target,id,error))runtime.model.message=error;}
-            ImGui::EndDisabled();tip(missing?status.dependencyDetail.c_str():choice?"Sexy Witches of Pywel Reshaped - Color Variants, by Vincent1681. Dancer Dress; supplied colours appear below.":"Uses the currently mounted default witch outfit, including Hex Appeal's separate refit add-on when enabled.");
+            ImGui::EndDisabled();tip(missing?status.dependencyDetail.c_str():choice?"Sexy Witches of Pywel Reshaped - Color Variants, by Vincent1681. Dancer Dress; supplied colours appear below.":"Uses the currently mounted default witch outfit, including Hex Appeal's included refits when they win file priority.");
         }
         for(const auto& provider:providers){if(provider.id=="hexappeal/dancer"||(provider.removed&&provider.id!=selected))continue;ImGui::PushID(provider.id.c_str());ImGui::BeginDisabled(!provider.available);
             if(ImGui::Selectable(provider.label.c_str(),selected==provider.id)){std::string error;if(!hex::requestWardrobeOutfit(runtime.model.target,provider.id,error))runtime.model.message=error;}
@@ -223,7 +223,7 @@ static void wardrobeColour(hex::Runtime& runtime,bool dancer){
 static bool proportions(hex::Runtime& r,bool available,bool height,bool weight){
     bool changed=false;
     if(height){ImGui::BeginDisabled(!available);float value=r.model.draft.height*10;ImGui::SetNextItemWidth(std::max(100.f,ImGui::GetContentRegionAvail().x-70*scale));if(ImGui::SliderFloat("Height",&value,-10,10,"%+.1f%%",ImGuiSliderFlags_AlwaysClamp)){r.model.draft.height=value/10;changed=true;}record("height");ImGui::EndDisabled();pinContext(hex::PinHeight);versionDecoration(baseVersionWarning,true,1);if(baseVersionWarning.empty())tip("Scales the complete rig and fitted clothing. Independent of Weight; Ctrl-click for an exact value.");}
-    if(weight){ImGui::BeginDisabled(!available||!sourceWeightReady);float value=r.model.draft.weight*100;ImGui::SetNextItemWidth(std::max(100.f,ImGui::GetContentRegionAvail().x-70*scale));if(ImGui::SliderFloat("Weight",&value,-100,100,"%+.0f%%",ImGuiSliderFlags_AlwaysClamp)){r.model.draft.weight=value/100;changed=true;}record("weight");ImGui::EndDisabled();pinContext(hex::PinWeight);versionDecoration(baseVersionWarning+weightVersionWarning,true,1);if(baseVersionWarning.empty()&&weightVersionWarning.empty())tip(sourceWeightReady?"Limbs and waist, independent of Height and breast/butt presets.":"Locate the optional Sexy Witches reference in Settings. Height remains available.");}
+    if(weight){ImGui::BeginDisabled(!available||!weightReady);float value=r.model.draft.weight*100;ImGui::SetNextItemWidth(std::max(100.f,ImGui::GetContentRegionAvail().x-70*scale));if(ImGui::SliderFloat("Weight",&value,-100,100,"%+.0f%%",ImGuiSliderFlags_AlwaysClamp)){r.model.draft.weight=value/100;changed=true;}record("weight");ImGui::EndDisabled();pinContext(hex::PinWeight);versionDecoration(baseVersionWarning,true,1);if(baseVersionWarning.empty())tip(weightReady?"Limbs and waist, independent of Height and breast/butt presets. No outfit dependency required.":"Native shaping must be ready to use Weight.");}
     return changed;
 }
 static bool profileActions(hex::Runtime& r,uint32_t mask){
@@ -236,13 +236,13 @@ static bool profileActions(hex::Runtime& r,uint32_t mask){
 }
 void Render(){
     auto& r=hex::Runtime::get();r.tickAuto();auto& model=r.model;auto& state=State::Get();state.lastDrawAt=GetTickCount();state.blockGameInput=r.blockGameInput;
-    const auto dependencies=r.dependencyStatus();baseVersionWarning.clear();hexVersionWarning.clear();weightVersionWarning.clear();underwearVersionWarning.clear();
+    const auto dependencies=r.dependencyStatus();baseVersionWarning.clear();hexVersionWarning.clear();underwearVersionWarning.clear();
     const auto appendWarning=[](std::string& out,const hex::DependencyFile& file){if(file.valid&&!file.verified){if(!out.empty())out+="\n\n";out+=file.detail;}};
     for(const auto* file:{&dependencies.game,&dependencies.instant,&dependencies.venus,&dependencies.physics})appendWarning(baseVersionWarning,*file);
     if(!dependencies.bodyWarning.empty()){if(!baseVersionWarning.empty())baseVersionWarning+="\n\n";baseVersionWarning+=dependencies.bodyWarning;}
-    appendWarning(hexVersionWarning,dependencies.hex);appendWarning(weightVersionWarning,dependencies.weight);underwearVersionWarning=baseVersionWarning;appendWarning(underwearVersionWarning,dependencies.creator);
+    appendWarning(hexVersionWarning,dependencies.hex);underwearVersionWarning=baseVersionWarning;appendWarning(underwearVersionWarning,dependencies.creator);
     const bool shapingFiles=dependencies.scanned?dependencies.game.valid&&dependencies.instant.valid&&dependencies.venus.valid&&dependencies.bodyVerified:r.shapingAvailable.load();
-    const bool shapingReady=r.featureCompatibility(hex::Feature::Shaping).allows(shapingFiles),hexReady=r.featureCompatibility(hex::Feature::Hex).allows(dependencies.scanned?dependencies.hex.valid:r.hexAvailable.load());sourceWeightReady=r.featureCompatibility(hex::Feature::Weight).allows(dependencies.scanned?dependencies.weight.valid:r.weightAvailable.load());
+    const bool shapingReady=r.featureCompatibility(hex::Feature::Shaping).allows(shapingFiles),hexReady=r.featureCompatibility(hex::Feature::Hex).allows(dependencies.scanned?dependencies.hex.valid:r.hexAvailable.load());weightReady=r.featureCompatibility(hex::Feature::Weight).allows(shapingReady);
     auto& io=ImGui::GetIO();io.MouseDrawCursor=true;const float maxW=std::max(300.f,io.DisplaySize.x-24),maxH=std::max(200.f,io.DisplaySize.y-24);
     static bool first=true,previous=false;static uint32_t previousPins=0;static size_t previousProviderPins=0;
     float quickHeight=190;for(uint32_t bit=1;bit<=hex::PinDancerColour;bit<<=1)if(r.quickPins&bit)quickHeight+=bit==hex::PinPad?260:bit==hex::PinTop||bit==hex::PinBottom?40:bit==hex::PinOutfit||bit==hex::PinUnderwearColour||bit==hex::PinDancerColour?65:35;

@@ -19,7 +19,7 @@ DancerResourceStatus inspectDancerResources(const DependencyStatus& dependencies
     bool mounted=dependencies.bodyVerified&&runtimeLoaded;
     for(const auto& resource:files){const auto row=routes.find(resource.path);if(row==routes.end()){result.detail=std::string("Missing mounted route: ")+resource.path;mounted=false;break;}const auto digest=sha256(row->second);const bool texture=resource.path==std::string(dancerTexture);if(texture){result.texture=row->second;result.colour=dancerColourForHash(digest);}const char* signature=texture?"DDS ":std::filesystem::path(resource.path).extension()==L".pac"?"PAR ":nullptr;if(!readableDependency(row->second,signature)){result.detail=std::string("Mounted resource is unreadable or has the wrong file format: ")+resource.path;mounted=false;break;}if(texture?result.colour<0:(digest!=resource.mounted&&digest!=resource.upstream))result.verified=false;}
     bool external=false;std::string externalFailure;
-    if(dependencies.weight.valid){auto parent=dependencies.weight.path.parent_path();for(int depth=0;depth<10&&!parent.empty();++depth){
+    if(dependencies.dancer.valid){auto parent=dependencies.dancer.path.parent_path();for(int depth=0;depth<10&&!parent.empty();++depth){
         bool matches=true,verified=true;unsigned matched=0;for(const auto& resource:files){const auto path=parent/resource.path;const auto digest=sha256(path);const char* signature=path.extension()==L".pac"?"PAR ":path.extension()==L".dds"?"DDS ":nullptr;if(!readableDependency(path,signature)){matches=false;if(matched)externalFailure=resource.path;break;}verified=verified&&digest==resource.upstream;++matched;}
         if(matches){external=true;result.verified=result.verified&&verified;result.sourceRoot=parent.parent_path();break;}const auto previous=parent;parent=parent.parent_path();if(previous==parent)break;
     }}
@@ -29,7 +29,7 @@ DancerResourceStatus inspectDancerResources(const DependencyStatus& dependencies
     result.paletteReady=result.ready&&managedDancerBinding(result.texture,bindingRoot)&&verifyDancerPalette(result.sourceRoot,result.paletteDetail);
     if(result.paletteReady)for(const auto& resource:files){const auto route=routes.find(resource.path);if(route==routes.end()||_wcsicmp(route->second.lexically_normal().c_str(),(bindingRoot/L"files/0009"/resource.path).lexically_normal().c_str())){result.paletteReady=false;break;}}
     if(!result.paletteReady&&result.paletteDetail.empty())result.paletteDetail="Prepare the managed external Dancer colour bindings first.";
-    if(!runtimeLoaded)result.detail="DMM runtime is not loaded.";else if(!dependencies.bodyVerified)result.detail="The active VENUS body route is unavailable.";else if(!external)result.detail="External Sexy Witches source path is missing or unreadable: "+(externalFailure.empty()?dependencies.weight.path.u8string():externalFailure);else if(result.ready)result.detail=result.verified?"Dancer resources verified":result.warning;
+    if(!runtimeLoaded)result.detail="DMM runtime is not loaded.";else if(!dependencies.bodyVerified)result.detail="The active VENUS body route is unavailable.";else if(!external)result.detail="External Sexy Witches source path is missing or unreadable: "+(externalFailure.empty()?dependencies.dancer.path.u8string():externalFailure);else if(result.ready)result.detail=result.verified?"Dancer resources verified":result.warning;
     return result;
 }
 }

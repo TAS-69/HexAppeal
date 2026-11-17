@@ -143,13 +143,12 @@ bool NativeShapeEngine::resolve(const SurgeryProfile& shape,std::array<float,64>
 bool NativeShapeEngine::compose(const Profile& choice,ResolvedShape& output,std::string& error) {
     if(!base||!choice.valid()){error="The shape selection is invalid or the engine is unavailable.";return false;}
     if(((choice.top==Preset::Hex&&choice.topBlend>0)||(choice.bottom==Preset::Hex&&choice.bottomBlend>0))&&!hasHex){error="Hex's required preset has not been read.";return false;}
-    if(choice.weight!=0&&!weightAvailable){error="Weight requires the separately installed optional reference.";return false;}
     std::array<float,64> hex{};
     if(hasHex&&!resolve(originalHex,hex,error))return false;
     ResolvedShape next;next.native=identity();
     const auto convert=reinterpret_cast<float(*)(int,float)>(base+0x17D30);
     Lock lock(base);
-    const auto weight=weightAvailable?choice.weight:0.f;
+    const auto weight=choice.weight;
     const std::array<std::pair<size_t,float>,17> fullness={{{1,8},{2,10},{22,18},{23,6},{24,8},{25,8},{26,10},{27,5},{28,10},{29,4},{30,4},{31,8},{35,2},{40,4},{41,4},{59,4},{60,4}}};
     for(size_t i=0;i<64;++i) {
         const bool bottom=bottomParameter(i);const auto selected=bottom?choice.bottom:choice.top;

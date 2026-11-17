@@ -6,6 +6,8 @@ I made **Hex Appeal** to bring the actual installed **VENUS Human Body or Elf Bo
 
 **Release 1.0.0, refreshed 17 November 2026:** one player ZIP includes the runtime, body routing and default outfit refits. DMM uses one **Hex Appeal** entry on Mods plus its normal ASI switch. Human/Elf body support, feature compatibility checks and expanded generic SDK examples are included. See [verification](docs/VERIFICATION-1.0.0.md) for the tested scope.
 
+**Development 0.5.9:** Weight is independent of the optional Dancer download. It remains usable without Sexy Witches installed; the published 1.0.0 package predates this change. See [Weight controls](docs/WEIGHT-CONTROLS.md).
+
 **[Downloads](https://github.com/TAS-69/HexAppeal/releases) · [Install](docs/wiki/Installation.md) · [Player guide](docs/wiki/Home.md) · [Wardrobe SDK](docs/wiki/SDK-quick-start.md) · [Requirements & credits](DEPENDENCIES-AND-REFERENCES.md)**
 
 ## A little witchcraft

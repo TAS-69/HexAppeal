@@ -366,11 +366,11 @@ DWORD WINAPI worker(void*) {
                 else if(s.engine.readHex(dependencies.hex.path,hexError)){loadedPreset=dependencies.hex.path;loadedPresetHash=digest;hexReady=true;LOG("Hex preset uses external installed dependency: %ls.",loadedPreset.c_str());}
             }
             if(!hexReady){s.engine.forgetHex();loadedPreset.clear();loadedPresetHash.clear();}
-            s.engine.setWeightAvailable(engineBound&&dependencies.weight.valid);
         }
-        r.hexAvailable=hexReady;r.weightAvailable=engineBound&&dependencies.weight.valid;
+        r.hexAvailable=hexReady;
         const bool dmmLoaded=GetModuleHandleW(L"DmmRuntime.asi")!=nullptr;
         r.shapingAvailable=s.hooked&&dependencies.bodyVerified&&dmmLoaded&&!s.failed;
+        r.weightAvailable=engineBound&&r.shapingAvailable;
         if(dependencies.bodyVerified&&!dmmLoaded)dependencies.bodyDetail="Body files found, but DMM's runtime is not loaded. Restart after installing/enabling it.";
         else if(dependencies.bodyVerified&&!s.hooked)dependencies.bodyDetail=error.empty()?"Waiting for the separately installed Instant Surgery plugin.":error;
         r.publishDependencies(dependencies);
@@ -378,10 +378,10 @@ DWORD WINAPI worker(void*) {
         const auto shapeIssue=!dependencies.bodyVerified?dependencies.bodyDetail:!dependencies.instant.valid?dependencies.instant.detail:!dmmLoaded?std::string("DMM's runtime is not loaded. Enable it and restart the game."):!error.empty()?error:std::string("Waiting for the installed Instant Surgery plugin to initialize.");
         if(!s.failed)r.reportCompatibility(Feature::Shaping,r.shapingAvailable?CompatibilityState::Ready:!dependencies.bodyVerified||!dependencies.instant.valid||!dmmLoaded||!error.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,r.shapingAvailable?"Native shaping and active body checks passed.":shapeIssue);
         r.reportCompatibility(Feature::Hex,hexReady?CompatibilityState::Ready:!dependencies.hex.valid||!hexError.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,hexReady?"The external preset was parsed by the installed shaping adapter.":!hexError.empty()?hexError:!dependencies.hex.valid?dependencies.hex.detail:"Waiting for the native shaping adapter.");
-        r.reportCompatibility(Feature::Weight,r.weightAvailable?CompatibilityState::Ready:!dependencies.weight.valid?CompatibilityState::Blocked:CompatibilityState::Waiting,r.weightAvailable?"External reference is readable; native proportion controls are available.":dependencies.weight.detail);
+        r.reportCompatibility(Feature::Weight,r.weightAvailable?CompatibilityState::Ready:r.featureCompatibility(Feature::Shaping).state,r.weightAvailable?"Native proportion controls are available; no outfit dependency is required.":shapeIssue);
         if(!s.hooked)setStatus(shapeIssue);
     };
-    const auto stopShaping=[&](const std::string& message){error=message;r.shapingAvailable=false;r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,message);setStatus(message);};
+    const auto stopShaping=[&](const std::string& message){error=message;r.shapingAvailable=false;r.weightAvailable=false;r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,message);r.reportCompatibility(Feature::Weight,CompatibilityState::Blocked,message);setStatus(message);};
     const auto startupAt=GetTickCount();
     for(int attempt=0;;++attempt) {
         rescan();
@@ -492,11 +492,10 @@ bool runPhysicsTransactionTests(HMODULE surgery,void* upload,void* model,void* a
         const auto first=output;uint64_t repeatedStamp=0;output=input;
         if(!check(observedPhysicsPose(actor,skeleton,input.data(),output.data(),uint32_t(input.size()),&repeatedStamp)==1&&output==first&&repeatedStamp==stamp,"repeated original animation frames do not compound and keep a stable native stamp"))return false;
     }
-    s.engine.setWeightAvailable(true);
     for(uint32_t top:{1u,2u}) {
         uint64_t id=0;const uint32_t bottom=top==1?2u:1u;
         HexAppealProfileV1 profile{sizeof(HexAppealProfileV1),top,bottom,1,1,1,top==1?.3f:-.3f,top==1?1.f:-1.f};char message[256]{};
-        if(!check(begin(1,&id)&&prepare(id,&witches[0].target,&profile)&&commit(id),"queue linked stature and optional weight"))return false;
+        if(!check(begin(1,&id)&&prepare(id,&witches[0].target,&profile)&&commit(id),"queue independent height and weight"))return false;
         output=input;stamp=0;
         if(!check(observedPhysicsPose(actor,skeleton,input.data(),output.data(),uint32_t(input.size()),&stamp)==1&&stamp,"linked stature export"))return false;
         const auto snapshot=std::atomic_load(&s.active);std::vector<PoseMatrix> native,expected;
@@ -507,7 +506,6 @@ bool runPhysicsTransactionTests(HMODULE surgery,void* upload,void* model,void* a
         const auto first=output;const auto firstStamp=stamp;output=input;stamp=0;
         if(!check(observedPhysicsPose(actor,skeleton,input.data(),output.data(),uint32_t(input.size()),&stamp)==1&&output==first&&stamp==firstStamp,"linked proportions do not accumulate between frames"))return false;
     }
-    s.engine.setWeightAvailable(false);
     output=input;stamp=0;
     if(!check(observedPhysicsPose(nullptr,skeleton,input.data(),output.data(),uint32_t(input.size()),&stamp)==0&&output==input,"unresolved actors retain native pass-through"))return false;
     s.allowWrites=false;output=input;stamp=0;

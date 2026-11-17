@@ -15,6 +15,10 @@ Open **F9 → Settings → Dependencies & paths**. File rows show which download
 
 Shape choices remain saved while their requirements are unavailable. Fix a preset/path and use **Detect again**, or wait for the next scan. Compatible saved choices resume through the existing application queue. Updating a loaded ASI requires a full game restart.
 
+## Independent Weight
+
+Development **0.5.9** removes the optional outfit gate from native Weight. Missing, unreadable or unverified Dancer files no longer affect Weight controls or saved weighted shapes. Native shaping requirements and actual interface errors still apply. Existing dependency path overrides migrate to the Dancer-only field; no shape reset is needed. The published 1.0.0 package retains its earlier behavior until another package is requested. See [Weight controls](WEIGHT-CONTROLS.md).
+
 ## What the adapter checks
 
 - The current mounted VENUS and witch appearance routes must exist and be readable. Unverified readable bodies retain a warning, including the limits of their untested visual fit.

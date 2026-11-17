@@ -10,7 +10,7 @@
 namespace hex {
 std::string unverifiedDependency(const char* name){return std::string("This version of ")+name+" has not been verified. Functionality is not guaranteed. You can still use these controls.";}
 bool readableDependency(const std::filesystem::path& path,const char* signature){if(path.empty())return false;auto name=std::filesystem::absolute(path).lexically_normal().wstring();if(name.rfind(L"\\\\?\\",0)!=0)name=name.rfind(L"\\\\",0)==0?L"\\\\?\\UNC\\"+name.substr(2):L"\\\\?\\"+name;std::ifstream in(std::filesystem::path(name),std::ios::binary);if(!in)return false;char header[4]{};in.read(header,sizeof header);return in.gcount()>0&&(!signature||(in.gcount()==4&&!std::memcmp(header,signature,4)));}
-std::filesystem::path findWeightReference(const std::filesystem::path& game) {
+std::filesystem::path findDancerReference(const std::filesystem::path& game) {
     const char* colors[]={"00 Color - Original White","10 Color - Midnight Black","20 Color - Crimson Red","30 Color - Arcane Pink","40 Color - Emerald Green"};
     const auto relative=L"character/model/1_pc/2_phw/nude/cd_phw_00_nude_00_0001_damian.pac";
     for(const auto& staged:{game/L"nexus_downloads/dmm_update/mods",game/L"mods"}) {

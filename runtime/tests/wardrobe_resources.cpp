@@ -13,7 +13,7 @@ int wmain(int argc,wchar_t** argv){try{
     require(!hex::inspectDancerResources(dependencies,false).ready,"loaded runtime required");
     auto missing=dependencies;missing.bodyVerified=false;
     require(!hex::inspectDancerResources(missing,true).ready,"active body required");
-    missing=dependencies;missing.weight={};
+    missing=dependencies;missing.dancer={};
     require(!hex::inspectDancerResources(missing,true).ready,"separate optional source required");
     const auto fixture=std::filesystem::absolute(std::filesystem::path(argv[2])).make_preferred();
     auto file=fixture;for(int i=0;i<12;++i)file/=L"long dependency folder \u00e9\u6f22";file/=L"hash.txt";

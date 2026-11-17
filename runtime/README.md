@@ -6,4 +6,6 @@ See the included **Player Guide** for installation, controls, requirements and k
 
 The runtime recognizes separately installed VENUS 2.6 Human Body or Elf Body. It also requires the Hex preset for HEX, Instant Surgery, DMM routing and an x64 ASI loader. It contains no downloaded mod binaries, bodies, presets or Dancer assets. Original code is 0BSD; adapted overlay/library notices are retained in `licenses/`.
 
+Development 0.5.9 makes Weight independent of Sexy Witches. Only Dancer and its supplied colours use that optional download. The native shaping requirements still apply.
+
 Never replace the plugin while the game is running. Settings and logs live in `%LOCALAPPDATA%/HexAppeal/`.

@@ -35,12 +35,10 @@ class NativeShapeEngine {
     size_t macroCount=0;
     SurgeryProfile originalHex{};
     bool hasHex=false;
-    bool weightAvailable=false;
     bool initialiseMetadata();
     bool initialiseMetadataGuard();
 public:
     bool bind(HMODULE module,std::string& error);
-    void setWeightAvailable(bool available){weightAvailable=available;}
     bool readHex(const std::filesystem::path& path,std::string& error);
     void forgetHex(){originalHex={};hasHex=false;}
     bool compose(const Profile& choice,ResolvedShape& result,std::string& error);

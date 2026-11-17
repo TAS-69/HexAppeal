@@ -11,7 +11,9 @@ Download these separately. Hex Appeal does not include their files.
 | [VENUS Body for Damiane](https://www.nexusmods.com/crimsondesert/mods/3318), **Human Body or Elf Body** | Actual body model; choose one variant | 2.6 |
 | [Hex's Hentai Preset](https://www.nexusmods.com/crimsondesert/mods/4234) | HEX shapes | 1.3 preferred; 1.2 also checked |
 | [Instant Surgery](https://www.nexusmods.com/crimsondesert/mods/3660) | Native shaping | 0.9.6 |
-| [Sexy Witches of Pywel Body and Dress Reshaped](https://www.nexusmods.com/crimsondesert/mods/2891) | Optional Weight reference and Dancer Dress | Complete five-colour FOMOD 1.1 |
+| [Sexy Witches of Pywel Body and Dress Reshaped](https://www.nexusmods.com/crimsondesert/mods/2891) | Optional Dancer Dress and five supplied colours | Complete five-colour FOMOD 1.1 |
+
+Development **0.5.9** separates Weight from the optional outfit. Weight needs the normal native shaping requirements, with no Sexy Witches installation or path. The published **1.0.0** package predates this change and still gates Weight on that source; [Weight controls](../WEIGHT-CONTROLS.md) explains the difference.
 
 Keep Hex's original preset where the runtime can read it. **Two Reasons Body Physics** is optional; if loaded, its compatible pose acknowledgement interface is needed. Version 1.0.7 was checked. Legion's slider is not required.
 
