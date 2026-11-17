@@ -32,7 +32,6 @@ int wardrobeWitchForAppearance(const char* path){
 }
 WardrobePartKind wardrobePartKind(int witch,const char* prefab){
     if(!prefab||witch<0||witch>5)return WardrobePartKind::Other;
-    if(!strcmp(prefab,"cd_phw_00_ub_00_0191_u"))return WardrobePartKind::Dancer;
     if(!strcmp(prefab,"phw_00_uw_00_0001")||!strcmp(prefab,"cd_phw_00_uw_00_0001"))return WardrobePartKind::Underwear;
     static const char* defaults[]={"cd_nhw_so_ub_20166","cd_nhw_so_ub_20167","cd_nhw_so_ub_20165","cd_nhw_so_ub_20168","cd_nhw_so_ub_20169_u","cd_phw_00_ub_00_0164"};
     if(!strcmp(prefab,defaults[witch])||(witch==1&&!strcmp(prefab,"cd_phw_00_ub_00_0157")))return WardrobePartKind::DefaultGarment;
@@ -64,7 +63,6 @@ bool captureWardrobeSnapshot(uintptr_t actor,int witch,uintptr_t gameBase,Wardro
             if(!text(claim.wrapper,claim.prefab,sizeof claim.prefab))return false;
             claim.kind=wardrobePartKind(witch,claim.prefab);
             if(claim.kind==WardrobePartKind::DefaultGarment)next.defaultGarment=true;
-            else if(claim.kind==WardrobePartKind::Dancer)next.dancer=true;
             else if(upperGarment(claim.prefab))next.customGarment=true;
         }
 

@@ -1,10 +1,12 @@
 from pathlib import PurePosixPath
 import hashlib,json
+from release_policy import validate_release_path
 
 def player_package(version,body_files,refit_files,runtime_files,documents,allowed_pacs,dependency_hashes):
     entries={}
     reserved=set()
     def add(name,data):
+        validate_release_path(name)
         path=PurePosixPath(name)
         if not name or path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name:
             raise ValueError('Invalid package path: '+name)

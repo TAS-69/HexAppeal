@@ -1,11 +1,9 @@
 # Hex Appeal runtime
 
-The native in-game shape editor and Wardrobe. Open **F9** after loading a save. Shapes, outfits and settings save automatically. **Block game input** starts enabled; **Minimise** opens the quick panel.
+Open **F9** after loading a save. Shape and Wardrobe preferences save automatically. **Block game input** starts enabled; **Minimise** opens the pinnable quick panel.
 
-See the included **Player Guide** for installation, controls, requirements and known limits. The repository's [full guide](../docs/wiki/Home.md) includes the same pages and the Wardrobe SDK documentation.
+The runtime uses separately installed VENUS Human/Elf Body and Instant Surgery, plus the original Hex preset for HEX. DMM supplies active routing and ASI loader installation. Weight needs no outfit dependency.
 
-The runtime recognizes separately installed VENUS 2.6 Human Body or Elf Body. It also requires the Hex preset for HEX, Instant Surgery, DMM routing and an x64 ASI loader. It contains no downloaded mod binaries, bodies, presets or Dancer assets. Original code is 0BSD; adapted overlay/library notices are retained in `licenses/`.
+Wardrobe offers Default and installed SDK provider outfits. Dancer integration and setup are excluded pending permission and may return as a separate patch. No downloaded mod binaries, bodies, presets or outfits are included.
 
-Development 0.5.9 makes Weight independent of Sexy Witches. Only Dancer and its supplied colours use that optional download. The native shaping requirements still apply.
-
-Never replace the plugin while the game is running. Settings and logs live in `%LOCALAPPDATA%/HexAppeal/`.
+See the [Player Guide](../docs/wiki/Home.md) for installation and limits. Original code is 0BSD; licensed adaptations retain notices in `licenses/`. Close the game before replacing the ASI. Settings/logs live in `%LOCALAPPDATA%/HexAppeal/`.

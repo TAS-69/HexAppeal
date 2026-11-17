@@ -21,7 +21,7 @@ Use a manual file/folder path when detection misses a dependency. Clear that fie
 | Missing install, wrong or unreadable path | Affected feature disabled; correct the path/install |
 | Actual native interface failure | Operation rejected with an error; other usable controls remain available |
 
-Saved shapes needing a missing resource wait without being silently changed. In development **0.5.9**, a missing optional Dancer source affects only its outfit/colours; Weight and Height remain available when native shaping is ready. The path field is now **Dancer source file or mod folder**. Existing `WeightReference` overrides are read as legacy Dancer paths, preserving the selected location. Settings remains accessible. The published 1.0.0 package predates this separation.
+Saved shapes needing a missing resource wait without being silently changed. Weight and Height need no outfit source. The core release has no Dancer dependency path control. Old outfit path fields remain inert settings data for compatibility; they are not inspected or used to enable a feature. Settings remains accessible when a native requirement is missing.
 
 ## Saved files
 

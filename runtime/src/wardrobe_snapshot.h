@@ -3,7 +3,7 @@
 #include <cstdint>
 
 namespace hex {
-enum class WardrobePartKind { Other, DefaultGarment, Dancer, Underwear };
+enum class WardrobePartKind { Other, DefaultGarment, Underwear };
 struct WardrobeClaim {
     uint32_t key=0;
     uintptr_t record=0,wrapper=0,scene=0;
@@ -16,7 +16,7 @@ struct WardrobeSnapshot {
     uint32_t claimCount=0,readyCount=0;
     char appearance[256]{};
     std::array<WardrobeClaim,64> claims{};
-    bool defaultGarment=false,dancer=false,customGarment=false;
+    bool defaultGarment=false,customGarment=false;
 };
 int wardrobeWitchForAppearance(const char* path);
 WardrobePartKind wardrobePartKind(int witch,const char* prefab);

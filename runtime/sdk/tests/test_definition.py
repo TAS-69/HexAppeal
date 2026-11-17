@@ -20,7 +20,7 @@ class DefinitionTests(unittest.TestCase):
         self.definition.pop('states');self.definition.pop('native_controls')
         result=module.validate(self.definition)
         self.assertIn('client.Register(outfit,token)',module.render(result))
-    def test_reserved_namespace(self):self.invalid(lambda d:d.update(id='hexappeal/dancer'))
+    def test_reserved_namespace(self):self.invalid(lambda d:d.update(id='hexappeal/example'))
     def test_utf8_byte_limits(self):self.invalid(lambda d:d.update(label='é'*32))
     def test_no_injected_source(self):
         self.definition['label']='A "quoted" dress \\ name'

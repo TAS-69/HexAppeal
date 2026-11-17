@@ -12,8 +12,7 @@ namespace hex {
 enum QuickPin : uint32_t {
     PinTop=1u<<0,PinBottom=1u<<1,PinPad=1u<<2,PinHeight=1u<<3,PinWeight=1u<<4,
     PinUnderwear=1u<<5,PinOutfit=1u<<6,PinCopy=1u<<7,PinPaste=1u<<8,PinReset=1u<<9,
-    PinUnderwearColour=1u<<10,PinDancerColour=1u<<11,
-    AllQuickPins=(1u<<12)-1
+    AllQuickPins=(1u<<10)-1
 };
 struct NativeState {
     bool instantLoaded=false;

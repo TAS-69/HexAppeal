@@ -30,7 +30,7 @@ int main(){
     check(invokeWardrobeSwap(node,record,newWrapper,base,ops)==WardrobeCallResult::Completed,"native call completion reported");
     check(calls==1&&refs[oldWrapper]==2&&refs[newWrapper]==2&&record.bytes==original,"temporary refs balanced and source untouched");
     reset();expectedRemoval=newWrapper;expectedAddition=oldWrapper;auto restoration=record;put(restoration,0,newWrapper);
-    check(invokeWardrobeSwap(node,restoration,oldWrapper,base,ops)==WardrobeCallResult::Completed,"restore original using retained baseline metadata and live Dancer removal");
+    check(invokeWardrobeSwap(node,restoration,oldWrapper,base,ops)==WardrobeCallResult::Completed,"restore original using retained baseline metadata and live replacement removal");
     check(calls==1&&refs[oldWrapper]==2&&refs[newWrapper]==2&&record.bytes==original,"restoration balances references without modifying baseline");
     reset();failCall=true;check(invokeWardrobeSwap(node,record,newWrapper,base,ops)==WardrobeCallResult::CallFailed,"call failure differs from completion");
     check(refs[oldWrapper]==2&&refs[newWrapper]==2,"failure still releases both temporaries");

@@ -3,18 +3,6 @@
   "development_modules_remain_separate": true,
   "source_and_sdk_downloads_are_for_creators": true,
   "downloaded_dependencies_remain_external": true,
-  "optional_dancer_setup": {
-    "mode": "Local references inside the installed main package; no separate resource entry.",
-    "public_archive_contains_dependency_files": false,
-    "setup_before_initial_mount": true,
-    "fresh_install_mounts": 1,
-    "source_detection": "Complete original FOMOD beside the installed mod, or an explicit source path.",
-    "setup_requirement": "Python 3.12+ with its launcher",
-    "native_resource_and_palette_readiness_verified": true,
-    "in_game_integrated_path_tested": true,
-    "live_scope": "Elowen close oblique idle view with saved shape and Elf Body: Dancer restored on load; Midnight Black to Original White to Midnight Black refreshed automatically. No new pale blotches or transparency visible. Separate external resource entry disabled; original dependency contents unchanged.",
-    "initial_live_issue": "The first launch stopped Wardrobe at the old Character Creator whole-file gate. Corrected to warn on unknown versions while independently validating hook ownership and native interfaces; the restart check passed."
-  },
   "manager_acceptance": {
     "required": true,
     "verified": true,
@@ -28,11 +16,14 @@
     "deployed_runtime_sha256": "25640380fe36d4e511a3924c5f62a32bd3ceecabe17f5e85002db267b0114a6a",
     "asset_entry_does_not_disable_asi": true,
     "in_game_combined_package_launch_tested": true,
-    "live_wardrobe_acceptance_passed": true,
-    "runtime_checks_passed": 23,
+    "runtime_checks_passed": 21,
     "runtime_checks_blocked": [],
-    "development_runtime_version": "0.5.8",
-    "compatibility_live_scope": "Elowen: all six feature checks ready with unverified Character Creator warning; incompatible external preset blocked only HEX with its specific error; clearing the override restored automatic detection and the saved shape. Dancer/Arcane Pink retained.",
-    "prior_colour_refresh_tested_runtime_sha256": "de392658026ea59427df2adc0998f51fceb12904f14648caed0bb4f04dbd33c2"
-  }
+    "development_runtime_version": "0.5.10",
+    "layout_acceptance_reused": true,
+    "acceptance_scope": "Previously imported combined layout: one manifest, seven appearance routes, forty garment refits and one ASI. Current package removes only optional outfit setup/resources; exact rebuilt binary receives separate offline checks. No fresh core-only game session.",
+    "current_core_only_package_live_tested": false
+  },
+  "external_outfit_dependencies": [],
+  "dancer_patch_included": false,
+  "weight_requires_outfit_dependency": false
 }

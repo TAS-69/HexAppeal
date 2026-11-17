@@ -17,7 +17,7 @@ Shape choices remain saved while their requirements are unavailable. Fix a prese
 
 ## Independent Weight
 
-Development **0.5.9** removes the optional outfit gate from native Weight. Missing, unreadable or unverified Dancer files no longer affect Weight controls or saved weighted shapes. Native shaping requirements and actual interface errors still apply. Existing dependency path overrides migrate to the Dancer-only field; no shape reset is needed. The published 1.0.0 package retains its earlier behavior until another package is requested. See [Weight controls](WEIGHT-CONTROLS.md).
+Weight uses the native shaping adapter and needs no outfit dependency. Dancer detection and setup are excluded from this release. Generic Wardrobe providers retain their own dependencies and availability reasons. Legacy outfit path fields are preserved only as inert preferences. See [Weight controls](WEIGHT-CONTROLS.md).
 
 ## What the adapter checks
 
@@ -26,7 +26,7 @@ Development **0.5.9** removes the optional outfit gate from native Weight. Missi
 - Versioned public exports, including `InstantSurgeryDeformPoseV1` and `TwoReasonsEditorPoseAppliedV1`, resolve by name. Their executable address must belong to the loaded plugin. Moving a valid export within that plugin no longer fails a fixed-address comparison.
 - Appearance hooks use bounded chain and executable ownership checks. Actor identity, native outfit records and final assembly acknowledgement still govern writes.
 - External HEX presets accept a UTF-8 BOM, comments and surrounding whitespace. Unknown shape fields, invalid numbers, missing markers and unreadable/oversized files return parsing errors.
-- Base underwear, Wardrobe and Dancer colours report separate checks. Uninitialized features explain a blocked shaping adapter; an independent feature error keeps its own reason.
+- Base underwear, Wardrobe and Weight report separate checks. Uninitialized features explain a blocked shaping adapter; an independent feature error keeps its own reason.
 
 The native adapter still relies on private interfaces. A future release that changes their layout needs an adapter update. Passing a basic format or native check cannot prove every animation, material, garment fit or future dependency release. The warning remains until that upstream version receives its own verification.
 

@@ -34,8 +34,8 @@ int main(){
     check(out.defaultGarment&&!out.customGarment&&out.node==ptr(f.node.data())&&out.claimCount==2,"default robe identified without treating body as clothing");
     f.setText(1,"cd_phw_00_ub_00_0170_u");
     check(hex::captureWardrobeSnapshot(ptr(f.actor.data()),3,base,out)&&!out.defaultGarment&&out.customGarment,"barber custom garment distinguished despite original appearance path");
-    f.setText(1,"cd_phw_00_ub_00_0191_u");
-    check(hex::captureWardrobeSnapshot(ptr(f.actor.data()),3,base,out)&&out.dancer&&!out.defaultGarment,"existing Dancer is identified without claiming installation ownership");
+    f.setText(1,"example_ub_0001");
+    check(hex::captureWardrobeSnapshot(ptr(f.actor.data()),3,base,out)&&out.customGarment&&!out.defaultGarment,"unregistered replacement remains custom without claiming installation ownership");
     Fixture other;put(f.node.data(),0x50,ptr(other.table.data()));out.node=123;
     check(!hex::captureWardrobeSnapshot(ptr(f.actor.data()),3,base,out)&&out.node==123,"another actor's node rejected and failed capture leaves output unchanged");
     put(f.node.data(),0x50,ptr(f.table.data()));put(f.control.data(),8,ptr(other.actor.data()));
@@ -51,5 +51,5 @@ int main(){
     check(!hex::captureWardrobeSnapshot(ptr(bounds.actor.data()),3,base,out),"count beyond capacity rejected");
     check(!hex::captureWardrobeSnapshot(1,3,base,out),"inaccessible actor contained");
     check(!hex::captureWardrobeSnapshot(ptr(bounds.actor.data()),-1,base,out),"all-witches selector cannot be used as actor identity");
-    std::puts("PASS: exact wardrobe instance ownership, default/custom/Dancer classification, alternate Bari, stale/cross-actor links and bounded invalid reads.");
+    std::puts("PASS: exact wardrobe instance ownership, default/custom classification, alternate Bari, stale/cross-actor links and bounded invalid reads.");
 }

@@ -37,8 +37,6 @@ commands = [
     ('outfit_visibility_ownership', [str(build/'outfit_visibility_tests.exe')]),
 ]
 if args.game:
-    commands.append(('dancer_global_palette', [str(build/'dancer_palette_tests.exe'),str(args.game),str(fixture/'dancer-palette')]))
-    commands.append(('wardrobe_resource_detection', [str(build/'wardrobe_resources_tests.exe'),str(args.game),str(fixture/'wardrobe-resources')]))
     commands.append(('served_dependency_routes', [str(build/'dependency_routes.exe'), str(args.game), str(fixture/'dependency-routes')]))
     if args.venus_human:commands[-1][1].append(str(args.venus_human))
     commands.append(('dependency_discovery', [str(build/'dependency_discovery.exe'), str(args.game), str(fixture/'discovery')]))

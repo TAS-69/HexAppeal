@@ -80,8 +80,6 @@ link(build/'auto_apply_tests.exe',[model,runtime,*dependency_objects,extra(root/
 link(build/'native_menu_test.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'native_menu_test.cpp')])
 link(build/'dependency_routes.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'dependency_routes.cpp')])
 link(build/'dependency_discovery.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'dependency_discovery.cpp')])
-link(build/'wardrobe_resources_tests.exe',[model,runtime,*dependency_objects,objects['src/wardrobe_resources.cpp'],objects['src/dancer_palette.cpp'],extra(root/'tests/wardrobe_resources.cpp')])
-link(build/'dancer_palette_tests.exe',[model,runtime,*dependency_objects,objects['src/wardrobe_resources.cpp'],objects['src/dancer_palette.cpp'],extra(root/'tests/dancer_palette.cpp')])
 link(build/'wardrobe_api_tests.exe',[objects['src/wardrobe_api.cpp'],extra(root/'tests/wardrobe_api.cpp')])
 link(build/'outfit_visibility_tests.exe',[objects['src/outfit_visibility.cpp'],extra(root/'tests/outfit_visibility.cpp')])
 extra(root/'tests/wardrobe_c_abi.c')
@@ -97,7 +95,7 @@ minhook=[obj for src,obj in objects.items() if src.startswith('vendor/minhook/')
 link(build/'underwear_tests.exe',[model,runtime,*dependency_objects,objects['src/pose_access.cpp'],objects['src/outfit_visibility.cpp'],extra(root/'src/underwear.cpp','.visibility',['HEX_UNDERWEAR_TESTS']),extra(root/'tests/underwear_tests.cpp','',['HEX_UNDERWEAR_TESTS']),*minhook])
 preview_objs=[objects['vendor/imgui/'+n] for n in ['imgui.cpp','imgui_draw.cpp','imgui_widgets.cpp','imgui_tables.cpp']]
 preview_objs += [model,runtime,*dependency_objects,extra(root/'src'/'menu.cpp','.preview',['HEX_MENU_TESTS']),extra(root/'tests'/'preview.cpp','',['HEX_MENU_TESTS'])]
-preview_objs += [objects['src/outfit_visibility.cpp'],objects['src/underwear.cpp'],objects['src/pose_access.cpp'],objects['src/wardrobe.cpp'],objects['src/wardrobe_snapshot.cpp'],objects['src/wardrobe_transport.cpp'],objects['src/wardrobe_selection.cpp'],objects['src/wardrobe_native.cpp'],objects['src/wardrobe_resources.cpp'],objects['src/dancer_palette.cpp'],objects['src/wardrobe_api.cpp'],objects['src/hooks/frame_dispatch.cpp'],frame_object]
+preview_objs += [objects['src/outfit_visibility.cpp'],objects['src/underwear.cpp'],objects['src/pose_access.cpp'],objects['src/wardrobe.cpp'],objects['src/wardrobe_snapshot.cpp'],objects['src/wardrobe_transport.cpp'],objects['src/wardrobe_selection.cpp'],objects['src/wardrobe_native.cpp'],objects['src/wardrobe_api.cpp'],objects['src/hooks/frame_dispatch.cpp'],frame_object]
 preview_objs += [obj for src,obj in objects.items() if src.startswith('vendor/minhook/')]
 link(build/'preview.exe',preview_objs)
 input_objs=[objects['vendor/imgui/'+n] for n in ['imgui.cpp','imgui_draw.cpp','imgui_widgets.cpp','imgui_tables.cpp','backends/imgui_impl_win32.cpp']]

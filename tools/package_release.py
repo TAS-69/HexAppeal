@@ -1,6 +1,7 @@
 from pathlib import Path
 import argparse,configparser,hashlib,json,re,subprocess,zipfile
 from player_package import player_package
+from release_policy import validate_release_path,validate_runtime
 
 ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser(description='Package the requested public version. Does not increment versions, install files or upload.')
@@ -15,13 +16,14 @@ if not re.fullmatch(r'\d+\.\d+\.\d+',version):raise SystemExit('Invalid public V
 sha=lambda data:hashlib.sha256(data).hexdigest()
 asi=ROOT/'runtime/dist/HexAppeal.asi'
 binary=asi.read_bytes()
+validate_runtime(binary)
 build=json.loads((ROOT/'runtime/dist/build.json').read_text(encoding='utf-8-sig'))
 verification=json.loads((ROOT/'runtime/reports/offline-verification.json').read_text(encoding='utf-8-sig'))
 helpers=json.loads((ROOT/'runtime/reports/helper-verification.json').read_text(encoding='utf-8-sig'))
 if not helpers['pass'] or any(sha((ROOT/name).read_bytes())!=digest for name,digest in helpers['inputs'].items()):raise SystemExit('Verify the current helper sources first.')
 if build['version']!=version or not build['public_release'] or build['sha256']!=sha(binary):raise SystemExit('Build this public version first.')
 if verification['version']!=version or verification['asi']['sha256']!=sha(binary):raise SystemExit('Verify this exact binary first.')
-required={'sdk_definition_generator','model','auto_apply','frame_dispatch_abi','menu','input_lifecycle','interface_preferences','creation_chain','wardrobe_instance_ownership','wardrobe_selection','wardrobe_transport_abi','wardrobe_provider_api','underwear_policy','outfit_visibility_ownership','dancer_global_palette','wardrobe_resource_detection','served_dependency_routes','dependency_discovery','native_menu_export','packaged_runtime_configuration','dependency_file_preserved'}
+required={'sdk_definition_generator','model','auto_apply','frame_dispatch_abi','menu','input_lifecycle','interface_preferences','creation_chain','wardrobe_instance_ownership','wardrobe_selection','wardrobe_transport_abi','wardrobe_provider_api','underwear_policy','outfit_visibility_ownership','served_dependency_routes','dependency_discovery','native_menu_export','packaged_runtime_configuration','dependency_file_preserved'}
 checks={row['name']:row for row in verification['checks']}
 required.update({'appearance_hook_compatibility','feature_compatibility'})
 if not required<=checks.keys():raise SystemExit('Run the full installed-dependency verification suite.')
@@ -42,7 +44,9 @@ private_parts={'.git','__pycache__','build','dist','reports','release','permissi
 dependency=json.loads((ROOT/'dependencies.json').read_text(encoding='utf-8-sig'))
 denied_hashes={item['sha256'] for item in dependency['required']}
 denied_hashes.update(body['sha256'] for item in dependency['required'] for body in item.get('verified_variants',[]))
-denied_hashes.add(dependency['optional'][0]['source_body_sha256'])
+policy=json.loads((ROOT/'build-data/distribution-policy.json').read_text(encoding='utf-8'))
+denied_hashes.update(policy['excluded_dependency_sha256'])
+denied_hashes.update(item['sha256'] for item in dependency.get('optional',[]) if 'sha256' in item)
 refits=json.loads((ROOT/'build-data/refit-validation.json').read_text(encoding='utf-8-sig'))
 allowed_pacs={'Hex Appeal - Outfit Refits/files/'+row['path']:row['output_sha256'] for row in refits['models']}
 if len(allowed_pacs)!=40:raise SystemExit('Expected forty default garment refits.')
@@ -62,8 +66,9 @@ for name in sorted(filter(None,tracked)):
     source_files.append((rel.as_posix(),data))
 patches=list((ROOT/'Hex Appeal - Bodies/files').rglob('*.patch'))
 if len(patches)!=7:raise SystemExit('Expected seven appearance patches.')
-summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches':7,'vanilla_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':'Development 0.5.8: sampled Elowen feature readiness, unverified appearance-mod warning, isolated incompatible-preset block, automatic detection recovery, saved shape and Dancer restoration. Earlier sampled builds cover nine Human Body/Dancer combinations and White/Black refresh. This public version-stamped rebuild has exact offline checks and no separate fresh game session. Outfit SDK examples compile and validate but provide no playable assets.','licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
+summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches':7,'vanilla_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':'Earlier development builds sampled Lyselia/Elowen shapes and default outfits; broader witch/moving-cloth checks were player-reported. The prior independent-Weight build passed native-buffer tests without an outfit dependency. This core-only public rebuild has exact offline checks and isolated native-buffer verification, not a fresh game session. SDK matrices compile and validate; adopting assets need their own rendered tests.','licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
 summary['distribution']=distribution
+summary['distribution_policy']=policy
 summary['source_commit']=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
 summary_bytes=(json.dumps(summary,indent=2)+'\n').encode()
 inventory=[];archives=[]
@@ -72,6 +77,7 @@ def archive(label,files):
     names=set()
     with zipfile.ZipFile(path,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as dest:
         for name,data in sorted(files):
+            validate_release_path(name)
             if name in names or '..' in Path(name).parts or name.startswith('/'):raise SystemExit('Invalid archive path.')
             names.add(name)
             info=zipfile.ZipInfo(name,date_time=(2026,11,16,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o100644<<16
@@ -107,8 +113,6 @@ for component in ('Hex Appeal - Bodies','Hex Appeal - Outfit Refits'):
     assets.append([(p.relative_to(ROOT/component).as_posix(),p.read_bytes()) for p in (ROOT/component/'files').rglob('*') if p.is_file()])
 documents=[('VERIFICATION.json',summary_bytes),('LICENSE',(ROOT/'LICENSE').read_bytes()),
            ('DEPENDENCIES-AND-REFERENCES.md',package_doc((ROOT/'DEPENDENCIES-AND-REFERENCES.md').read_text(encoding='utf-8-sig'),'').encode())]
-documents.append(('tools/prepare_dancer_dependencies.py',(ROOT/'tools/prepare_dancer_dependencies.py').read_bytes()))
-documents.append(('Setup Dancer.cmd',(ROOT/'tools/Setup Dancer.cmd').read_bytes()))
 for name in ('README.md','INTEGRATION.md'):documents.append(('docs/'+name,package_doc((ROOT/'runtime'/name).read_text(encoding='utf-8-sig'),'runtime').encode()))
 documents += [('licenses/'+p.name,p.read_bytes()) for p in (ROOT/'runtime/licenses').iterdir() if p.is_file()]
 documents+=guides('docs/')

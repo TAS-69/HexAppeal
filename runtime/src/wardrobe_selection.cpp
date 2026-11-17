@@ -13,7 +13,7 @@ bool write(const std::filesystem::path& path,const WardrobeSelectionSnapshot& st
     std::ofstream out(temporary,std::ios::binary|std::ios::trunc);
     if(!out){error="Wardrobe choices could not be saved.";return false;}
     out<<"[Wardrobe]\nVersion=2\n";
-    for(size_t i=0;i<state.choices.size();++i){const auto& c=state.choices[i];out<<"\n[Witch"<<i<<"]\nOutfit="<<int(c.outfit)<<"\nUnderwearColour="<<int(c.underwear)<<"\nDancerColour="<<int(c.dancer)<<'\n';if(c.outfit==WitchOutfit::Provider)out<<"ProviderOutfit="<<c.provider<<'\n';}
+    for(size_t i=0;i<state.choices.size();++i){const auto& c=state.choices[i];out<<"\n[Witch"<<i<<"]\nOutfit="<<int(c.outfit)<<"\nUnderwearColour="<<int(c.underwear)<<"\nDancerColour="<<int(c.legacyColour)<<'\n';if(c.outfit==WitchOutfit::Provider)out<<"ProviderOutfit="<<c.provider<<'\n';}
     out.flush();const bool saved=bool(out);out.close();
     if(!saved||!MoveFileExW(temporary.c_str(),path.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)){error="Wardrobe choices could not be saved atomically.";return false;}
     return true;
@@ -41,7 +41,7 @@ bool WardrobeSelection::load(const std::filesystem::path& path,std::string& erro
         if(name=="Outfit"&&parsed<=2)c.outfit=WitchOutfit(parsed);
         else if(name=="ProviderOutfit"&&validWardrobeId(value))c.provider=value;
         else if(name=="UnderwearColour"&&parsed<=5)c.underwear=WitchColour(parsed);
-        else if(name=="DancerColour"&&parsed<=5)c.dancer=WitchColour(parsed);
+        else if(name=="DancerColour"&&parsed<=5)c.legacyColour=WitchColour(parsed);
         else{error="Wardrobe settings contain an unsupported choice.";return false;}
     }
     if(!version||input.bad()){error="Wardrobe settings are incomplete.";return false;}
@@ -52,18 +52,11 @@ WardrobeSelectionSnapshot WardrobeSelection::snapshot()const{std::lock_guard<std
 bool WardrobeSelection::change(int target,WardrobeField field,int value,const WardrobeCapabilities& available,std::string& error){
     std::lock_guard<std::mutex> lock(mutex);
     if(target< -1||target>5){error="Choose a supported witch.";return false;}
-    if(field==WardrobeField::Outfit){
-        if(value<0||value>1){error="Choose Default or Dancer.";return false;}
-        if(!available.switchReady){error="The native outfit switch is unavailable.";return false;}
-        if(value==1&&!available.dancerAssets){error="The separate Dancer resources are not ready.";return false;}
-    }else{
-        if(value<0||value>5){error="Choose a supported colour.";return false;}
-        const bool ready=field==WardrobeField::UnderwearColour?available.underwearColourReady:field==WardrobeField::DancerColour?available.dancerColourReady:false;
-        if(!ready){error="Per-witch material ownership has not been established.";return false;}
-    }
+    if(field!=WardrobeField::Outfit||value!=0){error="Choose Default or a registered provider outfit.";return false;}
+    if(!available.switchReady){error="The native outfit switch is unavailable.";return false;}
     auto next=state;bool changed=false;
     for(size_t i=0;i<next.choices.size();++i){if(target>=0&&size_t(target)!=i)continue;auto& choice=next.choices[i];const auto before=choice;
-        if(field==WardrobeField::Outfit){choice.outfit=WitchOutfit(value);choice.provider.clear();}else if(field==WardrobeField::UnderwearColour)choice.underwear=WitchColour(value);else choice.dancer=WitchColour(value);
+        choice.outfit=WitchOutfit::Default;choice.provider.clear();
         if(!(before==choice)){++next.generations[i];changed=true;}
     }
     if(!changed)return true;

@@ -3,7 +3,7 @@
 #include <string>
 
 namespace hex {
-enum class Feature : size_t {Shaping,Hex,Weight,Wardrobe,Underwear,DancerColours,Count};
+enum class Feature : size_t {Shaping,Hex,Weight,Wardrobe,Underwear,Count};
 enum class CompatibilityState {Waiting,Ready,Blocked};
 struct FeatureCompatibility {
     CompatibilityState state=CompatibilityState::Waiting;
@@ -18,6 +18,6 @@ inline FeatureCompatibility effectiveCompatibility(const CompatibilitySnapshot& 
     return value;
 }
 inline const char* featureName(Feature feature){
-    switch(feature){case Feature::Shaping:return "Shaping";case Feature::Hex:return "HEX preset";case Feature::Weight:return "Weight";case Feature::Wardrobe:return "Wardrobe";case Feature::Underwear:return "Base underwear";case Feature::DancerColours:return "Dancer colours";default:return "Unknown feature";}
+    switch(feature){case Feature::Shaping:return "Shaping";case Feature::Hex:return "HEX preset";case Feature::Weight:return "Weight";case Feature::Wardrobe:return "Wardrobe";case Feature::Underwear:return "Base underwear";default:return "Unknown feature";}
 }
 }

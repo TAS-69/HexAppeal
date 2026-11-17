@@ -63,16 +63,34 @@
   "instant_surgery_editor_menu_command": "Isolated ABI check PASS for inspected 0.9.6; active-player editor command only.",
   "optional": [
     {
-      "id": "sexy_witches",
-      "name": "Sexy Witches of Pywel Body and Dress Reshaped",
-      "creator": "Vincent1681",
-      "nexus_id": 2891,
-      "fomod_version": "1.1",
-      "purpose": "Optional unmodified Dancer outfit/five-colour source only. Weight uses native shaping controls without this dependency. The body remains a credited historical development reference. Optional setup creates four local references inside the installed main entry before its first mount; the player archive contains none of those dependency files. No Dancer mesh or top-removal patch is bundled.",
-      "source_body_sha256": "8a5af4474c1ae8655d56229f097eaee0103d765849fe01a37e2ece8a5d12e950",
+      "id": "body_physics",
+      "name": "Two Reasons Body Physics",
+      "creator": "AlexeySova",
+      "url": "https://www.nexusmods.com/crimsondesert/mods/3636",
+      "version": "1.0.7",
+      "sha256": "6ed64a5136b3fd8a36fc1a3fcd02e62e102e7d0915f1c184daabd31c588db524",
+      "purpose": "Optional external plugin. When loaded, its compatible pose acknowledgement interface is needed for coordinated updates.",
       "redistributed": false
     }
   ],
   "wardrobe_api": "Original 0BSD C ABI v1, C++17 helper, definition generator, copied schemas, native part bindings/complete matrices, Base underwear policy and optional resource refresh. Provider assets remain external.",
-  "version_policy": "Unverified versions warn and remain usable. Missing installations and incorrect/unreadable paths block affected features. Actual incompatible interfaces return operation errors."
+  "version_policy": "Unverified versions warn and remain usable. Missing installations and incorrect/unreadable paths block affected features. Actual incompatible interfaces return operation errors.",
+  "references": [
+    {
+      "id": "sexy_witches",
+      "name": "Sexy Witches of Pywel Body and Dress Reshaped",
+      "creator": "Vincent1681",
+      "nexus_id": 2891,
+      "purpose": "Historical visual body reference during Weight research. Not a runtime dependency. Dancer outfit/colour integration and setup are excluded pending permission; any future integration belongs to a separately distributed provider patch.",
+      "redistributed": false
+    }
+  ],
+  "release_scope": {
+    "built_in_outfits": [
+      "Default"
+    ],
+    "external_outfit_dependencies": [],
+    "weight_requires_outfit": false,
+    "dancer_integration_included": false
+  }
 }

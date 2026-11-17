@@ -2,7 +2,7 @@
 
 ## Checked references
 
-The reference setup is Crimson Desert **2.05.00 / Steam build 26636972**, DMM **5.0.1**, VENUS Human/Elf Body **2.6**, Instant Surgery **0.9.6**, Hex **1.3 / 1.2**, optional Two Reasons Body Physics **1.0.7**, and optional Sexy Witches FOMOD **1.1**.
+The reference setup is Crimson Desert **2.05.00 / Steam build 26636972**, DMM **5.0.1**, VENUS Human/Elf Body **2.6**, Instant Surgery **0.9.6**, Hex **1.3 / 1.2**, optional Two Reasons Body Physics **1.0.7**.
 
 These are checked versions, not a promise that every past or future release works. Unknown readable versions receive a soft warning and remain usable. Native layouts, function signatures, ownership and transaction checks must still pass. The static default-outfit refits were built against VENUS 2.6 and need a new fit review if its geometry changes.
 
@@ -18,26 +18,23 @@ Both Human Body and Elf Body are recognized. Their body/hand skinning and physic
 | --- | --- |
 | Another complete body replacement, including NaiK's Original Damiane Body | Let the selected VENUS Human/Elf variant win the body route |
 | VENUS Armor Refit on boot routes 0160 / 0161 / 0163 | Choose the intended winner in DMM |
-| Another outfit using Dancer's shared 0191 resources or texture | Review the file winner; Dancer colours affect the shared texture |
 | Spouse Overhaul / barber custom outfits | Wardrobe avoids custom outfit ownership; return to a recognized default before replacing it |
 | Another modifier writing the same pose buffers | A checked transaction may reject the shape rather than overwrite foreign work |
 | Another F9 binding | Change Hex Appeal's key in Settings |
 
 ## Known limits
 
-- Minor hand/skirt clipping and extreme HEX/HEX or high-weight shoulder clipping remain.
-- Dancer colours are global. Embedded Dancer bra/top removal is not supplied.
-- Earlier Lyselia robe disappearance occurred with Spouse Overhaul/barber outfit changes. Its cause was not isolated.
-- Pale Dancer blotches were intermittent. They were reproduced during comparisons with shaping disabled and original meshes; that did not establish a cause. The last clean original-resource sample showed none. A permanent fix is not claimed.
-- Private split-mesh Dancer experiments produced transparent skin/material areas and were rejected. No split/refit Dancer derivative pack is distributed.
-- Coordinated skeletal deformation is not arbitrary mesh regeneration, cloth/collider authoring or a universal garment-fit guarantee.
-- Controller input, every detail level, long sessions, every witch in motion and third-party authored prefab matrices have not received exhaustive live acceptance.
+- Extreme proportions may clip. Coordinated pose shaping is not arbitrary mesh regeneration, cloth/collider authoring or a universal outfit-fit guarantee.
+- Default garment refits use the VENUS 2.6 baseline; changed geometry needs a fit review.
+- Controller input, every detail level, long sessions and every witch in motion have not received exhaustive live acceptance.
+- Earlier private outfit material/visibility problems did not establish a universal cause. That outfit integration is not part of this release.
+- Dancer dependencies, setup and colour controls are excluded pending permission. Generic SDK providers remain supported and need rendered checks with their own assets.
 
 ## What was checked
 
-The release binary is rebuilt from the tested development lineage. Offline checks cover shape composition, saves, input/menu lifecycle, dependency routes, Wardrobe ownership/restoration, palettes, SDK definitions, native matrices, Base underwear policy and ABI handling. The package audit matches that rebuilt binary. See the release's verification summary for its hash and results.
+The exact core-only public runtime passed 21 offline checks, including 29 SDK definition/example cases. The helper suite passed 22 tests, and all 47 body/default-garment checks passed. Earlier native Weight comparisons covered 44 weighted extreme/baseline cases without an outfit source, with all eleven reference poses unchanged. The exact core-only native run is recorded in the release verification summary.
 
-Live evidence from the preceding clean build covers Elowen startup restoration, all nine regional shapes on the original Dancer resources, automatic White → Black changes and Default → Dancer restoration in one close idle view. Earlier direct tests covered Lyselia/Elowen shaping; broader all-witch default fit and moving cloth were player-reported. A separate earlier provider plugin sampled native accessory visibility and Base underwear linkage on Elowen. It did not remove Dancer's embedded top. The release's version/configuration packaging changes have not had a fresh live game session.
+Earlier development sessions sampled Lyselia/Elowen shaping and original clothing. Wider all-witch/default-fit and moving-cloth coverage was player-reported. Generic accessory visibility/Base underwear linkage has sampled Elowen coverage. Authored prefab matrices remain subject to each adopting outfit's rendered acceptance. This exact core-only rebuild has not had a fresh game session.
 
 ## Troubleshooting
 
@@ -49,6 +46,6 @@ Live evidence from the preceding clean build covers Elowen startup restoration, 
 
 **Outfit unavailable:** hover the status for the initialization error. In the current adapter, an unverified appearance-mod version only warns; a changed or unrecognized native hook can still prevent switching. Saved choices are retained.
 
-**Colour or materials look wrong:** check resource conflicts, test a fresh save load and full restart, and report whether it happens with original resources and neutral shaping. Include the selected colour/shape, witch, game/dependency versions and a screenshot. Do not assume every material issue comes from shaping.
+**Provider colour or materials look wrong:** check resource conflicts, test a fresh save load and full restart, and report whether it happens with original resources and neutral shaping. Include the selected colour/shape, witch, game/dependency versions and a screenshot. Do not assume every material issue comes from shaping.
 
 **Crash:** close the game and disable Hex Appeal through DMM for a comparison. Keep a copy of the relevant logs before retrying. A log being active at the crash is timing evidence, not proof of its cause.

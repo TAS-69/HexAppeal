@@ -37,4 +37,8 @@ class PlayerPackage(unittest.TestCase):
         with self.assertRaises(ValueError):self.package(runtime_files=[('HexAppeal.asi',b'own runtime')])
         with self.assertRaises(ValueError):self.package(refit_files=[])
 
+    def test_outfit_setup_and_resource_routes_are_excluded(self):
+        for name in ('Setup Dancer.cmd','tools/prepare_dancer_dependencies.py','files/0009/character/model/cd_phw_00_ub_00_0191.pac'):
+            with self.subTest(name=name),self.assertRaisesRegex(ValueError,'Excluded outfit integration'):self.package(documents=[(name,b'not distributed')])
+
 if __name__=='__main__':unittest.main()

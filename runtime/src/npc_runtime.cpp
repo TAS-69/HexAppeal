@@ -374,7 +374,6 @@ DWORD WINAPI worker(void*) {
         if(dependencies.bodyVerified&&!dmmLoaded)dependencies.bodyDetail="Body files found, but DMM's runtime is not loaded. Restart after installing/enabling it.";
         else if(dependencies.bodyVerified&&!s.hooked)dependencies.bodyDetail=error.empty()?"Waiting for the separately installed Instant Surgery plugin.":error;
         r.publishDependencies(dependencies);
-        refreshWardrobeResources(dependencies);
         const auto shapeIssue=!dependencies.bodyVerified?dependencies.bodyDetail:!dependencies.instant.valid?dependencies.instant.detail:!dmmLoaded?std::string("DMM's runtime is not loaded. Enable it and restart the game."):!error.empty()?error:std::string("Waiting for the installed Instant Surgery plugin to initialize.");
         if(!s.failed)r.reportCompatibility(Feature::Shaping,r.shapingAvailable?CompatibilityState::Ready:!dependencies.bodyVerified||!dependencies.instant.valid||!dmmLoaded||!error.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,r.shapingAvailable?"Native shaping and active body checks passed.":shapeIssue);
         r.reportCompatibility(Feature::Hex,hexReady?CompatibilityState::Ready:!dependencies.hex.valid||!hexError.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,hexReady?"The external preset was parsed by the installed shaping adapter.":!hexError.empty()?hexError:!dependencies.hex.valid?dependencies.hex.detail:"Waiting for the native shaping adapter.");

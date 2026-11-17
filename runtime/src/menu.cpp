@@ -2,7 +2,6 @@
 #include "underwear.h"
 #include "wardrobe.h"
 #include "wardrobe_native.h"
-#include "dancer_palette.h"
 #include "wardrobe_api.h"
 #include "gui/menu.h"
 #include "core/state.h"
@@ -24,7 +23,6 @@ static ImFont *bodyFont=nullptr,*titleFont=nullptr;
 static constexpr ImVec4 accent{.91f,.38f,.66f,1},gold{.94f,.77f,.48f,1},muted{.60f,.55f,.65f,1},green{.48f,.84f,.69f,1};
 static constexpr ImVec4 errorColour{.96f,.43f,.43f,1};
 static constexpr const char* defaultOutfitLabel="Default witch outfit";
-static constexpr const char* dancerOutfitLabel="Sexy Witches of Pywel Reshaped / Dancer Dress";
 static std::string baseVersionWarning,hexVersionWarning,underwearVersionWarning;
 static bool weightReady=false;
 static void versionDecoration(const std::string& warning,bool tooltip=true,int placement=0){
@@ -119,7 +117,7 @@ static void dependencySettings(hex::Runtime& r){
     const auto status=r.dependencyStatus();
     const auto state=[&](const char* label,bool available,const std::string& detail){ImGui::TextColored(available?green:muted,"%s  /  %s",label,available?"Ready":"Unavailable");tip(detail.c_str());};
     const auto fileState=[&](const char* label,const hex::DependencyFile& file){ImGui::TextColored(!file.valid?muted:file.verified?green:gold,"%s / %s%s",label,!file.valid?"File needed":file.verified?"Verified":"Unverified",file.valid&&!file.verified?"  (!)":"");tip(file.detail.c_str());};
-    fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);fileState("VENUS Body",status.venus);fileState("Hex's Hentai Preset",status.hex);fileState("Sexy Witches Dancer source",status.dancer);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
+    fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);fileState("VENUS Body",status.venus);fileState("Hex's Hentai Preset",status.hex);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
     ImGui::Spacing();ImGui::TextDisabled("Feature checks");const auto capabilities=r.compatibilityStatus();
     for(size_t i=0;i<capabilities.size();++i){const auto& feature=capabilities[i];ImGui::TextColored(feature.state==hex::CompatibilityState::Ready?green:feature.state==hex::CompatibilityState::Blocked?errorColour:muted,"%s / %s%s",hex::featureName(hex::Feature(i)),feature.state==hex::CompatibilityState::Ready?"Ready":feature.state==hex::CompatibilityState::Blocked?"Blocked":"Checking",feature.state==hex::CompatibilityState::Blocked?"  (!)":"");tip(feature.detail.c_str());record("feature"+std::to_string(i));}
     if(!status.bodyWarning.empty()){ImGui::TextColored(gold,"Active body routes / unverified  (!)");tip(status.bodyWarning.c_str());}
@@ -132,14 +130,14 @@ static void dependencySettings(hex::Runtime& r){
         if(ImGui::IsItemDeactivatedAfterEdit()){path=std::filesystem::u8path(buffers[i].data());synced[i]=path.u8string();changed=true;}
     };
     field(0,"Mod manager config","pathManager",paths.managerConfig);field(1,"Mods folder","pathMods",paths.modsDirectory);field(2,"Active file list (DMM manifest.tsv)","pathManifest",paths.manifest);
-    field(3,"Hex preset file","pathHex",paths.hexPreset);field(4,"VENUS body file (optional source override)","pathVenus",paths.venusBody);field(5,"Dancer source file or mod folder","pathDancer",paths.dancerSource);
+    field(3,"Hex preset file","pathHex",paths.hexPreset);field(4,"VENUS body file (optional source override)","pathVenus",paths.venusBody);
     if(changed){std::string error;if(!r.setDependencyPaths(paths,error))r.model.message=error;}
     if(ImGui::Button("Detect again"))++r.dependencyRevision;record("dependencyRescan");tip("Paths are saved automatically. Empty fields use detection. Active body verification currently requires DMM's loaded runtime and file list; another manager's source folder alone cannot prove which body the game uses. Installing or changing runtime plugins requires a restart.");
 }
 static void pinSettings(hex::Runtime& r){
     const bool open=ImGui::CollapsingHeader("Quick panel pins");record("pinHeader");if(!open)return;
     struct Item{const char* label;uint32_t bit;};
-    const Item items[]={{"Top selector",hex::PinTop},{"Bottom selector",hex::PinBottom},{"Shape pad",hex::PinPad},{"Height",hex::PinHeight},{"Weight",hex::PinWeight},{"Base underwear",hex::PinUnderwear},{"Outfit switch",hex::PinOutfit},{"Copy",hex::PinCopy},{"Paste",hex::PinPaste},{"Reset",hex::PinReset},{"Dancer colour (global)",hex::PinDancerColour}};
+    const Item items[]={{"Top selector",hex::PinTop},{"Bottom selector",hex::PinBottom},{"Shape pad",hex::PinPad},{"Height",hex::PinHeight},{"Weight",hex::PinWeight},{"Base underwear",hex::PinUnderwear},{"Outfit switch",hex::PinOutfit},{"Copy",hex::PinCopy},{"Paste",hex::PinPaste},{"Reset",hex::PinReset}};
     for(const auto& item:items){bool selected=(r.quickPins&item.bit)!=0;if(ImGui::Checkbox(item.label,&selected)){r.quickPins^=item.bit;r.saveInterface();}record("pin"+std::to_string(item.bit));}
     ImGui::TextDisabled("Or right-click a control to pin it.");
 }
@@ -153,24 +151,20 @@ static void underwearControl(hex::Runtime& r,bool available){
 static void outfitControl(){
     auto& runtime=hex::Runtime::get();const auto status=hex::wardrobeEditorStatus(runtime.model.target);
     const auto selected=hex::wardrobeOutfitId(status.selected);const auto providers=hex::wardrobeProviderOutfits();
-    std::string label=selected=="hexappeal/default"?defaultOutfitLabel:selected=="hexappeal/dancer"?dancerOutfitLabel:"Provider unavailable";
+    std::string label=selected=="hexappeal/default"?defaultOutfitLabel:"Outfit unavailable";
     for(const auto& provider:providers)if(provider.id==selected)label=provider.label;
     const auto dependencies=runtime.dependencyStatus();const auto compatibility=runtime.featureCompatibility(hex::Feature::Wardrobe);const bool uiReady=status.available.switchReady||(compatibility.state==hex::CompatibilityState::Waiting&&dependencies.scanned&&dependencies.game.valid);
     ImGui::BeginDisabled(!uiReady);ImGui::SetNextItemWidth(-1);
     const bool opened=ImGui::BeginCombo("##outfit",status.mixedOutfit?"Mixed":label.c_str());record("outfit");
     if(opened){
-        for(int choice=0;choice<2;++choice){
-            const bool missing=choice==1&&(!status.resourceFilesReady||runtime.featureCompatibility(hex::Feature::Shaping).state==hex::CompatibilityState::Blocked);ImGui::BeginDisabled(missing);
-            const char* id=choice?"hexappeal/dancer":"hexappeal/default";
-            if(ImGui::Selectable(choice?dancerOutfitLabel:defaultOutfitLabel,selected==id)){std::string error;if(!hex::requestWardrobeOutfit(runtime.model.target,id,error))runtime.model.message=error;}
-            ImGui::EndDisabled();tip(missing?status.dependencyDetail.c_str():choice?"Sexy Witches of Pywel Reshaped - Color Variants, by Vincent1681. Dancer Dress; supplied colours appear below.":"Uses the currently mounted default witch outfit, including Hex Appeal's included refits when they win file priority.");
-        }
-        for(const auto& provider:providers){if(provider.id=="hexappeal/dancer"||(provider.removed&&provider.id!=selected))continue;ImGui::PushID(provider.id.c_str());ImGui::BeginDisabled(!provider.available);
+        if(ImGui::Selectable(defaultOutfitLabel,selected=="hexappeal/default")){std::string error;if(!hex::requestWardrobeOutfit(runtime.model.target,"hexappeal/default",error))runtime.model.message=error;}
+        tip("Uses the currently mounted default witch outfit, including the included refits when they win file priority.");
+        for(const auto& provider:providers){if(provider.removed&&provider.id!=selected)continue;ImGui::PushID(provider.id.c_str());ImGui::BeginDisabled(!provider.available);
             if(ImGui::Selectable(provider.label.c_str(),selected==provider.id)){std::string error;if(!hex::requestWardrobeOutfit(runtime.model.target,provider.id,error))runtime.model.message=error;}
             ImGui::EndDisabled();tip((provider.available?provider.requirements:provider.reason).c_str());ImGui::PopID();}
         ImGui::EndCombo();
     }
-    ImGui::EndDisabled();if(!opened){pinContext(hex::PinOutfit);auto warning=dependencies.game.valid&&!dependencies.game.verified?dependencies.game.detail:std::string{};const auto hooks=hex::wardrobeProbeStatus().versionWarning;if(!hooks.empty()){if(!warning.empty())warning+='\n';warning+=hooks;}if(selected=="hexappeal/dancer"&&!status.versionWarning.empty()){if(!warning.empty())warning+='\n';warning+=status.versionWarning;}versionDecoration(warning,true,3);if(warning.empty())tip(status.detail.c_str());}
+    ImGui::EndDisabled();if(!opened){pinContext(hex::PinOutfit);auto warning=dependencies.game.valid&&!dependencies.game.verified?dependencies.game.detail:std::string{};const auto hooks=hex::wardrobeProbeStatus().versionWarning;if(!hooks.empty()){if(!warning.empty())warning+='\n';warning+=hooks;}versionDecoration(warning,true,3);if(warning.empty())tip(status.detail.c_str());}
     if(status.mixedOutfit)ImGui::TextColored(gold,"Mixed outfits");
     ImGui::TextColored(compatibility.state==hex::CompatibilityState::Blocked?errorColour:status.warning?gold:muted,"%s",compatibility.state==hex::CompatibilityState::Blocked?"Wardrobe / blocked  (!)":status.caption.c_str());tip(compatibility.state==hex::CompatibilityState::Blocked?compatibility.detail.c_str():status.detail.c_str());
 }
@@ -199,27 +193,6 @@ static void providerWardrobeControls(hex::Runtime& runtime,bool pinnedOnly=false
         }return;
     }
 }
-static void wardrobeColour(hex::Runtime& runtime,bool dancer){
-    if(dancer){
-        const auto status=hex::globalDancerColourStatus();
-        ImGui::TextDisabled("Dancer colour (global)");ImGui::SetNextItemWidth(-1);ImGui::BeginDisabled(!status.ready);
-        if(ImGui::BeginCombo("##globalDressColour",status.selected<0?"Unavailable":hex::dancerColours[status.selected].label)){
-            for(int i=0;i<int(hex::dancerColours.size());++i)if(ImGui::Selectable(hex::dancerColours[i].label,status.selected==i)){
-                std::string error;if(!hex::changeGlobalDancerColour(i,error))runtime.model.message=error;
-            }ImGui::EndCombo();
-        }
-        record("dancerColour");ImGui::EndDisabled();pinContext(hex::PinDancerColour);versionDecoration(status.versionWarning,true,3);
-        if(status.versionWarning.empty())tip("Uses the separate Sexy Witches colour textures globally. Saves first, then refreshes visible owned Dancer outfits through Default and back. A restart is a fallback if another mod retains a cached texture.");
-        ImGui::TextColored(status.selected!=status.startup?gold:muted,"%s",status.detail.c_str());return;
-    }
-    const auto status=hex::wardrobeEditorStatus(runtime.model.target);const auto pin=dancer?hex::PinDancerColour:hex::PinUnderwearColour;
-    const char* choices[]={"Original","White","Black","Crimson","Pink","Emerald"};
-    int selected=int(dancer?status.selected.dancer:status.selected.underwear);
-    ImGui::TextDisabled(dancer?"Dress colour":"Underwear colour");ImGui::SetNextItemWidth(-1);
-    ImGui::BeginDisabled(!(dancer?status.available.dancerColourReady:status.available.underwearColourReady));
-    if(ImGui::Combo(dancer?"##dressColour":"##underwearColour",&selected,choices,6)){std::string error;if(!hex::changeWardrobeChoice(runtime.model.target,dancer?hex::WardrobeField::DancerColour:hex::WardrobeField::UnderwearColour,selected,error))runtime.model.message=error;}
-    record(dancer?"dancerColour":"underwearColour");ImGui::EndDisabled();pinContext(pin);tip("Per-witch material ownership is not verified yet. Colour changes remain disabled.");
-}
 static bool proportions(hex::Runtime& r,bool available,bool height,bool weight){
     bool changed=false;
     if(height){ImGui::BeginDisabled(!available);float value=r.model.draft.height*10;ImGui::SetNextItemWidth(std::max(100.f,ImGui::GetContentRegionAvail().x-70*scale));if(ImGui::SliderFloat("Height",&value,-10,10,"%+.1f%%",ImGuiSliderFlags_AlwaysClamp)){r.model.draft.height=value/10;changed=true;}record("height");ImGui::EndDisabled();pinContext(hex::PinHeight);versionDecoration(baseVersionWarning,true,1);if(baseVersionWarning.empty())tip("Scales the complete rig and fitted clothing. Independent of Weight; Ctrl-click for an exact value.");}
@@ -245,7 +218,7 @@ void Render(){
     const bool shapingReady=r.featureCompatibility(hex::Feature::Shaping).allows(shapingFiles),hexReady=r.featureCompatibility(hex::Feature::Hex).allows(dependencies.scanned?dependencies.hex.valid:r.hexAvailable.load());weightReady=r.featureCompatibility(hex::Feature::Weight).allows(shapingReady);
     auto& io=ImGui::GetIO();io.MouseDrawCursor=true;const float maxW=std::max(300.f,io.DisplaySize.x-24),maxH=std::max(200.f,io.DisplaySize.y-24);
     static bool first=true,previous=false;static uint32_t previousPins=0;static size_t previousProviderPins=0;
-    float quickHeight=190;for(uint32_t bit=1;bit<=hex::PinDancerColour;bit<<=1)if(r.quickPins&bit)quickHeight+=bit==hex::PinPad?260:bit==hex::PinTop||bit==hex::PinBottom?40:bit==hex::PinOutfit||bit==hex::PinUnderwearColour||bit==hex::PinDancerColour?65:35;
+    float quickHeight=190;for(uint32_t bit=1;bit<=hex::PinReset;bit<<=1)if(r.quickPins&bit)quickHeight+=bit==hex::PinPad?260:bit==hex::PinTop||bit==hex::PinBottom?40:bit==hex::PinOutfit?65:35;
     size_t providerPins=0;const auto outfitId=hex::wardrobeOutfitId(hex::wardrobeEditorStatus(r.model.target).selected);for(const auto& provider:hex::wardrobeProviderOutfits())if(provider.id==outfitId)for(const auto& control:provider.controls)if(hex::wardrobeControlPinned(provider.id,control.id))++providerPins;quickHeight+=providerPins*65;
     if(first||previous!=r.compact||(r.compact&&(previousPins!=r.quickPins||previousProviderPins!=providerPins))){ImGui::SetNextWindowSize({std::min((r.compact?520.f:810.f)*scale,maxW),std::min((r.compact?quickHeight:780.f)*scale,maxH)},ImGuiCond_Always);first=false;previous=r.compact;previousPins=r.quickPins;previousProviderPins=providerPins;}
     ImGui::SetNextWindowSizeConstraints({std::min(400*scale,maxW),std::min((r.compact?220.f:330.f)*scale,maxH)},{maxW,maxH});ImGui::SetNextWindowPos({24*scale,24*scale},ImGuiCond_FirstUseEver);
@@ -273,7 +246,6 @@ void Render(){
         changed|=proportions(r,shapingReady,(r.quickPins&hex::PinHeight)!=0,(r.quickPins&hex::PinWeight)!=0);
         if(r.quickPins&hex::PinUnderwear)underwearControl(r,shapingReady);
         if(r.quickPins&hex::PinOutfit)outfitControl();
-        if(r.quickPins&hex::PinDancerColour)wardrobeColour(r,true);
         providerWardrobeControls(r,true);
         changed|=profileActions(r,r.quickPins);
     }
@@ -290,7 +262,6 @@ void Render(){
         if(wardrobe){
             ImGui::Spacing();ImGui::PushFont(titleFont);ImGui::TextUnformatted("WARDROBE");ImGui::PopFont();ImGui::Spacing();
             ImGui::TextColored(gold,"OUTFIT");outfitControl();providerWardrobeControls(r);
-            if(hex::wardrobeEditorStatus(r.model.target).selected.outfit==hex::WitchOutfit::Dancer){ImGui::Spacing();wardrobeColour(r,true);}
             ImGui::Spacing();ImGui::Separator();ImGui::Spacing();ImGui::TextColored(gold,"BASE UNDERWEAR");
             underwearControl(r,shapingReady);ImGui::TextDisabled("Hides base underwear and linked outfit parts.");
             ImGui::EndTabItem();
