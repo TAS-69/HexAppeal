@@ -1,5 +1,5 @@
 {
-  "player_download": "One ZIP, two alternative body folders, one shared runtime. Enable exactly one body choice and the normal ASI switch.",
+  "player_download": "One ZIP with the main manifest beside one Hex Appeal folder, two alternative body folders and one shared runtime. Enable exactly one body choice and the normal ASI switch.",
   "development_modules_remain_separate": true,
   "source_and_sdk_downloads_are_for_creators": true,
   "downloaded_dependencies_remain_external": true,
@@ -19,11 +19,14 @@
     "private_boot_registrations_per_option": 3,
     "vanilla_primary_and_secondary_body_registrations": 3,
     "live_tested_development_sha256": "7dc53d2906582d1c047ea71d51f1b72eb627f54c4bda560e0d736ef1f0e49578",
-    "acceptance_scope": "Both staged body choices mounted separately. Actual merged appearance, primary/secondary prefab registration, private model/property/physics/definition routes and absence of opposite-choice routes verified. Separate VENUS and armour pack stayed enabled during Vanilla tests. Final public ZIP not freshly imported yet.",
+    "acceptance_scope": "Actual local candidate imports and both selected body mounts. Final output is audited against the accepted layout and unchanged runtime/game resources; its updated documents are not a fresh import test.",
     "final_zip_freshly_imported": false,
     "live_reports": [
       "build-data/live-compatibility-20261118.json"
-    ]
+    ],
+    "layout_import_verified": true,
+    "import_report": "build-data/manager-import-20261118.json",
+    "upgrade_replaces_old_directory": false
   },
   "external_outfit_dependencies": [],
   "dancer_patch_included": false,

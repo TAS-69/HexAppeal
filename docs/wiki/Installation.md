@@ -20,12 +20,12 @@ Download these separately:
 
 | File | Use |
 | --- | --- |
-| **HexAppeal-1.0.1.zip** | Player package: runtime, body routing and default outfit refits |
-| **HexAppeal-Wardrobe-SDK-1.0.1.zip** | Optional asset-free SDK for outfit creators |
-| **HexAppeal-Source-1.0.1.zip** | Optional source; no compiled plugin or garment PAC outputs |
+| **HexAppeal-1.0.2.zip** | Player package: runtime, body routing and default outfit refits |
+| **HexAppeal-Wardrobe-SDK-1.0.2.zip** | Optional asset-free SDK for outfit creators |
+| **HexAppeal-Source-1.0.2.zip** | Optional source; no compiled plugin or garment PAC outputs |
 
 1. Close Crimson Desert. Install DMM and Instant Surgery. Add the external Hex preset for HEX. VENUS is required only for the VENUS body option.
-2. Import **HexAppeal-1.0.1.zip** into DMM. Disable old separate Hex Appeal modules and keep only one HexAppeal.asi.
+2. Import **HexAppeal-1.0.2.zip** into DMM. If upgrading from 1.0.0, follow the cleanup below first. Keep only the current HexAppeal.asi in DMM's library.
 3. Expand Hex Appeal and enable **[01] VENUS** or **[02] Vanilla**. Disable the other body choice. Enable the normal ASI Mods switch, then mount once. No setup script, second setup mount or Python installation is needed to play.
 4. Launch, load near a witch and press **F9**. Open **Settings → Dependencies & paths** if detection needs a manual location.
 
@@ -35,6 +35,10 @@ Unverified readable versions warn and remain usable when their actual checks pas
 
 ## Update or remove
 
-Close the game and back up `%LOCALAPPDATA%/HexAppeal/`. Replace the old package through DMM and remount without resetting settings. Disable old separate Bodies/Outfit Refits entries. If an earlier parent-only `Hex Appeal` entry remains in DMM's active list, remove that stale entry before mounting the selected child option. Disable legacy Hex Appeal external outfit resource entries when moving to this core-only package. Separately installed third-party mods remain yours to manage.
+**Upgrading to 1.0.2:** close the game and back up `%LOCALAPPDATA%/HexAppeal/`. Remove the previous Hex Appeal package through DMM, then import 1.0.2. Keep your saved settings. Remove any separate top-level VENUS/Vanilla entries left by the broken import, and disable old separate Bodies/Outfit Refits and external outfit resource entries. Leave separately installed third-party mods alone.
+
+Select exactly one new body choice, enable its ASI and mount. Check that the mod group, selected body option and sole HexAppeal ASI show 1.0.2. DMM can add a new folder beside an older installation; do not rely on importing to remove the old version for you.
+
+The earlier packaging could split the body folders and shared files during import. The corrected ZIP uses one folder with its manifest beside it, which DMM imports as a single group. Removing the old installation avoids duplicate plugins and stale selections. Your saved profiles are stored separately and do not need resetting.
 
 Older outfit selections are retained as unavailable, with **Default** still selectable. They are not silently replaced in the saved preferences. To remove Hex Appeal, disable both its Mods and ASI switches and remount.

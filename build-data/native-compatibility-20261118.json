@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "version": "1.0.1",
-  "runtime_sha256": "55f5baaf419bbfaa5a1b4a089e0a0236d34a70d0f3b4490f3b70ada66f9b4791",
+  "version": "1.0.2",
+  "runtime_sha256": "104fbe304ce3392389732061d26ad4e84abd8ec7c9429413c8218c36f2fe0ee7",
   "scope": "Actual Instant Surgery native calculations on an isolated plugin copy and rig buffers. No Dancer source supplied or read by the shaping engine. No in-game visual session.",
   "weighted_preset_height_extremes": 36,
   "weighted_venus_flat_without_hex_preset": 8,

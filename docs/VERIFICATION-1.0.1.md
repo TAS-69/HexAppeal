@@ -31,7 +31,15 @@ DMM 5.0.1 mounted each body choice separately. Seven original body/scale/customi
 
 VENUS contains 54 asset files; Vanilla contains 38. Counts include seven appearance patches and additive registry metadata. Vanilla has three complete original body sets and two original underwear sets, with 21 body/underwear resources required by the validator. Models, properties, physics and definition XMLs retain original bytes; compiled prefab model references are redirected to same-length private paths. Shared boots use private registrations in both choices.
 
-DMM displayed two independent body checkboxes, ordered [01] VENUS then [02] Vanilla. Enable one and disable the other. The final ZIP has not been freshly imported; its generated resources must match the separately mounted live-tested hashes exactly. Guides and complete notices are flattened so their folders do not become extra DMM choices.
+DMM displayed two independent body checkboxes, ordered [01] VENUS then [02] Vanilla. Enable one and disable the other. Guides and complete notices are flattened so their folders do not become extra DMM choices.
+
+## Import and upgrade correction
+
+An actual import of the initial 1.0.1 ZIP exposed a packaging defect: DMM flattened the body options into its library root. Earlier checks had verified staged and mounted resources but had not exercised this final archive import. The replacement places the main manifest beside the single Hex Appeal folder, using DMM's supported import layout. Runtime and game-resource bytes are unchanged.
+
+Two actual local imports kept both options together, and all 131 installed files matched the candidate byte-for-byte. DMM added a new folder rather than replacing the retained 1.0.0 installation. The old package stayed byte-identical; no obsolete files were merged into the corrected folder. With the old entry disabled, Vanilla mounted all 30 expected resources, seven original appearance routes, both registry lookup sets and the exact 1.0.1 runtime. The armour pack retained its shared boot routes. Saved settings and unrelated active mod selections were unchanged. After duplicate cleanup, VENUS also mounted all 46 resources and seven appearance routes with the same public runtime; no opposite-option routes or mount errors were present.
+
+Duplicate old HexAppeal ASIs were then backed up and removed from the test library. Upgrading does not require resetting settings. Removing the old package is recommended to avoid ambiguous duplicate plugins and stale entries. The corrected layout was tested through local DMM import; a fresh Nexus download of the replacement has not been tested. The final package audit checks its layout, runtime and game-resource hashes against this acceptance record; changes to guides and verification text are not another fresh archive import.
 
 ## Native shaping and SDK
 

@@ -31,6 +31,7 @@ if verification['version']!=version or verification['asi']['sha256']!=sha(binary
 required={'sdk_definition_generator','model','auto_apply','frame_dispatch_abi','menu','input_lifecycle','interface_preferences','creation_chain','wardrobe_instance_ownership','wardrobe_selection','wardrobe_transport_abi','wardrobe_provider_api','underwear_policy','outfit_visibility_ownership','served_dependency_routes','dependency_discovery','native_menu_export','packaged_runtime_configuration','dependency_file_preserved'}
 checks={row['name']:row for row in verification['checks']}
 required.update({'appearance_hook_compatibility','feature_compatibility'})
+required.add('public_version_metadata')
 if not required<=checks.keys():raise SystemExit('Run the full installed-dependency verification suite.')
 failed=[row for row in verification['checks'] if not row['pass']]
 draft_exception=args.draft and len(failed)==1 and failed[0]['name']=='interface_preferences' and failed[0].get('blocked')
@@ -105,7 +106,7 @@ def archive(label,files):
     with zipfile.ZipFile(path) as src:
         if src.testzip():raise SystemExit('ZIP integrity failure.')
     archives.append({'file':path.name,'bytes':path.stat().st_size,'sha256':sha(path.read_bytes())})
-repo_url='https://github.com/TAS-69/HexAppeal/blob/v'+version+'/'
+repo_url='https://github.com/TAS-69/HexAppeal/blob/'+summary['source_commit']+'/'
 def package_doc(text,origin):
     def link(match):
         label,target=match.group(1),match.group(2)

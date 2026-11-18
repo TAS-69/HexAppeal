@@ -65,7 +65,42 @@ def link(name,objs,dll=False):
     command=[linker,'/nologo','/INCREMENTAL:NO','/OUT:'+str(name),*['/DLL']*dll,*map(str,objs),*libs]
     run=subprocess.run(command,env=env,capture_output=True,text=True)
     if run.returncode:print(run.stdout+run.stderr);raise SystemExit(run.returncode)
-link(out/'HexAppeal.asi',objects.values(),True)
+resource_compiler=shutil.which('rc.exe',path=env.get('Path',env.get('PATH')))
+if not resource_compiler:raise SystemExit('Windows SDK resource compiler was not found.')
+resource=build/'release_version.rc'
+numeric=version.replace('.',',')+',0'
+resource.write_text('''#include <windows.h>
+1 VERSIONINFO
+FILEVERSION '''+numeric+'''
+PRODUCTVERSION '''+numeric+'''
+FILEFLAGSMASK 0x3fL
+FILEFLAGS 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_DLL
+FILESUBTYPE 0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904b0"
+    BEGIN
+      VALUE "CompanyName", "TAS-69"
+      VALUE "FileDescription", "Hex Appeal"
+      VALUE "FileVersion", "'''+build_version+'''"
+      VALUE "InternalName", "HexAppeal"
+      VALUE "OriginalFilename", "HexAppeal.asi"
+      VALUE "ProductName", "Hex Appeal"
+      VALUE "ProductVersion", "'''+build_version+'''"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END
+''',encoding='utf-8')
+resource_output=build/'release_version.res'
+subprocess.run([resource_compiler,'/nologo','/fo',str(resource_output),str(resource)],env=env,check=True,capture_output=True)
+link(out/'HexAppeal.asi',[*objects.values(),resource_output],True)
 shutil.copy2(root/'HexAppeal.ini',out/'HexAppeal.ini')
 (out/'build.json').write_text(json.dumps({'version':build_version,'public_release':args.release,'sha256':hashlib.sha256((out/'HexAppeal.asi').read_bytes()).hexdigest()},indent=2)+'\n',encoding='utf-8')
 def extra(source,tag='',definitions=()):

@@ -1,6 +1,6 @@
 # Release versioning
 
-**The first Nexus release is 1.0.0. The requested body-choice update is 1.0.1.** Existing published downloads and tags stay intact. Release notes identify the scope and hashes.
+**The first Nexus release is 1.0.0. Version 1.0.2 corrects the body-choice update's import packaging.** Previous tags stay intact; superseded Nexus downloads may be archived. Release notes identify the scope and hashes.
 
 `DEV_VERSION` is independent. Ordinary edits, commits and development builds do not advance the public number. After the Nexus release, I assign a new public number only when requesting another public package. Packaging never increments it automatically.
 

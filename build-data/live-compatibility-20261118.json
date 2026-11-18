@@ -2,8 +2,8 @@
   "date": "2026-11-18",
   "development_runtime_sha256": "7dc53d2906582d1c047ea71d51f1b72eb627f54c4bda560e0d736ef1f0e49578",
   "development_version": "0.5.14-development",
-  "public_version": "1.0.1",
-  "public_runtime_sha256": "55f5baaf419bbfaa5a1b4a089e0a0236d34a70d0f3b4490f3b70ada66f9b4791",
+  "public_version": "1.0.2",
+  "public_runtime_sha256": "104fbe304ce3392389732061d26ad4e84abd8ec7c9429413c8218c36f2fe0ee7",
   "public_startup_checked": true,
   "temporary_helpers_absent": true,
   "game": "2.05.00 / Steam 26636972",
@@ -144,18 +144,41 @@
     "custom_authored_asset_live_verified": false
   },
   "scope": "Development 0.5.14 passed the recorded close idle Elowen body/robe, visibility, independent proportions and UI checks with the armour pack enabled. Both body choices were mounted separately and their actual resource routes verified. Feet were obscured in the final robe pass. Public startup acceptance is recorded separately. Earlier SDK refresh and broader player-reported checks retain their original binaries and scope. Every witch, detail level, controller, motion case, external texture cache and custom authored underwear outfit is not certified.",
+  "preceding_public_startup": {
+    "version": "1.0.1",
+    "runtime_sha256": "55f5baaf419bbfaa5a1b4a089e0a0236d34a70d0f3b4490f3b70ada66f9b4791",
+    "checked": true,
+    "observations": {
+      "witch": "Elowen",
+      "mode": "Venus",
+      "saved_shape_active": true,
+      "f9_shape_and_wardrobe_active": true,
+      "all_five_feature_rows_ready": true,
+      "all_six_dependency_rows_verified": true,
+      "preferences_unchanged": {
+        "profiles.ini": true,
+        "interface.ini": true,
+        "wardrobe.ini": true
+      },
+      "scope": "Read-only startup/F9/feature-readiness check; no claim that all nine shapes or every visibility state were repeated on this public binary."
+    }
+  },
   "public_startup": {
-    "witch": "Elowen",
-    "mode": "Venus",
-    "saved_shape_active": true,
-    "f9_shape_and_wardrobe_active": true,
-    "all_five_feature_rows_ready": true,
-    "all_six_dependency_rows_verified": true,
+    "version": "1.0.2",
+    "runtime_sha256": "104fbe304ce3392389732061d26ad4e84abd8ec7c9429413c8218c36f2fe0ee7",
+    "checked": true,
+    "user_reported_world_loaded_and_f9_open": true,
+    "panel_rendering_log_confirmed": true,
+    "dmm_display_versions_user_confirmed": true,
+    "main_and_body_manifests": "1.0.2",
+    "windows_file_product_version": "1.0.2",
+    "one_staged_plugin": true,
     "preferences_unchanged": {
       "profiles.ini": true,
       "interface.ini": true,
-      "wardrobe.ini": true
+      "wardrobe.ini": true,
+      "paths.ini": true
     },
-    "scope": "Read-only startup/F9/feature-readiness check; no claim that all nine shapes or every visibility state were repeated on this public binary."
+    "scope": "User-reported successful world/F9 startup after actual 1.0.2 import, with current-version plugin and panel-rendering logs. No new full deformation or outfit visibility matrix."
   }
 }

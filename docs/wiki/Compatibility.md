@@ -17,7 +17,7 @@ Last reviewed **18 November 2026**. These are locally checked versions, rather t
 
 These are checked versions, not a promise that every past or future release works. Unknown readable versions receive a soft warning and remain usable. Native layouts, function signatures, ownership and transaction checks must still pass. The static default-outfit refits were built against VENUS 2.6 and need a new fit review if its geometry changes.
 
-The **1.0.1** update includes separate **Feature checks** under Dependencies & paths, specific errors for actual interface failures, named-export validation independent of an export's address, and tolerant preset formatting. See [dependency compatibility](../DEPENDENCY-COMPATIBILITY.md) for recovery and the remaining private-interface limits.
+The **1.0.2** update includes separate **Feature checks** under Dependencies & paths, specific errors for actual interface failures, named-export validation independent of an export's address, and tolerant preset formatting. See [dependency compatibility](../DEPENDENCY-COMPATIBILITY.md) for recovery and the remaining private-interface limits.
 
 The runtime also warns when an unverified Spouse Overhaul or Character Creator is loaded. Its appearance-hook adapter checks bounded jump chains, executable destinations and recognized module ownership separately. An unreadable, cyclic or unrecognized hook, changed native interface or unowned outfit can still stop an operation. A version warning alone does not disable Wardrobe. Character Creator 9.1.41 is now recognised after the scoped core session and hook checks. This does not certify every feature of Character Creator or Spouse Overhaul.
 
@@ -50,7 +50,7 @@ Both Human Body and Elf Body are recognized. Their body/hand skinning and physic
 
 The current source passed 21 offline runtime checks, 36 SDK definition cases and 37 helper tests. Native checks cover all nine combinations, 44 weighted cases and eleven unchanged reference poses. Both body choices were checked near idle Elowen with the armour pack enabled. The Vanilla pass covered all four visibility states and the corrected original underwear; the VENUS pass covered nine robe combinations and independent proportion extremes.
 
-The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See [release verification](../VERIFICATION-1.0.1.md) for binary hashes and limits.
+The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See [release verification](../VERIFICATION-1.0.2.md) for binary hashes and limits.
 
 ## Troubleshooting
 

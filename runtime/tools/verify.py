@@ -1,5 +1,5 @@
 from pathlib import Path
-import argparse, concurrent.futures, configparser, hashlib, json, shutil, struct, subprocess, tempfile
+import argparse, concurrent.futures, configparser, ctypes, hashlib, json, shutil, struct, subprocess, tempfile
 
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description='Run offline runtime checks. Does not launch Crimson Desert.')
@@ -73,6 +73,14 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
 results.extend(blocked)
 asi = root/'dist'/'HexAppeal.asi'
 data = asi.read_bytes()
+expected_version=json.loads((root/'dist/build.json').read_text(encoding='utf-8-sig'))['version']
+size=ctypes.windll.version.GetFileVersionInfoSizeW(str(asi),None)
+version_buffer=ctypes.create_string_buffer(size) if size else None
+version_text=ctypes.c_void_p()
+version_length=ctypes.c_uint()
+version_ok=bool(size and ctypes.windll.version.GetFileVersionInfoW(str(asi),0,size,version_buffer) and ctypes.windll.version.VerQueryValueW(version_buffer,'\\StringFileInfo\\040904b0\\FileVersion',ctypes.byref(version_text),ctypes.byref(version_length)))
+file_version=ctypes.wstring_at(version_text.value) if version_ok else None
+results.append({'name':'public_version_metadata','pass':file_version==expected_version,'file_version':file_version,'expected_version':expected_version})
 settings = configparser.ConfigParser()
 settings.read(root/'dist/HexAppeal.ini', encoding='utf-8-sig')
 observe = settings.getboolean('Development','ObserveNpcUploads',fallback=False)

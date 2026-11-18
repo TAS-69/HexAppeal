@@ -83,4 +83,5 @@ def player_choices(version,variants,runtime_files,documents,dependency_hashes):
     common['mod.json']=(json.dumps(metadata,indent=2)+'\n').encode('utf-8')
     if any('/' in name for name in common):raise ValueError('Common files must not become extra DMM choices')
     output.update({'Hex Appeal/'+name:data for name,data in common.items()})
+    output['mod.json']=output.pop('Hex Appeal/mod.json')
     return sorted(output.items())
