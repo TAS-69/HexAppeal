@@ -73,6 +73,8 @@ for name in sorted(filter(None,tracked)):
     if sha(data) in denied_hashes:raise SystemExit('External dependency file found: '+rel.as_posix())
     if rel.as_posix() in allowed_resources:
         if allowed_resources[rel.as_posix()]!=sha(data):raise SystemExit('Generated game metadata changed: '+rel.as_posix())
+        committed=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+rel.as_posix()])
+        if committed!=data:raise SystemExit('Preserve original game metadata bytes in Git: '+rel.as_posix())
         continue
     if path.suffix.lower() in denied_suffixes:raise SystemExit('Unexpected binary in source: '+rel.as_posix())
     if path.suffix.lower()=='.pac':

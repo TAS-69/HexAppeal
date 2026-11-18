@@ -9,3 +9,8 @@
 *.png binary
 *.pac binary
 *.patch binary
+*.pac_xml binary
+*.pappt binary
+*.prefab binary
+*.prefabdata_xml binary
+*.hkx binary
