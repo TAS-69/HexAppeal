@@ -29,6 +29,8 @@ These are placeholder engine keys. Supply your own real prefab, models and part 
 
 Keep bra/briefs controls linked with `follow_base_underwear: true`, on separate parts. Hide outfit leaves them alone. For full nudity, the player must also tick **Hide base bra & panties**. Clothing, underwear and colour choices retain their stored values while the matching override is active.
 
+If these pieces replace the normal base pair for this outfit, add top-level `replace_base_underwear: true`. The optional [base underwear policy](SDK-Base-Underwear-Policy.md) suppresses the normal pair only while Wardrobe owns this replacement. It does not alter the player's saved hide preference or suppress your linked custom pieces by itself.
+
 The C equivalent is `HA_FOLLOW_OUTFIT_HIDE` on a per-witch `HA_TOGGLE`. Clothing and underwear follow flags are mutually exclusive on one control. Separate them so all four clothing/underwear combinations work. If a mesh combines them, provide separate visibility parts or complete prefab states; do not opt in until the supported states render correctly.
 
 ## Authored prefab combinations

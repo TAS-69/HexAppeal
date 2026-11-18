@@ -1,5 +1,6 @@
 {
   "schema": 1,
+  "replace_base_underwear": true,
   "id": "example/parts-dress",
   "label": "Example / Parts Dress",
   "prefab": "example_parts_dress_u",

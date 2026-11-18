@@ -5,7 +5,11 @@ root=Path(__file__).resolve().parents[1]
 (root/'reports').mkdir(exist_ok=True)
 from development_paths import SOURCES,dependency,use_toolchain
 from venus_body import active_body,refit_reference
+from witch_parts import PRIVATE_BOOTS,isolated_model
+from part_registry import read_registry
 use_toolchain()
+from utils.logger import setup_logger
+setup_logger(log_file=str(root/'reports/asset-validation.log'),debug_mode=False)
 from core.mesh_parser import parse_mesh
 from core.compression_engine import _decompress_type1_par
 from pac_lods import lod_layout
@@ -30,7 +34,8 @@ for path in sorted({t['appearance'] for t in manifest}):
     before=ET.fromstring(source.read_bytes())
     after=ET.fromstring(source.read_bytes())
     operations=ET.fromstring(patch.read_bytes())
-    assert operations.tag=='xml-patch' and len(operations)==1
+    expected_boots={p.get('Name'):PRIVATE_BOOTS[p.get('Name')] for p in before.iter('Prefab') if p.get('Name') in PRIVATE_BOOTS}
+    assert operations.tag=='xml-patch' and len(operations)==1+len(expected_boots)
     op=operations[0]
     original=before.find('./Nude/Prefab').get('Name')
     assert op.tag=='set' and op.attrib=={'find':'Prefab','key':original,'attr':'Name','value':'phw_00_nude_00_0001_damian'}
@@ -38,6 +43,12 @@ for path in sorted({t['appearance'] for t in manifest}):
     assert len(matches)==1
     matches[0].set(op.attrib['attr'],op.attrib['value'])
     before.find('./Nude/Prefab').set('Name','phw_00_nude_00_0001_damian')
+    for op in list(operations)[1:]:
+        assert op.tag=='set' and op.attrib=={'find':'Prefab','key':op.get('key'),'attr':'Name','value':expected_boots[op.get('key')]}
+        for doc in (before,after):
+            matches=[p for p in doc.iter('Prefab') if p.get('Name')==op.get('key')]
+            assert len(matches)==1
+            matches[0].set('Name',op.get('value'))
     assert ET.tostring(before)==ET.tostring(after)
     checks.append({'path':path,'status':'pass'})
 for item in report['models']:
@@ -45,7 +56,7 @@ for item in report['models']:
     assert item['triangle_normal_flips']==0,item
     assert item['skin_uv_indices_preserved'] and item['unrelated_bytes_preserved']
     source=SOURCES/'vanilla'/'witch-sources'/item['path']
-    output=root/'Hex Appeal - Outfit Refits'/'files'/item['path']
+    output=root/'Hex Appeal - Outfit Refits'/'files'/isolated_model(item['path'])
     assert sha(source)==item['source_sha256'],source
     assert sha(output)==item['output_sha256'],output
     data=output.read_bytes()
@@ -58,6 +69,11 @@ for item in report['models']:
     assert [d.material for d in d0]==[d.material for d in d1]
     checks.append({'path':item['path'],'status':'pass'})
 assert len(report['models'])==40
+resources=json.loads((root/'build-data/witch-part-resources.json').read_text(encoding='utf-8'))
+for name,item in resources['resources'].items():
+    assert sha(root/'Hex Appeal - Outfit Refits'/name)==item['sha256']
+registry=read_registry((root/'Hex Appeal - Outfit Refits/files/0009/character/bin__/partprefabtable.pappt').read_bytes())
+assert {row['name'] for row in registry['primary']}==set(PRIVATE_BOOTS.values()) and not registry['secondary']
 runtime={'checked':False}
 if args.game:
     from check_dependencies import check,dmm_config_path

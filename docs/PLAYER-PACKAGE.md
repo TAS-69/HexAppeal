@@ -1,28 +1,26 @@
 # One player download
 
-The version 1.0.0 package combines the runtime, seven body-routing patches and forty game-derived default outfit refits under one Hex Appeal folder and manifest. DMM uses one Mods entry plus its normal ASI switch. Both controls are part of installation and removal.
-
-The core layout was freshly imported and mounted in DMM 5.0.1 on 17 November 2026. All 80 files matched that earlier ZIP, with seven appearance routes and forty own garment routes. The current runtime/config was updated in the same entry and passed Elowen visibility, startup and SDK refresh checks. The final rebuilt ZIP has not been imported again; its accepted layout and asset hashes are checked during packaging. See [Verification](VERIFICATION-1.0.0.md) for the tested scope.
-
-## Contents
+Version 1.0.1 includes two alternative body folders and one shared runtime. DMM shows a Hex Appeal group on Mods and its normal ASI switch. Enable **[01] VENUS** or **[02] Vanilla**, and disable the other body choice before mounting. The checked DMM 5.0.1 build displays independent checkboxes rather than enforcing this choice automatically.
 
 ```text
 Hex Appeal/
   mod.json
   HexAppeal.asi
   HexAppeal.ini
-  files/0009/character/...
-  docs/...
-  licenses/...
+  [01] VENUS/
+    mod.json
+    files/0009/character/...
+  [02] Vanilla/
+    mod.json
+    files/0009/character/...
   LICENSE
-  DEPENDENCIES-AND-REFERENCES.md
+  NOTICE-...
+  docs--...
   VERIFICATION.txt
 ```
 
-No Dancer setup launcher, dependency helper, palette implementation, source scanner, models, properties, textures or local file references belong in this release. Its old implementation is preserved privately for a possible separate patch after permission. Weight remains part of native shaping and has no outfit dependency.
+Shared guides, artwork and notices are flat files so DMM does not mistake documentation folders for extra mod choices. Links in the packaged Markdown are repaired accordingly. Source and SDK archives retain their normal directory structures.
 
-The general Wardrobe SDK remains available, including providers, variants, toggles, complete matrices, visibility parts, independent Hide outfit/Base underwear linkage and explicit refresh requests. SDK/source archives are optional creator downloads.
+VENUS has seven appearance patches and forty default garment refits. Vanilla preserves the original witch bodies, scale, head/customization, clothing and underwear; its stock body/underwear resources use private paths. Shared boots are isolated in both options. No downloaded body, preset, outfit, third-party ASI or private experimental derivative is bundled.
 
-Packaging uses the clean committed Git checkout. It rejects dependency hashes, excluded integration filenames, unexpected binaries, duplicate/traversing paths and any model outside the forty approved default outputs. The runtime is checked for the removed integration's resource identifiers. Private permission messages, research inputs, saves and test executables remain excluded.
-
-**Version 1 remains 1.0.0 until the Nexus release.** Each explicitly requested preparation replaces the dated private release with backups and matching checksums. `DEV_VERSION` remains independent. See [Versioning](wiki/Versioning.md).
+Packaging builds both choices from external original game inputs, verifies all resource hashes against the live-tested set, requires the public runtime's startup record and runs content allowlists. See [verification](VERIFICATION-1.0.1.md) for acceptance and limits. Dancer remains excluded pending permission; Weight has no outfit dependency.

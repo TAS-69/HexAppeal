@@ -2,6 +2,7 @@
 
 - [Home](Home.md)
 - [Installation](Installation.md)
+- [Body options and dependencies](Body-options.md)
 - [Shape controls](Shape-controls.md)
 - [Wardrobe](Wardrobe.md)
 - [Outfit visibility](Outfit-Visibility.md)
@@ -14,6 +15,7 @@
 - [Asset patches](SDK-asset-patches.md)
 - [Examples](SDK-examples.md)
 - [API reference](SDK-reference.md)
+- [An outfit with its own underwear](SDK-Base-Underwear-Policy.md)
 - [Outfit visibility support](SDK-Outfit-Visibility.md)
 - [Building](Building.md)
 

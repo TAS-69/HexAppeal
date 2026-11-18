@@ -12,6 +12,7 @@ from core.mesh_parser import parse_mesh,_decode_pac_vertex_record,_compute_smoot
 from core.mesh_importer import _quantize_pac_u16,_patch_pac_descriptor_bounds,_pack_pac_normal,_compute_mesh_tangents,_pack_pac_tangent_into_record
 from pac_lods import lod_layout
 from shading_frames import decode_pac_tangent,transport_frames
+from witch_parts import isolated_model
 
 GAME=Path(r'C:\Program Files (x86)\Steam\steamapps\common\Crimson Desert')
 PROJECT=ROOT
@@ -187,7 +188,7 @@ if __name__=='__main__':
     report=[]
     for p in sorted((AUDIT/'witch-sources'/'0009').rglob('*.pac')):
         rel=p.relative_to(AUDIT/'witch-sources')
-        dest=args.output/rel
+        dest=args.output/isolated_model(rel.as_posix())
         try:
             r=build_one(p,dest,field,args.shading)
             r['path']=rel.as_posix()

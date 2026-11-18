@@ -13,6 +13,13 @@ typedef char PrefabStateLayout[sizeof(HA_PrefabState)==164?1:-1];
 typedef char VisibilityPartLayout[sizeof(HA_VisibilityPart)==100?1:-1];
 typedef char NativeOutfitLayout[sizeof(HA_NativeOutfit)==40?1:-1];
 typedef char NativeTableLayout[sizeof(HA_NativeWardrobeAPI)==16?1:-1];
+typedef char OutfitPolicyTableLayout[sizeof(HA_OutfitPolicyAPI)==16?1:-1];
+typedef char OriginalOutfitLayout[sizeof(HA_Outfit)==688?1:-1];
+const HA_OutfitPolicyAPI* CheckOutfitPolicyCHeader(HA_GetOutfitPolicyAPI getAPI){
+    const HA_OutfitPolicyAPI* api=getAPI(HA_OUTFIT_POLICY_ABI);
+    if(api&&api->size==sizeof(HA_OutfitPolicyAPI))api->SetPolicy(0,HA_REPLACE_BASE_UNDERWEAR);
+    return api;
+}
 const HA_BaseUnderwearAPI* CheckBaseUnderwearCHeader(HA_GetBaseUnderwearAPI getAPI){
     HA_BaseUnderwearState state={0};HA_EffectiveControlValue value={0};
     const HA_BaseUnderwearAPI* api=getAPI(HA_BASE_UNDERWEAR_ABI);

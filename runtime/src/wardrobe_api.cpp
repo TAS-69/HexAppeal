@@ -172,6 +172,15 @@ int HA_CALL setOutfitVisibilityState(int32_t witch,uint32_t hidden){try{
     std::string error;return setOutfitHidden(witch,hidden!=0,error)?HA_OK:fail(HA_UNAVAILABLE,error);
 }catch(...){return fail(HA_INVALID,"Hide outfit preference could not be saved.");}}
 const HA_OutfitVisibilityAPI outfitVisibilityAPI{sizeof(HA_OutfitVisibilityAPI),HA_OUTFIT_VISIBILITY_ABI,getOutfitVisibilityState,setOutfitVisibilityState};
+int HA_CALL setOutfitPolicy(uint64_t token,uint32_t flags){try{
+    if(flags&~HA_REPLACE_BASE_UNDERWEAR)return fail(HA_INVALID,"Unsupported outfit policy flags.");
+    std::lock_guard<std::mutex> lock(registryMutex);
+    for(auto& entry:outfits)if(entry.token==token&&!entry.removed){
+        if(entry.available)return fail(HA_UNAVAILABLE,"Set the outfit policy before marking the provider available.");
+        if(entry.policyFlags!=flags){entry.policyFlags=flags;++revision;}lastError.clear();return HA_OK;
+    }return fail(HA_NOT_FOUND,"The registration token is unknown.");
+}catch(...){return fail(HA_INVALID,"The outfit policy could not be set.");}}
+const HA_OutfitPolicyAPI outfitPolicyAPI{sizeof(HA_OutfitPolicyAPI),HA_OUTFIT_POLICY_ABI,setOutfitPolicy};
 const HA_NativeWardrobeAPI nativeWardrobeAPI{sizeof(HA_NativeWardrobeAPI),HA_NATIVE_WARDROBE_ABI,registerNativeOutfit};
 }
 bool initializeWardrobeAPI(const std::filesystem::path& path,std::string& error){
@@ -191,6 +200,7 @@ std::vector<WardrobeProviderOutfit> wardrobeProviderOutfits(){std::lock_guard<st
 bool resolveWardrobeProvider(const std::string& id,int witch,WardrobeProviderOutfit& output,std::string& error){
     if(witch<0||witch>5){error="Choose one supported witch.";return false;}
     std::lock_guard<std::mutex> lock(registryMutex);for(const auto& entry:outfits)if(entry.id==id){output=entry;if(!entry.available||entry.removed){error=entry.reason;return false;}
+        if((entry.policyFlags&HA_REPLACE_BASE_UNDERWEAR)&&!underwearStatus(witch).ready){error="This outfit requires the native Base underwear visibility route.";return false;}
         const bool nude=(outfitHiddenPreference().hiddenMask&(1u<<witch))!=0;
         const bool hidden=(baseUnderwearPreference().hiddenMask&(1u<<witch))!=0;
         if(entry.nativeMask){
@@ -223,3 +233,4 @@ extern "C" __declspec(dllexport) int HA_CALL HexAppeal_RequestWardrobeRefreshV1(
 extern "C" __declspec(dllexport) const HA_BaseUnderwearAPI* HA_CALL HexAppeal_GetBaseUnderwearAPI(uint32_t version){return version==HA_BASE_UNDERWEAR_ABI?&hex::baseUnderwearAPI:nullptr;}
 extern "C" __declspec(dllexport) const HA_NativeWardrobeAPI* HA_CALL HexAppeal_GetNativeWardrobeAPI(uint32_t version){return version==HA_NATIVE_WARDROBE_ABI?&hex::nativeWardrobeAPI:nullptr;}
 extern "C" __declspec(dllexport) const HA_OutfitVisibilityAPI* HA_CALL HexAppeal_GetOutfitVisibilityAPI(uint32_t version){return version==HA_OUTFIT_VISIBILITY_ABI?&hex::outfitVisibilityAPI:nullptr;}
+extern "C" __declspec(dllexport) const HA_OutfitPolicyAPI* HA_CALL HexAppeal_GetOutfitPolicyAPI(uint32_t version){return version==HA_OUTFIT_POLICY_ABI?&hex::outfitPolicyAPI:nullptr;}

@@ -1,0 +1,66 @@
+{
+  "format": 1,
+  "private_boot_parts": {
+    "cd_phw_00_foot_00_0160": "ha_phw_00_foot_00_0160",
+    "cd_phw_00_foot_00_0161_index01": "ha_phw_00_foot_00_0161_index01",
+    "cd_phw_00_foot_00_0163": "ha_phw_00_foot_00_0163"
+  },
+  "resources": {
+    "files/0009/character/modelproperty/ha_p/2_phw/armor/12_foot/ha_phw_00_foot_00_0163.pac_xml": {
+      "sha256": "8c643e0f892a0a16f07c97c0c8704c686f9315dc17fd1668bbd4953482857fd8",
+      "source": {
+        "kind": "original game model metadata",
+        "path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0163.pac_xml",
+        "sha256": "8c643e0f892a0a16f07c97c0c8704c686f9315dc17fd1668bbd4953482857fd8"
+      }
+    },
+    "files/0009/character/bin__/prefab/ha_p/02_phw/armor/12_foot/ha_phw_00_foot_00_0163.prefab": {
+      "sha256": "58a5e5ecb176acd359f4eb4a23c3cd529e4bd878d5c69e084af01a5de3afc8da",
+      "source": {
+        "kind": "original game prefab with one model path changed",
+        "path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0163.prefab",
+        "sha256": "788962412ca39322150f06e1bd7aed01dabd36a1de10ab16988202cf0b2fd263"
+      }
+    },
+    "files/0009/character/modelproperty/ha_p/2_phw/armor/12_foot/ha_phw_00_foot_00_0161.pac_xml": {
+      "sha256": "638b82fb998787a1890ee4dac4457e7a8a21d13611a66712a74cfe8fd80f3465",
+      "source": {
+        "kind": "original game model metadata",
+        "path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0161.pac_xml",
+        "sha256": "638b82fb998787a1890ee4dac4457e7a8a21d13611a66712a74cfe8fd80f3465"
+      }
+    },
+    "files/0009/character/bin__/prefab/ha_p/02_phw/armor/12_foot/ha_phw_00_foot_00_0161_index01.prefab": {
+      "sha256": "e53af485c3e07b6647f28a188c342877562d4536d927fd1bcf4b246fdf9f7f05",
+      "source": {
+        "kind": "original game prefab with one model path changed",
+        "path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0161_index01.prefab",
+        "sha256": "cbde8119c96f28b884f46f221987e8965d4f20bfa4cf8edc284e9ee4c4d1b0a4"
+      }
+    },
+    "files/0009/character/modelproperty/ha_p/2_phw/armor/12_foot/ha_phw_00_foot_00_0160.pac_xml": {
+      "sha256": "649ba9f7a5d9a93f2f223f0be6e94b1c0b469374b374a2e295c5801bd949e4be",
+      "source": {
+        "kind": "original game model metadata",
+        "path": "character/modelproperty/1_pc/2_phw/armor/12_foot/cd_phw_00_foot_00_0160.pac_xml",
+        "sha256": "649ba9f7a5d9a93f2f223f0be6e94b1c0b469374b374a2e295c5801bd949e4be"
+      }
+    },
+    "files/0009/character/bin__/prefab/ha_p/02_phw/armor/12_foot/ha_phw_00_foot_00_0160.prefab": {
+      "sha256": "4d71d9a56cb42cb2fe1d9b617243be048b867575c805bbe3b1908fa6e4024ed0",
+      "source": {
+        "kind": "original game prefab with one model path changed",
+        "path": "character/bin__/prefab/1_pc/02_phw/armor/12_foot/cd_phw_00_foot_00_0160.prefab",
+        "sha256": "f526b38fbbf266c73d49b74d97c7c7c4b29d69fbaea18f6aba9464233bc6bf1b"
+      }
+    },
+    "files/0009/character/bin__/partprefabtable.pappt": {
+      "sha256": "06baa762de1359b8b1ea97e84bc0904ead807b012bc9bf8d160503bca9877e72",
+      "source": {
+        "kind": "three additive game part registrations",
+        "primary_source_sha256": "c7c30f1a47c706e1d933cf9eef716738834b20b924fa66dc478087d45483abc0"
+      }
+    }
+  },
+  "downloaded_dependency_files_bundled": false
+}

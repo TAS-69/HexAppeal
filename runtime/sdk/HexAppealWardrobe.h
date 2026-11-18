@@ -14,6 +14,7 @@ extern "C" {
 #define HA_BASE_UNDERWEAR_ABI 1u
 #define HA_NATIVE_WARDROBE_ABI 1u
 #define HA_OUTFIT_VISIBILITY_ABI 1u
+#define HA_OUTFIT_POLICY_ABI 1u
 #define HA_WARDROBE_MAX_PREFAB_STATES 256u
 #define HA_WARDROBE_MAX_VISIBILITY_PARTS 16u
 #define HA_WARDROBE_MAX_CONTROLS 8u
@@ -22,6 +23,7 @@ enum HA_Result {HA_OK=0,HA_INVALID=1,HA_NOT_READY=2,HA_NOT_FOUND=3,HA_DUPLICATE=
 enum HA_ControlType {HA_CHOICE=0,HA_TOGGLE=1};
 enum HA_ControlScope {HA_PER_WITCH=0,HA_GLOBAL=1};
 enum HA_ControlFlags {HA_PREFAB_VARIANT=1,HA_FOLLOW_BASE_UNDERWEAR=2,HA_FOLLOW_OUTFIT_HIDE=4};
+enum HA_OutfitPolicyFlags {HA_REPLACE_BASE_UNDERWEAR=1};
 #pragma pack(push,8)
 typedef struct HA_Option {char id[32];char label[64];char prefab[128];} HA_Option;
 typedef struct HA_Control {
@@ -71,6 +73,11 @@ typedef struct HA_OutfitVisibilityAPI {
     int (HA_CALL *GetState)(int32_t witch,HA_OutfitVisibilityState* state);
     int (HA_CALL *SetHidden)(int32_t witch,uint32_t hidden);
 } HA_OutfitVisibilityAPI;
+
+typedef struct HA_OutfitPolicyAPI {
+    uint32_t size,version;
+    int (HA_CALL *SetPolicy)(uint64_t token,uint32_t flags);
+} HA_OutfitPolicyAPI;
 typedef struct HA_PrefabState {
     uint32_t size,values[HA_WARDROBE_MAX_CONTROLS];
     char prefab[128];
@@ -93,6 +100,7 @@ typedef struct HA_NativeWardrobeAPI {
 typedef const HA_WardrobeAPI* (HA_CALL *HA_GetWardrobeAPI)(uint32_t version);
 typedef const HA_BaseUnderwearAPI* (HA_CALL *HA_GetBaseUnderwearAPI)(uint32_t version);
 typedef const HA_OutfitVisibilityAPI* (HA_CALL *HA_GetOutfitVisibilityAPI)(uint32_t version);
+typedef const HA_OutfitPolicyAPI* (HA_CALL *HA_GetOutfitPolicyAPI)(uint32_t version);
 typedef const HA_NativeWardrobeAPI* (HA_CALL *HA_GetNativeWardrobeAPI)(uint32_t version);
 
 

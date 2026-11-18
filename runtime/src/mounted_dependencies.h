@@ -4,16 +4,20 @@
 #include <vector>
 namespace hex {
 struct Profile;
+enum class BodyMode {Venus,Vanilla,Invalid};
 struct DependencyPaths {
     std::filesystem::path managerConfig,modsDirectory,manifest,hexPreset,venusBody,legacyOutfitSource;
 };
 struct DependencyFile {bool valid=false;std::filesystem::path path;std::string detail;bool verified=false;};
 struct DependencyStatus {
     bool scanned=false,bodyVerified=false;
+    BodyMode bodyMode=BodyMode::Venus;
     DependencyFile manager,manifest,venus,hex,game,instant,physics,creator;
     std::vector<std::filesystem::path> searchRoots;
     std::string bodyDetail,bodyWarning;
+    bool bodySourceReady() const {return bodyMode==BodyMode::Vanilla||(bodyMode==BodyMode::Venus&&venus.valid);}
 };
+BodyMode mountedBodyMode(const std::filesystem::path& manifest);
 DependencyStatus inspectDependencies(const std::filesystem::path& game,const DependencyPaths& paths);
 bool loadDependencyPaths(const std::filesystem::path& file,DependencyPaths& paths,std::string& error);
 bool saveDependencyPaths(const std::filesystem::path& file,const DependencyPaths& paths,std::string& error);

@@ -12,16 +12,18 @@ extern "C" const HA_WardrobeAPI* HA_CALL HexAppeal_GetWardrobeAPI(uint32_t);
 extern "C" const HA_BaseUnderwearAPI* HA_CALL HexAppeal_GetBaseUnderwearAPI(uint32_t);
 extern "C" const HA_NativeWardrobeAPI* HA_CALL HexAppeal_GetNativeWardrobeAPI(uint32_t);
 extern "C" const HA_OutfitVisibilityAPI* HA_CALL HexAppeal_GetOutfitVisibilityAPI(uint32_t);
+extern "C" const HA_OutfitPolicyAPI* HA_CALL HexAppeal_GetOutfitPolicyAPI(uint32_t);
 extern "C" int HA_CALL HexAppeal_RequestWardrobeRefreshV1(int32_t,const char*);
 namespace hex {
 static std::string selection="hexappeal/default";static std::atomic<unsigned> reapplied{0};
 static UnderwearPreference preference{};static bool rejectUnderwearSave=false;
 static UnderwearPreference nudePreference{};
+static bool baseNativeReady=false;
+UnderwearStatus underwearStatus(int){return {baseNativeReady,false,false,true,"Native fixture not loaded"};}
 UnderwearPreference outfitHiddenPreference(){return nudePreference;}
 UnderwearStatus outfitHiddenStatus(int){return {true,false,false,false,"Fixture"};}
 bool setOutfitHidden(int target,bool hidden,std::string& error){if(rejectUnderwearSave){error="Fixture save denied";return false;}const auto mask=target<0?63u:1u<<target;const auto next=hidden?(nudePreference.hiddenMask|mask):(nudePreference.hiddenMask&~mask);if(next!=nudePreference.hiddenMask){nudePreference.hiddenMask=next;++nudePreference.revision;}return true;}
 UnderwearPreference baseUnderwearPreference(){return preference;}
-UnderwearStatus underwearStatus(int){return {false,false,false,true,"Native fixture not loaded"};}
 bool setUnderwearHidden(int target,bool hidden,std::string& error){if(rejectUnderwearSave){error="Fixture save denied";return false;}const auto mask=target<0?63u:1u<<target;const auto next=hidden?(preference.hiddenMask|mask):(preference.hiddenMask&~mask);if(next!=preference.hiddenMask){preference.hiddenMask=next;++preference.revision;}return true;}
 bool requestWardrobeOutfit(int witch,const std::string& id,std::string& error){WardrobeProviderOutfit outfit;if(witch< -1||witch>5||!resolveWardrobeProvider(id,witch<0?0:witch,outfit,error))return false;selection=id;return true;}
 bool nativeWardrobeSelection(int witch,std::string& id,std::string& prefab,bool& available,uint64_t& stamp){if(witch<0||witch>5)return false;id=selection;WardrobeProviderOutfit outfit;std::string error;available=resolveWardrobeProvider(id,witch,outfit,error);prefab=outfit.prefab;stamp=1;return true;}
@@ -48,18 +50,29 @@ int wmain(int argc,wchar_t** argv){try{
     controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR;controls[3]=controls[1];strcpy_s(controls[3].id,"bra");strcpy_s(controls[3].label,"Outfit bra");
     HA_Outfit outfit{};outfit.size=sizeof outfit;strcpy_s(outfit.id,"example/dress");strcpy_s(outfit.label,"Example dress");strcpy_s(outfit.prefab,"test_dress_red");outfit.controlCount=4;outfit.controls=controls;uint64_t handle=0;
     check(api->RegisterOutfit(&outfit,&handle)==HA_OK&&handle,"register choices and toggles");check(api->RegisterOutfit(&outfit,&handle)==HA_DUPLICATE,"duplicate stable ID rejected");
+    const auto* policy=HexAppeal_GetOutfitPolicyAPI(1);
+    check(policy&&policy->size==sizeof(HA_OutfitPolicyAPI)&&!HexAppeal_GetOutfitPolicyAPI(2),"optional outfit policy leaves existing ABI unchanged");
+    check(policy->SetPolicy(handle,2)==HA_INVALID&&policy->SetPolicy(0,HA_REPLACE_BASE_UNDERWEAR)==HA_NOT_FOUND,"policy rejects unknown flags and stale tokens");
+    check(policy->SetPolicy(handle,HA_REPLACE_BASE_UNDERWEAR)==HA_OK,"register outfit-scoped underwear replacement before availability");
     uint64_t other=0;auto invalid=outfit;strcpy_s(invalid.id,"hexappeal/reserved");check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"reserved namespace rejected");invalid=outfit;strcpy_s(invalid.id,"example/bad");invalid.controls=reinterpret_cast<HA_Control*>(1);check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"unreadable schema rejected before publication");
     invalid=outfit;strcpy_s(invalid.id,"example/bad-flags");controls[1].scope=HA_GLOBAL;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"linked underwear cannot silently hide a global shared mesh");controls[1].scope=HA_PER_WITCH;
     controls[0].flags=HA_FOLLOW_BASE_UNDERWEAR;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"choices cannot use visibility semantics");controls[0].flags=HA_PREFAB_VARIANT;
     controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR|HA_PREFAB_VARIANT;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"linked visibility rejects incompatible flags");controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR;
     controls[1].flags=8;check(api->RegisterOutfit(&invalid,&other)==HA_INVALID,"unknown flags rejected");controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR;
     std::memset(controls,0,sizeof controls);std::memset(variants,0,sizeof variants);std::memset(&outfit,0,sizeof outfit);
-    check(api->SelectOutfit(3,"example/dress")==HA_UNAVAILABLE,"unready dependency gate");check(api->SetAvailable(handle,1,"")==HA_OK&&api->SelectOutfit(3,"example/dress")==HA_OK,"provider can enable and select its copied definition");
+    check(api->SelectOutfit(3,"example/dress")==HA_UNAVAILABLE,"unready dependency gate");
+    check(api->SetAvailable(handle,1,"")==HA_OK&&api->SelectOutfit(3,"example/dress")==HA_UNAVAILABLE,"scoped underwear requires a working native base route");
+    hex::baseNativeReady=true;check(api->SelectOutfit(3,"example/dress")==HA_OK,"provider can select its copied definition once native visibility is ready");
     HA_ControlValue value{};value.size=sizeof value;check(api->GetControl(3,"example/dress","panties",&value)==HA_OK&&value.value==1,"default toggle supplied");
     HA_EffectiveControlValue effective{};effective.size=sizeof effective;
+    hex::WardrobeProviderOutfit scoped;
+    check(hex::resolveWardrobeProvider("example/dress",3,scoped,error)&&scoped.policyFlags==HA_REPLACE_BASE_UNDERWEAR,"resolved provider retains scoped underwear policy");
+    check(policy->SetPolicy(handle,0)==HA_UNAVAILABLE&&hex::baseUnderwearPreference().hiddenMask==0,"available provider policy cannot change or rewrite player visibility");
     check(base->GetEffectiveControl(3,"example/dress","panties",&effective)==HA_OK&&effective.value==1&&effective.storedValue==1,"visible default effective preference");
     const auto originalRevision=effective.revision,originalBaseRevision=effective.baseUnderwearRevision;
+    hex::baseNativeReady=false;
     check(base->SetHidden(3,1)==HA_OK&&base->GetState(3,&state)==HA_OK&&state.hidden&&!state.mixed&&state.hiddenMask==8&&!state.nativeReady&&state.nativePending,"provider preference observable independently of native hook readiness");
+    hex::baseNativeReady=true;
     for(const char* control:{"bra","panties"})check(base->GetEffectiveControl(3,"example/dress",control,&effective)==HA_OK&&!effective.value&&effective.storedValue==1&&effective.baseUnderwearHidden&&effective.revision==originalRevision&&effective.baseUnderwearRevision!=originalBaseRevision,"base hide overrides both opted-in parts without rewriting saved outfit controls");
     check(api->GetControl(3,"example/dress","panties",&value)==HA_OK&&value.value==1,"original GetControl preserves stored values");
     check(base->GetEffectiveControl(2,"example/dress","panties",&effective)==HA_OK&&effective.value==1&&!effective.baseUnderwearHidden,"another witch remains independent");
@@ -83,6 +96,7 @@ int wmain(int argc,wchar_t** argv){try{
     check(api->SetControl(3,"example/dress","colour",0)==HA_UNAVAILABLE&&api->GetControl(3,"example/dress","colour",&value)==HA_OK&&value.value==1,"failed save leaves live option unchanged");CloseHandle(locked);
     check(api->SetControl(3,"example/dress","colour",99)==HA_UNAVAILABLE,"invalid option rejected");char tiny[2]{'X','X'};check(api->GetLastError(tiny,2)==HA_LIMIT&&tiny[1]==0,"truncated errors remain terminated");
     check(api->UnregisterOutfit(handle)==HA_OK&&api->SelectOutfit(3,"example/dress")==HA_UNAVAILABLE,"removed provider unavailable without dangling callbacks");
+    check(policy->SetPolicy(handle,0)==HA_NOT_FOUND,"unregistered provider cannot leave a mutable suppression policy");
     check(base->GetEffectiveControl(3,"example/dress","panties",&effective)==HA_UNAVAILABLE,"unloaded providers never return effective renderer instructions");
     HA_Outfit replacement{};replacement.size=sizeof replacement;strcpy_s(replacement.id,"example/dress");strcpy_s(replacement.label,"Updated dress");strcpy_s(replacement.prefab,"updated_dress");const auto oldHandle=handle;check(api->RegisterOutfit(&replacement,&handle)==HA_OK&&handle!=oldHandle&&api->SetAvailable(oldHandle,1,"")==HA_NOT_FOUND,"re-registration replaces copied schema and invalidates old token");
     const auto* native=HexAppeal_GetNativeWardrobeAPI(1);check(native&&native->size==sizeof(HA_NativeWardrobeAPI)&&!HexAppeal_GetNativeWardrobeAPI(2),"optional native combinations ABI");
@@ -91,8 +105,11 @@ int wmain(int argc,wchar_t** argv){try{
     invalidClientAPI.size=sizeof invalidClientAPI;invalidClientAPI.version=1;
     check(!client.Attach(invalidClientFactory),"helper rejects incomplete function tables before calling them");
     check(client.Attach(HexAppeal_GetWardrobeAPI)&&!client.HasBaseUnderwear()&&!client.HasNativeCombinations(),"older API retains independent capabilities");
+    check(!client.HasOutfitPolicy()&&client.Policy(handle,HA_REPLACE_BASE_UNDERWEAR)==HA_UNAVAILABLE,"older runtimes reject required scoped policy without partial activation");
     check(client.Effective(3,"example/native","bra",effective)==HA_UNAVAILABLE&&!client.LastError().empty(),"missing extension reports its own clear error");
     check(client.Attach(HexAppeal_GetWardrobeAPI,HexAppeal_GetBaseUnderwearAPI,HexAppeal_GetNativeWardrobeAPI,HexAppeal_RequestWardrobeRefreshV1)&&client.HasBaseUnderwear()&&client.HasNativeCombinations()&&client.HasRefresh(),"helper retries complete API discovery");
+    check(client.Attach(HexAppeal_GetWardrobeAPI,HexAppeal_GetBaseUnderwearAPI,HexAppeal_GetNativeWardrobeAPI,HexAppeal_RequestWardrobeRefreshV1,HexAppeal_GetOutfitVisibilityAPI,HexAppeal_GetOutfitPolicyAPI)&&client.HasOutfitPolicy()&&client.Policy(handle,HA_REPLACE_BASE_UNDERWEAR)==HA_OK,"client discovers and sets scoped policy on a new unavailable registration");
+    check(hex::baseUnderwearPreference().hiddenMask==0,"client policy never toggles saved base visibility");
     char bounded[8]="keep";check(!hexappeal::Text(bounded,"far-too-long")&&!strcmp(bounded,"keep")&&hexappeal::Text(bounded,"")&&!bounded[0],"helper rejects truncation and handles empty text");
     HA_Control nativeControls[2]{};
     for(auto& c:nativeControls){c.size=sizeof c;c.type=HA_TOGGLE;c.defaultValue=1;c.flags=HA_FOLLOW_BASE_UNDERWEAR;}

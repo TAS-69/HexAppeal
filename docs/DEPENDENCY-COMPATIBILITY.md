@@ -1,6 +1,6 @@
 # Dependency compatibility
 
-The dependency checks introduced in development **0.5.8** and retained in **1.0.0** separate the installed version from the checks needed to use each feature. A new hash produces an **Unverified** warning. Readable files and a passing native interface remain usable. Failed requirements produce a **Blocked** state with the specific reason.
+The dependency checks separate the installed version from the checks needed to use each feature. A new hash produces an **Unverified** warning. Readable files and a passing native interface remain usable. Failed requirements produce a **Blocked** state with the specific reason. Version 1.0.1 also checks the selected witch body independently of a VENUS installation used for Damiane.
 
 Open **F9 → Settings → Dependencies & paths**. File rows show which downloads were found and verified. **Feature checks** show whether the active integration is ready. Hover a blocked row or its error icon for the cause.
 
@@ -21,7 +21,7 @@ Weight uses the native shaping adapter and needs no outfit dependency. Dancer de
 
 ## What the adapter checks
 
-- The current mounted VENUS and witch appearance routes must exist and be readable. Unverified readable bodies retain a warning, including the limits of their untested visual fit.
+- The selected mounted witch appearance/body routes must exist and be readable. VENUS is required only for its body choice; Vanilla validates its own original resources. Unverified readable bodies retain a warning, including the limits of their untested visual fit.
 - Instant Surgery's private shaping adapter checks the expected function signatures and metadata when its file is unverified. It does not guess relocated private structures or call arbitrary matching bytes.
 - Versioned public exports, including `InstantSurgeryDeformPoseV1` and `TwoReasonsEditorPoseAppliedV1`, resolve by name. Their executable address must belong to the loaded plugin. Moving a valid export within that plugin no longer fails a fixed-address comparison.
 - Appearance hooks use bounded chain and executable ownership checks. Actor identity, native outfit records and final assembly acknowledgement still govern writes.

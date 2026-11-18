@@ -1,11 +1,16 @@
 from pathlib import Path
-import argparse,configparser,hashlib,json,re,subprocess,zipfile
-from player_package import player_package
+import argparse,configparser,hashlib,json,re,subprocess,tempfile,zipfile
+from player_package import player_choices
 from release_policy import validate_release_path,validate_runtime
+from witch_parts import isolated_model
+from body_options import build_options
+from development_paths import SOURCES
 
 ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser(description='Package the requested public version. Does not increment versions, install files or upload.')
 parser.add_argument('--draft',action='store_true',help='Allow the recorded blocked preferences test or pending manager acceptance. Keeps release readiness false.')
+parser.add_argument('--native',type=Path,required=True,help='External original game body, underwear and prefab inputs.')
+parser.add_argument('--registry',type=Path,required=True,help='External original partprefabtable.pappt.')
 args=parser.parse_args()
 checkout=Path(subprocess.check_output(['git','-C',str(ROOT),'rev-parse','--show-toplevel'],text=True).strip()).resolve()
 if checkout!=ROOT:raise SystemExit('Package from a clean Hex Appeal Git checkout.')
@@ -33,8 +38,11 @@ if failed and not draft_exception:raise SystemExit('Incomplete/failed checks: no
 distribution=json.loads((ROOT/'build-data/player-package.json').read_text(encoding='utf-8'))
 manager_ready=distribution['manager_acceptance']['verified']
 if not manager_ready and not args.draft:raise SystemExit('The combined player package needs its manager import/deployment acceptance check before a public release.')
-live=json.loads((ROOT/'build-data/live-visibility-20261117.json').read_text(encoding='utf-8'))
-if live['runtime_sha256']!=sha(binary) or not live['temporary_helper_removed_after_game_closed']:raise SystemExit('Record the checked runtime and remove its temporary live test helper first.')
+live=json.loads((ROOT/'build-data/live-compatibility-20261118.json').read_text(encoding='utf-8'))
+if live['public_runtime_sha256']!=sha(binary) or not live['public_startup_checked'] or not live['temporary_helpers_absent']:raise SystemExit('Record the public runtime startup check and remove temporary live helpers first.')
+if not all(live['body_options'][mode]['passed'] for mode in ('Venus','Vanilla')):raise SystemExit('Both body options need their recorded live acceptance.')
+native=json.loads((ROOT/'build-data/native-compatibility-20261118.json').read_text(encoding='utf-8'))
+if not native['pass'] or native['runtime_sha256']!=sha(binary):raise SystemExit('Record the current isolated native shaping verification first.')
 ready=verification['pass'] and manager_ready and not args.draft
 settings=configparser.ConfigParser();settings.read(ROOT/'runtime/dist/HexAppeal.ini')
 if not all(settings.getboolean('Development',key,fallback=False) for key in ('ObserveNpcUploads','EnableNpcWrites','ObserveWardrobe','EnableWardrobeWrites')):raise SystemExit('Fresh-install features must be enabled.')
@@ -50,8 +58,10 @@ policy=json.loads((ROOT/'build-data/distribution-policy.json').read_text(encodin
 denied_hashes.update(policy['excluded_dependency_sha256'])
 denied_hashes.update(item['sha256'] for item in dependency.get('optional',[]) if 'sha256' in item)
 refits=json.loads((ROOT/'build-data/refit-validation.json').read_text(encoding='utf-8-sig'))
-allowed_pacs={'Hex Appeal - Outfit Refits/files/'+row['path']:row['output_sha256'] for row in refits['models']}
+allowed_pacs={'Hex Appeal - Outfit Refits/files/'+isolated_model(row['path']):row['output_sha256'] for row in refits['models']}
 if len(allowed_pacs)!=40:raise SystemExit('Expected forty default garment refits.')
+resources=json.loads((ROOT/'build-data/witch-part-resources.json').read_text(encoding='utf-8'))
+allowed_resources={'Hex Appeal - Outfit Refits/'+name:row['sha256'] for name,row in resources['resources'].items()}
 source_files=[]
 for name in sorted(filter(None,tracked)):
     path=ROOT/name
@@ -61,6 +71,9 @@ for name in sorted(filter(None,tracked)):
     if path.name=='development-paths.json':continue
     data=path.read_bytes()
     if sha(data) in denied_hashes:raise SystemExit('External dependency file found: '+rel.as_posix())
+    if rel.as_posix() in allowed_resources:
+        if allowed_resources[rel.as_posix()]!=sha(data):raise SystemExit('Generated game metadata changed: '+rel.as_posix())
+        continue
     if path.suffix.lower() in denied_suffixes:raise SystemExit('Unexpected binary in source: '+rel.as_posix())
     if path.suffix.lower()=='.pac':
         if allowed_pacs.get(rel.as_posix())!=sha(data):raise SystemExit('Unexpected PAC output: '+rel.as_posix())
@@ -68,8 +81,9 @@ for name in sorted(filter(None,tracked)):
     source_files.append((rel.as_posix(),data))
 patches=list((ROOT/'Hex Appeal - Bodies/files').rglob('*.patch'))
 if len(patches)!=7:raise SystemExit('Expected seven appearance patches.')
-summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches':7,'vanilla_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':'This binary passed all four independent clothing/Base underwear combinations, repeated restoration, startup restoration, quick pins and unsupported-provider retention on close idle Elowen. Three public SDK game-robe refreshes passed at 500 ms configured delay (625 ms observed). The temporary helper was removed afterward. Earlier core layout import and nine-shape tests retain their original binary; final ZIP not freshly reimported. External colour caches, every witch/detail level/controller and long sessions are not certified. Adopting assets need rendered checks.','licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
+summary={'version':version,'release_ready':ready,'draft':not ready,'runtime_sha256':sha(binary),'offline_passed':sum(row['pass'] for row in verification['checks']),'offline_total':len(verification['checks']),'blocked_checks':[{'name':row['name'],'reason':row.get('reason','')} for row in failed],'helper_checks_pass':helpers['pass'],'assets':{'body_patches_per_option':7,'venus_garment_refits':40,'downloaded_mod_assets_bundled':False,'private_dancer_derivatives_bundled':False},'live_scope':live['scope'],'licensed_code_adaptations':'Retained with complete notices; separate from external content-mod dependencies.'}
 summary['live_verification']=live
+summary['native_verification']=native
 summary['distribution']=distribution
 summary['distribution_policy']=policy
 summary['source_commit']=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
@@ -120,7 +134,25 @@ for name in ('README.md','INTEGRATION.md'):documents.append(('docs/'+name,packag
 documents += [('licenses/'+p.name,p.read_bytes()) for p in (ROOT/'runtime/licenses').iterdir() if p.is_file()]
 documents+=guides('docs/')
 models={name.removeprefix('Hex Appeal - Outfit Refits/'):digest for name,digest in allowed_pacs.items()}
-files=player_package(version,*assets,[('HexAppeal.asi',binary),('HexAppeal.ini',(ROOT/'runtime/dist/HexAppeal.ini').read_bytes())],documents,models,denied_hashes)
+metadata={name.removeprefix('Hex Appeal - Outfit Refits/'):digest for name,digest in allowed_resources.items()}
+for original in (args.native,args.registry):
+    if original.resolve().is_relative_to(ROOT):raise SystemExit('Keep original game inputs outside the source checkout.')
+with tempfile.TemporaryDirectory(prefix='body-options-',dir=ROOT/'runtime/build') as temporary:
+    temporary=Path(temporary).resolve()
+    if not temporary.is_relative_to((ROOT/'runtime/build').resolve()):raise SystemExit('Invalid temporary output path.')
+    report=build_options(ROOT,SOURCES,args.native,args.registry,temporary/'options')
+    variants={}
+    for mode,expected in report['files'].items():
+        entries=[(name,(temporary/'options'/mode/name).read_bytes()) for name in expected]
+        if any(sha(data)!=expected[name] for name,data in entries):raise SystemExit('Body option output changed during packaging.')
+        variants[mode]={'files':entries,'models':{name:digest for name,digest in expected.items() if name.endswith('.pac')},'resources':{name:digest for name,digest in expected.items() if Path(name).suffix in {'.prefab','.pappt','.pac_xml','.hkx','.prefabdata_xml'}}}
+    summary['assets']['body_option_files']={mode:len(entries) for mode,entries in report['files'].items()}
+    summary['assets']['original_body_resources_verified']=report['original_body_resources_verified']
+    expected_assets=live['body_option_asset_sha256']
+    if report['files']!=expected_assets:raise SystemExit('Packaged body options differ from the live-tested resources.')
+    summary_bytes=(json.dumps(summary,indent=2)+'\n').encode()
+    documents=[(name,summary_bytes if name=='VERIFICATION.txt' else data) for name,data in documents]
+    files=player_choices(version,variants,[('HexAppeal.asi',binary),('HexAppeal.ini',(ROOT/'runtime/dist/HexAppeal.ini').read_bytes())],documents,denied_hashes)
 archive('',files)
 sdk=[(p.relative_to(ROOT/'runtime/sdk').as_posix(),p.read_bytes()) for p in (ROOT/'runtime/sdk').rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix!='.pyc']
 sdk.append(('VERIFICATION.json',summary_bytes))

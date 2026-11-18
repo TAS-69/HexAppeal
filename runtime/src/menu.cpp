@@ -19,6 +19,7 @@ static void record(const std::string&){}
 
 namespace ml::gui {
 static float scale=1.f,pending=0.f;
+static bool vanillaBody=false;
 static ImFont *bodyFont=nullptr,*titleFont=nullptr;
 static constexpr ImVec4 accent{.91f,.38f,.66f,1},gold{.94f,.77f,.48f,1},muted{.60f,.55f,.65f,1},green{.48f,.84f,.69f,1};
 static constexpr ImVec4 errorColour{.96f,.43f,.43f,1};
@@ -27,8 +28,10 @@ static std::string baseVersionWarning,hexVersionWarning,underwearVersionWarning;
 static bool weightReady=false;
 static void versionDecoration(const std::string& warning,bool tooltip=true,int placement=0){
     if(warning.empty())return;const auto lo=ImGui::GetItemRectMin(),hi=ImGui::GetItemRectMax();auto* draw=ImGui::GetWindowDrawList();
-    draw->AddRectFilled(lo,hi,IM_COL32(239,161,97,18),5*scale);draw->AddRect(lo,hi,IM_COL32(239,175,99,125),5*scale);
-    const ImVec2 centre{hi.x+(placement==1?13:placement==3?-41:-13)*scale,lo.y+(placement==2?33:11)*scale};draw->AddCircleFilled(centre,7*scale,IM_COL32(229,166,91,235));draw->AddText({centre.x-2*scale,centre.y-7*scale},IM_COL32(36,22,28,255),"!");
+    if(placement!=1){draw->AddRectFilled(lo,hi,IM_COL32(239,161,97,18),5*scale);draw->AddRect(lo,hi,IM_COL32(239,175,99,125),5*scale);}
+    const ImVec2 centre{hi.x+(placement==1?13:placement==3?-41:-13)*scale,placement==2?lo.y+33*scale:(lo.y+hi.y)*.5f};draw->AddCircleFilled(centre,7*scale,IM_COL32(229,166,91,235));
+    auto* font=ImGui::GetFont();const auto* glyph=font->FindGlyph('!');const float fontScale=ImGui::GetFontSize()/font->FontSize;
+    const ImVec2 mark{centre.x-(glyph->X0+glyph->X1)*.5f*fontScale,centre.y-(glyph->Y0+glyph->Y1)*.5f*fontScale};draw->AddText(mark,IM_COL32(36,22,28,255),"!");
     if(tooltip&&ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)){ImGui::BeginTooltip();ImGui::PushTextWrapPos(ImGui::GetFontSize()*25);ImGui::TextUnformatted(warning.c_str());ImGui::PopTextWrapPos();ImGui::EndTooltip();}
 }
 static void tip(const char* text){if(ImGui::IsPopupOpen(nullptr,ImGuiPopupFlags_AnyPopupId))return;if(ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort|ImGuiHoveredFlags_AllowWhenDisabled)){ImGui::BeginTooltip();ImGui::PushTextWrapPos(ImGui::GetFontSize()*23);ImGui::TextUnformatted(text);ImGui::PopTextWrapPos();ImGui::EndTooltip();}}
@@ -64,7 +67,7 @@ void PollToggle(){
 }
 bool WantsDraw(){return State::Get().menuOpen;}
 void FeedInput(){if(!hex::Runtime::get().preview)input::FeedInput(ImGui::GetIO());}
-static const char* name(hex::Preset p){return p==hex::Preset::Hex?"HEX":p==hex::Preset::Flat?"FLAT":"VENUS";}
+static const char* name(hex::Preset p){return p==hex::Preset::Hex?"HEX":p==hex::Preset::Flat?"FLAT":vanillaBody?"VANILLA":"VENUS";}
 static bool choice(const char* text,bool selected,ImVec2 size){if(selected){ImGui::PushStyleColor(ImGuiCol_Button,ImVec4(.47f,.14f,.34f,1));ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(1,.88f,.64f,1));}const bool clicked=ImGui::Button(text,size);if(selected)ImGui::PopStyleColor(2);return clicked;}
 static void pinContext(uint32_t bit){
     auto& r=hex::Runtime::get();const auto id=std::string("pin-menu-")+std::to_string(bit);
@@ -74,7 +77,7 @@ static void pinContext(uint32_t bit){
 static bool region(const char* label,hex::Preset& preset,float& blend,bool available,bool hexAvailable){
     bool changed=false;ImGui::PushID(label);ImGui::BeginGroup();ImGui::AlignTextToFramePadding();ImGui::TextColored(gold,"%s",label);ImGui::SameLine(70*scale);
     const float width=std::max(35.f,(ImGui::GetContentRegionAvail().x-2*ImGui::GetStyle().ItemSpacing.x)/3);
-    for(int i=0;i<3;++i){if(i)ImGui::SameLine();const bool disabled=!available||(i==1&&!hexAvailable);ImGui::BeginDisabled(disabled);if(choice(i==0?"VENUS":i==1?"HEX":"FLAT",int(preset)==i,{width,28*scale})){preset=hex::Preset(i);blend=1.f;changed=true;}record(std::string(label)+".preset"+std::to_string(i));ImGui::EndDisabled();const auto warning=baseVersionWarning+(i==1?hexVersionWarning:"");versionDecoration(warning);if(disabled&&warning.empty())tip(!available?"Install and enable the required body/editor files, then check Dependencies in Settings.":"Locate Hex's separately installed preset in Settings to enable HEX.");}
+    for(int i=0;i<3;++i){if(i)ImGui::SameLine();const bool disabled=!available||(i==1&&!hexAvailable);ImGui::BeginDisabled(disabled);if(choice(name(hex::Preset(i)),int(preset)==i,{width,28*scale})){preset=hex::Preset(i);blend=1.f;changed=true;}record(std::string(label)+".preset"+std::to_string(i));ImGui::EndDisabled();const auto warning=baseVersionWarning+(i==1?hexVersionWarning:"");versionDecoration(warning);if(disabled&&warning.empty())tip(!available?"Install and enable the required body/editor files, then check Dependencies in Settings.":"Locate Hex's separately installed preset in Settings to enable HEX.");}
     ImGui::EndGroup();pinContext(label[0]=='T'?hex::PinTop:hex::PinBottom);ImGui::PopID();return changed;
 }
 static bool shapePad(hex::Profile& profile,float maximum,bool available,bool hexAvailable){
@@ -100,7 +103,7 @@ static bool shapePad(hex::Profile& profile,float maximum,bool available,bool hex
     label("FLAT / HEX",10*scale,side-26*scale);label("FLAT / FLAT",side-10*scale,side-26*scale,true);
     if(!available)draw->AddRectFilled(start,end,IM_COL32(10,10,14,160));
     else if(!hexAvailable){draw->AddRectFilled(start,{centre.x,end.y},IM_COL32(10,10,14,170));draw->AddRectFilled({centre.x,start.y},{end.x,centre.y},IM_COL32(10,10,14,170));}
-    const auto sz=ImGui::CalcTextSize("VENUS");draw->AddText({centre.x-sz.x*.5f,centre.y+12*scale},IM_COL32(226,184,147,205),"VENUS");
+    const auto baseline=name(hex::Preset::Venus);const auto sz=ImGui::CalcTextSize(baseline);draw->AddText({centre.x-sz.x*.5f,centre.y+12*scale},IM_COL32(226,184,147,205),baseline);
     const ImVec2 marker{start.x+(hex::regionCoordinate(profile.bottom,profile.bottomBlend)+1)*.5f*side,start.y+(hex::regionCoordinate(profile.top,profile.topBlend)+1)*.5f*side};
     draw->AddLine(centre,marker,IM_COL32(244,186,136,100),scale);
     draw->AddCircleFilled(marker,16*scale,IM_COL32(235,83,157,40));draw->AddCircleFilled(marker,10*scale,IM_COL32(22,8,26,255));draw->AddCircle(marker,10*scale,IM_COL32(255,208,137,255),40,2*scale);draw->AddCircleFilled(marker,4*scale,IM_COL32(255,227,183,255));
@@ -116,8 +119,8 @@ static void dependencySettings(hex::Runtime& r){
     const bool expanded=ImGui::CollapsingHeader("Dependencies & paths");record("dependencyHeader");if(!expanded)return;
     const auto status=r.dependencyStatus();
     const auto state=[&](const char* label,bool available,const std::string& detail){ImGui::TextColored(available?green:muted,"%s  /  %s",label,available?"Ready":"Unavailable");tip(detail.c_str());};
-    const auto fileState=[&](const char* label,const hex::DependencyFile& file){ImGui::TextColored(!file.valid?muted:file.verified?green:gold,"%s / %s%s",label,!file.valid?"File needed":file.verified?"Verified":"Unverified",file.valid&&!file.verified?"  (!)":"");tip(file.detail.c_str());};
-    fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);fileState("VENUS Body",status.venus);fileState("Hex's Hentai Preset",status.hex);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
+    const auto fileState=[&](const char* label,const hex::DependencyFile& file){ImGui::TextColored(!file.valid?muted:file.verified?green:gold,"%s / %s%s",label,!file.valid?"File needed":file.verified?"Verified":"Unverified",file.valid&&!file.verified?"  (!)":"");const auto detail=file.detail+(file.path.empty()?std::string{}:"\n"+file.path.u8string());tip(detail.c_str());};
+    fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);if(status.bodyMode==hex::BodyMode::Vanilla)state("Vanilla body",status.bodyVerified,status.bodyDetail);else fileState("VENUS Body",status.venus);fileState("Hex's Hentai Preset",status.hex);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
     ImGui::Spacing();ImGui::TextDisabled("Feature checks");const auto capabilities=r.compatibilityStatus();
     for(size_t i=0;i<capabilities.size();++i){const auto& feature=capabilities[i];ImGui::TextColored(feature.state==hex::CompatibilityState::Ready?green:feature.state==hex::CompatibilityState::Blocked?errorColour:muted,"%s / %s%s",hex::featureName(hex::Feature(i)),feature.state==hex::CompatibilityState::Ready?"Ready":feature.state==hex::CompatibilityState::Blocked?"Blocked":"Checking",feature.state==hex::CompatibilityState::Blocked?"  (!)":"");tip(feature.detail.c_str());record("feature"+std::to_string(i));}
     if(!status.bodyWarning.empty()){ImGui::TextColored(gold,"Active body routes / unverified  (!)");tip(status.bodyWarning.c_str());}
@@ -130,7 +133,7 @@ static void dependencySettings(hex::Runtime& r){
         if(ImGui::IsItemDeactivatedAfterEdit()){path=std::filesystem::u8path(buffers[i].data());synced[i]=path.u8string();changed=true;}
     };
     field(0,"Mod manager config","pathManager",paths.managerConfig);field(1,"Mods folder","pathMods",paths.modsDirectory);field(2,"Active file list (DMM manifest.tsv)","pathManifest",paths.manifest);
-    field(3,"Hex preset file","pathHex",paths.hexPreset);field(4,"VENUS body file (optional source override)","pathVenus",paths.venusBody);
+    field(3,"Hex preset .ini file or folder","pathHex",paths.hexPreset);if(status.bodyMode!=hex::BodyMode::Vanilla)field(4,"VENUS body file (optional source override)","pathVenus",paths.venusBody);
     if(changed){std::string error;if(!r.setDependencyPaths(paths,error))r.model.message=error;}
     if(ImGui::Button("Detect again"))++r.dependencyRevision;record("dependencyRescan");tip("Paths are saved automatically. Empty fields use detection. Active body verification currently requires DMM's loaded runtime and file list; another manager's source folder alone cannot prove which body the game uses. Installing or changing runtime plugins requires a restart.");
 }
@@ -142,7 +145,7 @@ static void pinSettings(hex::Runtime& r){
     ImGui::TextDisabled("Or right-click a control to pin it.");
 }
 static void underwearControl(hex::Runtime& r,bool available){
-    const auto status=hex::underwearStatus(r.model.target);const auto dependency=r.dependencyStatus();const auto compatibility=r.featureCompatibility(hex::Feature::Underwear);const bool filesReady=dependency.scanned&&dependency.game.valid&&dependency.instant.valid&&dependency.venus.valid&&dependency.bodyVerified;bool hidden=status.hidden;ImGui::BeginDisabled(!available||compatibility.state==hex::CompatibilityState::Blocked||(!status.ready&&!filesReady));
+    const auto status=hex::underwearStatus(r.model.target);const auto dependency=r.dependencyStatus();const auto compatibility=r.featureCompatibility(hex::Feature::Underwear);const bool filesReady=dependency.scanned&&dependency.game.valid&&dependency.instant.valid&&dependency.bodySourceReady()&&dependency.bodyVerified;bool hidden=status.hidden;ImGui::BeginDisabled(!available||compatibility.state==hex::CompatibilityState::Blocked||(!status.ready&&!filesReady));
     if(ImGui::Checkbox("Hide base bra & panties",&hidden)){std::string error;if(!hex::setUnderwearHidden(r.model.target,hidden,error))r.model.message=error;}
     record("underwear");ImGui::EndDisabled();pinContext(hex::PinUnderwear);versionDecoration(underwearVersionWarning,true,1);if(underwearVersionWarning.empty())tip("Hides the game's base underwear and compatible Wardrobe bra/panties. Built-in outfit pieces need provider support.");
     if(compatibility.state==hex::CompatibilityState::Blocked){ImGui::SameLine();ImGui::TextColored(errorColour,"(!)");tip(compatibility.detail.c_str());}
@@ -204,8 +207,16 @@ static void providerWardrobeControls(hex::Runtime& runtime,bool pinnedOnly=false
 }
 static bool proportions(hex::Runtime& r,bool available,bool height,bool weight){
     bool changed=false;
-    if(height){ImGui::BeginDisabled(!available);float value=r.model.draft.height*10;ImGui::SetNextItemWidth(std::max(100.f,ImGui::GetContentRegionAvail().x-70*scale));if(ImGui::SliderFloat("Height",&value,-10,10,"%+.1f%%",ImGuiSliderFlags_AlwaysClamp)){r.model.draft.height=value/10;changed=true;}record("height");ImGui::EndDisabled();pinContext(hex::PinHeight);versionDecoration(baseVersionWarning,true,1);if(baseVersionWarning.empty())tip("Scales the complete rig and fitted clothing. Independent of Weight; Ctrl-click for an exact value.");}
-    if(weight){ImGui::BeginDisabled(!available||!weightReady);float value=r.model.draft.weight*100;ImGui::SetNextItemWidth(std::max(100.f,ImGui::GetContentRegionAvail().x-70*scale));if(ImGui::SliderFloat("Weight",&value,-100,100,"%+.0f%%",ImGuiSliderFlags_AlwaysClamp)){r.model.draft.weight=value/100;changed=true;}record("weight");ImGui::EndDisabled();pinContext(hex::PinWeight);versionDecoration(baseVersionWarning,true,1);if(baseVersionWarning.empty())tip(weightReady?"Limbs and waist, independent of Height and breast/butt presets. No outfit dependency required.":"Native shaping must be ready to use Weight.");}
+    const auto slider=[&](const char* label,const char* id,float& stored,float factor,float limit,const char* format,bool enabled,uint32_t pin,const char* help){
+        ImGui::PushID(id);ImGui::AlignTextToFramePadding();ImGui::TextUnformatted(label);ImGui::SameLine(68*scale);
+        ImGui::BeginDisabled(!enabled);float value=stored*factor;
+        ImGui::SetNextItemWidth(std::max(100.f,ImGui::GetContentRegionAvail().x-24*scale));
+        if(ImGui::SliderFloat("##value",&value,-limit,limit,format,ImGuiSliderFlags_AlwaysClamp)){stored=value/factor;changed=true;}
+        record(id);ImGui::EndDisabled();pinContext(pin);versionDecoration(baseVersionWarning,true,1);
+        if(baseVersionWarning.empty())tip(help);ImGui::PopID();
+    };
+    if(height)slider("Height","height",r.model.draft.height,10,10,"%+.1f%%",available,hex::PinHeight,"Scales the complete rig and fitted clothing. Independent of Weight; Ctrl-click for an exact value.");
+    if(weight)slider("Weight","weight",r.model.draft.weight,100,100,"%+.0f%%",available&&weightReady,hex::PinWeight,weightReady?"Limbs and waist, independent of Height and breast/butt presets. No outfit dependency required.":"Native shaping must be ready to use Weight.");
     return changed;
 }
 static bool profileActions(hex::Runtime& r,uint32_t mask){
@@ -218,12 +229,12 @@ static bool profileActions(hex::Runtime& r,uint32_t mask){
 }
 void Render(){
     auto& r=hex::Runtime::get();r.tickAuto();auto& model=r.model;auto& state=State::Get();state.lastDrawAt=GetTickCount();state.blockGameInput=r.blockGameInput;
-    const auto dependencies=r.dependencyStatus();baseVersionWarning.clear();hexVersionWarning.clear();underwearVersionWarning.clear();
+    const auto dependencies=r.dependencyStatus();vanillaBody=dependencies.bodyMode==hex::BodyMode::Vanilla;baseVersionWarning.clear();hexVersionWarning.clear();underwearVersionWarning.clear();
     const auto appendWarning=[](std::string& out,const hex::DependencyFile& file){if(file.valid&&!file.verified){if(!out.empty())out+="\n\n";out+=file.detail;}};
     for(const auto* file:{&dependencies.game,&dependencies.instant,&dependencies.venus,&dependencies.physics})appendWarning(baseVersionWarning,*file);
     if(!dependencies.bodyWarning.empty()){if(!baseVersionWarning.empty())baseVersionWarning+="\n\n";baseVersionWarning+=dependencies.bodyWarning;}
     appendWarning(hexVersionWarning,dependencies.hex);underwearVersionWarning=baseVersionWarning;appendWarning(underwearVersionWarning,dependencies.creator);
-    const bool shapingFiles=dependencies.scanned?dependencies.game.valid&&dependencies.instant.valid&&dependencies.venus.valid&&dependencies.bodyVerified:r.shapingAvailable.load();
+    const bool shapingFiles=dependencies.scanned?dependencies.game.valid&&dependencies.instant.valid&&dependencies.bodySourceReady()&&dependencies.bodyVerified:r.shapingAvailable.load();
     const bool shapingReady=r.featureCompatibility(hex::Feature::Shaping).allows(shapingFiles),hexReady=r.featureCompatibility(hex::Feature::Hex).allows(dependencies.scanned?dependencies.hex.valid:r.hexAvailable.load());weightReady=r.featureCompatibility(hex::Feature::Weight).allows(shapingReady);
     auto& io=ImGui::GetIO();io.MouseDrawCursor=true;const float maxW=std::max(300.f,io.DisplaySize.x-24),maxH=std::max(200.f,io.DisplaySize.y-24);
     static bool first=true,previous=false;static uint32_t previousPins=0;static size_t previousProviderPins=0;
@@ -243,7 +254,8 @@ void Render(){
     ImGui::BeginChild("workspace",{0,-37*scale},ImGuiChildFlags_None);
     if(!r.compact){
         ImGui::BeginChild("witches",{125*scale,0},ImGuiChildFlags_None);
-        for(int target=-1;target<6;++target){ImGui::PushID(target);if(ImGui::Selectable(target<0?"ALL WITCHES":hex::witches[target].name,model.target==target,0,{0,33*scale}))model.selectTarget(target);record("target"+std::to_string(target));ImGui::PopID();}ImGui::EndChild();ImGui::SameLine();
+        ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,{.5f,.5f});
+        for(int target=-1;target<6;++target){ImGui::PushID(target);if(ImGui::Selectable(target<0?"ALL WITCHES":hex::witches[target].name,model.target==target,0,{0,33*scale}))model.selectTarget(target);record("target"+std::to_string(target));ImGui::PopID();}ImGui::PopStyleVar();ImGui::EndChild();ImGui::SameLine();
     }
     ImGui::BeginChild("editor",{0,0},ImGuiChildFlags_None);
     if(r.compact){const char* targets[]={"All witches","Lyselia","Bari","Areciel","Elowen","Sylvia","White Crow"};int selected=model.target+1;ImGui::SetNextItemWidth(-1);if(ImGui::Combo("##witch",&selected,targets,7))model.selectTarget(selected-1);record("quickWitch");

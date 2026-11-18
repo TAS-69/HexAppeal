@@ -26,11 +26,12 @@ std::mutex statusMutex,cacheMutex,preferenceMutex;
 std::array<std::atomic<uint64_t>,6> outfitConfirmed{};
 std::array<std::atomic<DWORD>,6> outfitSeen{};
 std::string status="The underwear controls are waiting for the game.";
-struct Applied {int witch=-1;DWORD tick=0;bool hidden=false;uint64_t version=0;uint64_t failedVersion=0;DWORD failureLoggedAt=0;void* renderer=nullptr;float normal=1.f;bool normalKnown=false;};
+struct Applied {int witch=-1;DWORD tick=0;bool hidden=false,providerSuppressed=false;uint64_t version=0;uint64_t failedVersion=0;DWORD failureLoggedAt=0;void* renderer=nullptr;float normal=1.f;bool normalKnown=false;};
 std::map<uintptr_t,Applied> applied;
 OutfitVisibility garmentVisibility;
 #ifdef HEX_UNDERWEAR_TESTS
 bool(*fixtureIdentity)(void*,ActorIdentity&)=nullptr;
+bool fixtureReplaceUnderwear=false;
 #endif
 bool identityOf(void* actor,ActorIdentity& identity) {
 #ifdef HEX_UNDERWEAR_TESTS
@@ -79,13 +80,15 @@ float query(void* scene,const uint32_t* part,void* row,uint8_t mode) {
     void* actor=nullptr;
     if(ready&&keyGuard(&key)&&keyEqual(part,key)&&(actor=queryActorGuard(scene))&&identityOf(actor,identity)) {
         seen[identity.witch]=GetTickCount();
+        bool providerSuppressed=false;
         if(std::isfinite(normal)&&normal>=0.f) {
             auto* renderer=rendererGuard(actor);
             std::lock_guard<std::mutex> lock(cacheMutex);auto& entry=applied[reinterpret_cast<uintptr_t>(actor)];
             if(entry.renderer!=renderer){entry=Applied{};entry.renderer=renderer;}
+            providerSuppressed=entry.witch==identity.witch&&entry.providerSuppressed&&GetTickCount()-entry.tick<1000;
             entry.witch=identity.witch;entry.normal=normal;entry.normalKnown=true;
         }
-        auto& runtime=Runtime::get();if((!runtime.dependencyScanned||runtime.shapingAvailable)&&(runtime.underwearHiddenMask.load()&(1u<<identity.witch)))return 0.f;
+        auto& runtime=Runtime::get();if((!runtime.dependencyScanned||runtime.shapingAvailable)&&(providerSuppressed||(runtime.underwearHiddenMask.load()&(1u<<identity.witch))))return 0.f;
     }
     uint32_t garmentKey=0;
     if(ready&&readKey(part,&garmentKey)&&garmentVisibility.contains(garmentKey)){
@@ -179,7 +182,7 @@ bool setOutfitHidden(int target,bool hidden,std::string& error){
     if(target< -1||target>5){error="Choose a supported witch.";return false;}
     const auto dependency=Runtime::get().dependencyStatus();const auto wardrobe=Runtime::get().featureCompatibility(Feature::Wardrobe);
     if(hidden&&wardrobe.state!=CompatibilityState::Ready){error="The native outfit route must be ready.";return false;}
-    if(hidden&&dependency.scanned&&(!dependency.game.valid||!dependency.instant.valid||!dependency.venus.valid||!dependency.bodyVerified)){error="Locate the installed body and editor files before using Hide outfit.";return false;}
+    if(hidden&&dependency.scanned&&(!dependency.game.valid||!dependency.instant.valid||!dependency.bodySourceReady()||!dependency.bodyVerified)){error="Locate the installed body and editor files before using Hide outfit.";return false;}
     std::lock_guard<std::mutex> lock(preferenceMutex);auto& r=Runtime::get();const auto before=r.outfitHiddenMask.load(),targets=target<0?63u:1u<<target;
     const auto after=hidden?(before|targets):(before&~targets);if(after==before)return true;
     if(!r.saveOutfitHiddenPreference(after,error))return false;r.outfitHiddenMask=after;++r.outfitHiddenVersion;return true;
@@ -190,7 +193,7 @@ void setOutfitHiddenActor(uintptr_t actor,uintptr_t renderer,int witch,bool hidd
     if(complete&&hidden==((r.outfitHiddenMask.load()&(1u<<witch))!=0))outfitConfirmed[witch]=r.outfitHiddenVersion.load();
 }
 bool setUnderwearHidden(int target,bool hidden,std::string& error) {
-    const auto dependency=Runtime::get().dependencyStatus();const bool filesReady=dependency.scanned&&dependency.game.valid&&dependency.instant.valid&&dependency.venus.valid&&dependency.bodyVerified;
+    const auto dependency=Runtime::get().dependencyStatus();const bool filesReady=dependency.scanned&&dependency.game.valid&&dependency.instant.valid&&dependency.bodySourceReady()&&dependency.bodyVerified;
     if(!ready&&!filesReady){error="The native underwear route is not ready.";return false;}
     if(dependency.scanned&&!filesReady){error="Locate the installed body and editor files before using base underwear.";return false;}
     if(target< -1||target>5){error="Choose a supported witch.";return false;}
@@ -203,19 +206,25 @@ bool setUnderwearHidden(int target,bool hidden,std::string& error) {
 }
 void updateUnderwear(void* actor,const ActorIdentity& identity) {
     if(!ready||identity.witch<0||identity.witch>5)return;
+    OutfitVisibilityPolicy policy;
 #ifndef HEX_UNDERWEAR_TESTS
-    OutfitVisibilityPolicy policy;ownedOutfitVisibility(reinterpret_cast<uintptr_t>(actor),identity.witch,policy);
+    ownedOutfitVisibility(reinterpret_cast<uintptr_t>(actor),identity.witch,policy);
     garmentVisibility.update(reinterpret_cast<uintptr_t>(actor),reinterpret_cast<uintptr_t>(rendererGuard(actor)),identity.witch,policy,GetTickCount64(),visibilityCalls());
+#else
+    policy.owned=policy.enabled=fixtureReplaceUnderwear;policy.replaceBaseUnderwear=fixtureReplaceUnderwear;
 #endif
     uint32_t key=0;if(!keyGuard(&key))return;
-    auto& r=Runtime::get();const auto version=r.underwearVersion.load();const bool hidden=(!r.dependencyScanned||r.shapingAvailable)&&(r.underwearHiddenMask.load()&(1u<<identity.witch))!=0;
+    auto& r=Runtime::get();const auto version=r.underwearVersion.load();
+    const bool providerSuppressed=policy.owned&&policy.enabled&&policy.replaceBaseUnderwear;
+    const bool hidden=(!r.dependencyScanned||r.shapingAvailable)&&(providerSuppressed||(r.underwearHiddenMask.load()&(1u<<identity.witch))!=0);
     const auto address=reinterpret_cast<uintptr_t>(actor);const auto now=GetTickCount();
     auto* renderer=rendererGuard(actor);Applied entry;
     {std::lock_guard<std::mutex> lock(cacheMutex);entry=applied[address];}
     if(entry.renderer!=renderer){entry=Applied{};entry.renderer=renderer;}
     seen[identity.witch]=now;
-    if(entry.witch==identity.witch&&entry.version==version&&entry.hidden==hidden&&now-entry.tick<500)return;
-    if(entry.witch==identity.witch&&entry.failedVersion==version&&now-entry.tick<500)return;
+    if(entry.witch==identity.witch&&entry.version==version&&entry.hidden==hidden&&entry.providerSuppressed==providerSuppressed&&now-entry.tick<500)return;
+    if(entry.witch==identity.witch&&entry.failedVersion==version&&entry.providerSuppressed==providerSuppressed&&now-entry.tick<500)return;
+    entry.providerSuppressed=providerSuppressed;
     if(hidden||entry.hidden) {
         const bool baseline=entry.normalKnown||(renderer&&currentGuard(renderer,key,&entry.normal));
         entry.normalKnown=baseline;
@@ -329,6 +338,20 @@ bool runUnderwearPolicyTests(const std::filesystem::path& profile,std::string& e
     if(!check(setUnderwearHidden(3,false,error),"restore separate underwear preference"))return false;
     updateUnderwear(fixtureActor,identity);
     if(!check(fixtureVisibility==.7f&&r.underwearHiddenMask==0,"base underwear restores its own natural visibility"))return false;
+    const auto scopedPreference=baseUnderwearPreference();
+    fixtureReplaceUnderwear=true;updateUnderwear(fixtureActor,identity);
+    if(!check(fixtureVisibility==0&&query(scene.data(),&key,table.data(),0)==0&&query(otherScene.data(),&key,table.data(),0)==.7f,"owned outfit suppresses only its witch's normal underwear"))return false;
+    if(!check(setOutfitHidden(3,true,error)&&query(scene.data(),&key,table.data(),0)==0,"Hide outfit keeps the outfit's scoped underwear replacement active"))return false;
+    if(!check(baseUnderwearPreference().hiddenMask==scopedPreference.hiddenMask&&baseUnderwearPreference().revision==scopedPreference.revision,"outfit-scoped suppression never edits the player's preference or revision"))return false;
+    fixtureReplaceUnderwear=false;updateUnderwear(fixtureActor,identity);
+    if(!check(fixtureVisibility==.7f&&query(scene.data(),&key,table.data(),0)==.7f,"ownership loss or Default restores natural underwear with Hide outfit still enabled"))return false;
+    fixtureReplaceUnderwear=true;updateUnderwear(fixtureActor,identity);
+    if(!check(setUnderwearHidden(3,true,error),"hide both active underwear sources"))return false;
+    updateUnderwear(fixtureActor,identity);fixtureReplaceUnderwear=false;updateUnderwear(fixtureActor,identity);
+    if(!check(fixtureVisibility==0&&query(scene.data(),&key,table.data(),0)==0,"provider removal retains the player's separate hide preference"))return false;
+    if(!check(setUnderwearHidden(3,false,error)&&setOutfitHidden(3,false,error),"restore scoped underwear fixture"))return false;
+    updateUnderwear(fixtureActor,identity);
+    if(!check(fixtureVisibility==.7f,"show after provider removal restores captured natural visibility"))return false;
     const auto nudeRevision=r.outfitHiddenVersion.load();const auto lockedNude=CreateFileW(saved.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
     if(!check(lockedNude!=INVALID_HANDLE_VALUE,"lock Hide outfit preference fixture"))return false;
     const bool failedNude=!setOutfitHidden(3,true,error);CloseHandle(lockedNude);
@@ -342,6 +365,10 @@ bool runUnderwearPolicyTests(const std::filesystem::path& profile,std::string& e
     ready=false;
     if(!check(setOutfitHidden(3,true,error)&&setOutfitHidden(3,false,error),"the outfit route remains usable when the separate underwear hook is unavailable"))return false;
     if(!check(!setUnderwearHidden(3,true,error)&&r.underwearHiddenMask==55,"unavailable route cannot silently save an applied toggle"))return false;
+    DependencyStatus vanilla;vanilla.scanned=true;vanilla.bodyMode=BodyMode::Vanilla;vanilla.bodyVerified=true;vanilla.game.valid=true;vanilla.instant.valid=true;r.publishDependencies(vanilla);
+    if(!check(setUnderwearHidden(3,true,error)&&setUnderwearHidden(3,false,error),"Vanilla option retains Base underwear preferences without VENUS"))return false;
+    if(!check(setOutfitHidden(3,true,error)&&setOutfitHidden(3,false,error),"Vanilla option retains outfit visibility without VENUS"))return false;
+    r.publishDependencies({});
     fixtureIdentity=nullptr;applied.clear();return true;
 }
 #endif

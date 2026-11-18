@@ -17,7 +17,11 @@ namespace fs=std::filesystem;
 std::string lower(std::string value){std::transform(value.begin(),value.end(),value.begin(),[](unsigned char c){return char(std::tolower(c));});return value;}
 fs::path absolute(const fs::path& input,const fs::path& relativeTo) {
     if(input.empty())return {};
-    wchar_t expanded[32768]{};const auto length=ExpandEnvironmentStringsW(input.c_str(),expanded,32768);if(!length||length>32768)return {};
+    auto value=input.native();const auto first=value.find_first_not_of(L" \t\r\n"),last=value.find_last_not_of(L" \t\r\n");
+    if(first==std::wstring::npos)return {};value=value.substr(first,last-first+1);
+    if(value.size()>=2&&((value.front()==L'"'&&value.back()==L'"')||(value.front()==L'\''&&value.back()==L'\'')))value=value.substr(1,value.size()-2);
+    if(value.empty())return {};
+    wchar_t expanded[32768]{};const auto length=ExpandEnvironmentStringsW(value.c_str(),expanded,32768);if(!length||length>32768)return {};
     fs::path path(expanded);if(path.is_relative())path=relativeTo/path;
     std::error_code ec;auto resolved=fs::weakly_canonical(path,ec);return ec?path.lexically_normal():resolved;
 }
@@ -67,15 +71,59 @@ DependencyFile checkedHex(const fs::path& path){
     DependencyFile result;result.path=path;
     if(path.empty()||!regular(path)){result.detail="Hex preset not found. Set its path in Settings.";return result;}
     if(isOwnModContent(path)){result.detail="Hex must remain a separate installed dependency.";return result;}
+    const auto extension=lower(path.extension().u8string());
+    if(extension==".zip"||extension==".7z"||extension==".rar"){result.detail="Extract the preset archive, then select its .ini file or extracted folder.";return result;}
     const auto* version=hexPresetVersion(sha256(path));const auto text=readText(path);
     result.valid=text.find("InstantSurgeryOutfit")!=std::string::npos&&text.find("Shape.")!=std::string::npos;result.verified=version!=nullptr;
     result.detail=!result.valid?"The Hex preset file is unreadable or not an Instant Surgery preset.":version?std::string("Checked external Hex ")+version->version:unverifiedDependency("Hex's Hentai Preset");return result;
 }
+DependencyFile findHexPreset(const std::vector<fs::path>& roots,BodyMode mode){
+    DependencyFile best;size_t rank=hexPresetVersions.size()*2+2;
+    std::set<std::wstring> visited;
+    for(const auto& root:roots){
+        std::vector<std::pair<fs::path,int>> directories={{root,0}};size_t cursor=0,files=0;
+        while(cursor<directories.size()&&cursor<2048&&files<4096){
+            const auto row=directories[cursor++];const auto resolved=absolute(row.first,root);
+            if(!directory(resolved)||isOwnModContent(resolved)||!visited.insert(resolved.native()).second)continue;
+            for(size_t priority=0;priority<hexPresetVersions.size();++priority){
+                const auto candidate=resolved/hexPresetVersions[priority].filename;
+                if(!regular(candidate))continue;auto found=checkedHex(candidate);
+                const auto score=priority+(mode==BodyMode::Vanilla?hexPresetVersions.size():0);
+                if(found.valid&&found.verified&&score<rank){best=std::move(found);rank=score;if(!rank)return best;}
+            }
+            std::error_code ec;std::vector<fs::path> children,presets;
+            for(const auto& entry:fs::directory_iterator(resolved,fs::directory_options::skip_permission_denied,ec)){
+                if(entry.is_regular_file(ec)&&lower(entry.path().extension().u8string())==".ini")presets.push_back(entry.path());
+                else if(row.second<8&&entry.is_directory(ec)){
+                    const auto name=lower(entry.path().filename().u8string());
+                    if(name!="character"&&name!="ui"&&name!="texture"&&name!="textures"&&name!="node_modules"&&name!=".git"&&name!="backups")children.push_back(entry.path());
+                }
+            }
+            std::sort(presets.begin(),presets.end());std::sort(children.begin(),children.end());
+            for(const auto& candidate:presets){
+                if(++files>4096)break;std::error_code sizeError;const auto size=fs::file_size(candidate,sizeError);if(sizeError||size>1024*1024)continue;
+                const auto hash=sha256(candidate);size_t priority=hexPresetVersions.size();
+                if(const auto* version=hexPresetVersion(hash))priority=size_t(version-hexPresetVersions.data())+(mode==BodyMode::Vanilla?hexPresetVersions.size():0);
+                else{
+                    const auto filename=lower(candidate.filename().u8string()),text=lower(readText(candidate));
+                    const auto marker=text.find("instantsurgeryoutfit=");const auto end=marker==std::string::npos?0:text.find('\n',marker);
+                    const auto title=marker==std::string::npos?std::string{}:text.substr(marker,end==std::string::npos?std::string::npos:end-marker);
+                    if(filename.find("hentaibody")==std::string::npos&&title.find("hentaibody")==std::string::npos)continue;
+                    if(mode==BodyMode::Vanilla)priority=filename.find("venus")==std::string::npos&&title.find("venus")==std::string::npos?0:hexPresetVersions.size()*2;
+                }
+                if(priority>=rank)continue;auto found=checkedHex(candidate);
+                if(found.valid){best=std::move(found);rank=priority;if(!rank)return best;}
+            }
+            for(const auto& child:children)if(directories.size()<2048)directories.emplace_back(child,row.second+1);
+        }
+    }
+    return best;
+}
 std::vector<fs::path> configCandidates(const fs::path& game) {
-    std::vector<fs::path> result={game/L"nexus_downloads/dmm_update/config.json",game/L"config.json"};
+    std::vector<fs::path> result={game/L"nexus_downloads/dmm_update/config.json",game/L"config.json",game/L"bin64/dmm/config.json"};
     const auto snapshot=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);if(snapshot==INVALID_HANDLE_VALUE)return result;
     PROCESSENTRY32W entry{};entry.dwSize=sizeof(entry);
-    if(Process32FirstW(snapshot,&entry))do{if(_wcsicmp(entry.szExeFile,L"DMM.exe"))continue;
+    if(Process32FirstW(snapshot,&entry))do{if(_wcsicmp(entry.szExeFile,L"DMM.exe")&&_wcsicmp(entry.szExeFile,L"DefinitiveModManager.exe")&&_wcsicmp(entry.szExeFile,L"Definitive Mod Manager.exe"))continue;
         const auto process=OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,FALSE,entry.th32ProcessID);if(!process)continue;
         wchar_t path[32768]{};DWORD size=32768;if(QueryFullProcessImageNameW(process,0,path,&size))result.push_back(fs::path(path).parent_path()/L"config.json");CloseHandle(process);
     }while(Process32NextW(snapshot,&entry));CloseHandle(snapshot);return result;
@@ -85,6 +133,22 @@ std::map<std::string,fs::path> readRoutes(const fs::path& manifest) {
     while(std::getline(file,line)){if(!line.empty()&&line.back()=='\r')line.pop_back();if(line.rfind("file\t",0))continue;const auto tab=line.find('\t',5);if(tab==std::string::npos)continue;
         auto key=lower(line.substr(5,tab-5));std::replace(key.begin(),key.end(),'\\','/');result[key]=absolute(fs::u8path(line.substr(tab+1)),manifest.parent_path());}
     return result;
+}
+std::vector<fs::path> servedModRoots(const std::map<std::string,fs::path>& routes){
+    std::vector<fs::path> roots;std::set<std::string> seen,parents;
+    for(const auto& row:routes){
+        auto parent=row.second.parent_path();
+        for(int depth=0;depth<16&&!parent.empty();++depth){
+            if(!parents.insert(lower(parent.u8string())).second)break;
+            if(regular(parent/L"mod.json")){
+                const auto root=parent.parent_path();
+                if(!root.empty()&&!isOwnModContent(root)&&seen.insert(lower(root.u8string())).second)roots.push_back(root);
+            }
+            const auto next=parent.parent_path();if(next==parent)break;parent=next;
+        }
+        if(roots.size()>=64)break;
+    }
+    return roots;
 }
 
 }
@@ -106,42 +170,51 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
     if(!result.manager.valid)result.manager={false,paths.managerConfig,"Manager config not detected. A Mods folder can be set manually."};
     if(!paths.modsDirectory.empty())result.searchRoots.insert(result.searchRoots.begin(),absolute(paths.modsDirectory,base));
     result.searchRoots.push_back(base/L"nexus_downloads/dmm_update/mods");result.searchRoots.push_back(base/L"mods");
+    result.searchRoots.push_back(base/L"bin64/InstantSurgery/Outfits");result.searchRoots.push_back(base/L"bin64/InstantSurgery");
+    result.searchRoots.push_back(base/L"InstantSurgery/Outfits");result.searchRoots.push_back(base/L"InstantSurgery");result.searchRoots.push_back(base/L"bin64");
+    wchar_t local[32768]{};const auto localLength=GetEnvironmentVariableW(L"LOCALAPPDATA",local,32768);
+    if(localLength&&localLength<32768){result.searchRoots.push_back(fs::path(local)/L"InstantSurgery/Outfits");result.searchRoots.push_back(fs::path(local)/L"InstantSurgery");}
     result.manifest.path=paths.manifest.empty()?base/L"bin64/dmm/manifest.tsv":absolute(paths.manifest,base);
+    if(paths.manifest.empty()){
+        wchar_t runtimeFile[32768]{};const auto module=GetModuleHandleW(L"DmmRuntime.asi");
+        if(module&&GetModuleFileNameW(module,runtimeFile,32768)){
+            const auto candidate=fs::path(runtimeFile).parent_path()/L"dmm/manifest.tsv";
+            if(regular(candidate))result.manifest.path=candidate;
+        }
+    }
     result.manifest.valid=regular(result.manifest.path);result.manifest.detail=result.manifest.valid?"Active file list found":"Active file list not found. Mount through DMM or set its location.";
     const auto routes=readRoutes(result.manifest.path);
+    result.bodyMode=mountedBodyMode(result.manifest.path);
+    const auto servedRoots=servedModRoots(routes);
+    result.searchRoots.insert(result.searchRoots.end(),servedRoots.begin(),servedRoots.end());
+    if(!result.manager.valid&&paths.managerConfig.empty())for(const auto& root:servedRoots){
+        const auto candidate=root.parent_path()/L"config.json";const auto text=readText(candidate);const auto mods=property(text,"modsPath"),configuredGame=property(text,"gamePath");
+        if(mods.empty()||(!configuredGame.empty()&&lower(absolute(fs::u8path(configuredGame),candidate.parent_path()).u8string())!=lower(base.u8string())))continue;
+        result.manager={true,candidate,"Manager storage detected from active files"};result.searchRoots.insert(result.searchRoots.begin(),absolute(fs::u8path(mods),candidate.parent_path()));break;
+    }
+    if(!result.manager.valid&&!servedRoots.empty())result.manager={true,result.manifest.path,"Mod storage located from DMM's active file list"};
     const auto body=routes.find("character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac");
-    if(body!=routes.end()){
+    if(body!=routes.end()&&result.bodyMode!=BodyMode::Vanilla){
         if(paths.venusBody.empty())result.venus=checkedVenus(body->second);
         auto parent=body->second.parent_path();for(int i=0;i<16&&!parent.empty();++i){if(lower(parent.filename().u8string())=="mods"){result.searchRoots.push_back(parent);break;}const auto next=parent.parent_path();if(next==parent)break;parent=next;}
     }
-    if(!paths.venusBody.empty())result.venus=checkedVenus(absolute(paths.venusBody,base));
+    if(!paths.venusBody.empty()&&result.bodyMode!=BodyMode::Vanilla)result.venus=checkedVenus(absolute(paths.venusBody,base));
     std::vector<fs::path> roots;std::set<std::string> seen;
     for(const auto& root:result.searchRoots)if(directory(root)&&!isOwnModContent(root)&&seen.insert(lower(root.u8string())).second)roots.push_back(root);result.searchRoots=roots;
-    size_t hexPriority=hexPresetVersions.size();
-    if(!paths.hexPreset.empty())result.hex=checkedHex(absolute(paths.hexPreset,base));
-    for(const auto& root:roots){
-        std::vector<std::pair<fs::path,int>> directories={{root,0}};size_t cursor=0;
-        while(cursor<directories.size()&&cursor<1024){const auto row=directories[cursor++];
-            if(paths.hexPreset.empty())for(size_t priority=0;priority<hexPriority;++priority){
-                const auto candidate=row.first/hexPresetVersions[priority].filename;
-                if(regular(candidate)){auto found=checkedHex(candidate);if(found.valid&&sha256(candidate)==hexPresetVersions[priority].sha256){result.hex=found;hexPriority=priority;break;}}
-            }
-            if(paths.hexPreset.empty()&&!result.hex.valid){std::error_code scanError;for(const auto& entry:fs::directory_iterator(row.first,fs::directory_options::skip_permission_denied,scanError)){
-                const auto name=lower(entry.path().filename().u8string());if(!entry.is_regular_file(scanError)||name.rfind("preset-f-hentaibody",0)!=0||entry.path().extension()!=L".ini")continue;auto found=checkedHex(entry.path());if(found.valid){result.hex=found;break;}
-            }}
-            if(result.hex.valid&&(!paths.hexPreset.empty()||hexPriority==0))break;
-            if(row.second>=3)continue;std::error_code ec;
-            for(const auto& entry:fs::directory_iterator(row.first,fs::directory_options::skip_permission_denied,ec)){
-                if(!entry.is_directory(ec)||entry.is_symlink(ec)||isOwnModContent(entry.path()))continue;
-                const auto name=lower(entry.path().filename().u8string());if(name=="character"||name=="ui"||name=="texture"||name=="textures"||name=="node_modules"||name==".git")continue;
-                if(directories.size()<1024)directories.emplace_back(entry.path(),row.second+1);
-            }
-        }
+    if(paths.hexPreset.empty())result.hex=findHexPreset(roots,result.bodyMode);
+    else{
+        const auto selected=absolute(paths.hexPreset,base);
+        if(directory(selected)){
+            result.hex=findHexPreset({selected},result.bodyMode);
+            if(!result.hex.valid){result.hex.path=selected;result.hex.detail=isOwnModContent(selected)?"Hex must remain a separate installed dependency.":"No supported Hex preset found in this folder. Select the extracted preset .ini file.";}
+        }else result.hex=checkedHex(selected);
     }
-    if(result.venus.path.empty())result.venus.detail="VENUS active route not found. Mount one Human Body or Elf Body variant through DMM.";
+    if(result.venus.path.empty())result.venus.detail=result.bodyMode==BodyMode::Vanilla?"VENUS is not required by the selected Vanilla body option.":"VENUS active route not found. Mount one Human Body or Elf Body variant through DMM.";
     if(result.hex.path.empty())result.hex.detail="Hex preset not found. Set its path to enable HEX.";
-    result.bodyVerified=result.venus.valid&&verifyMountedDependencies(base,result.manifest.path,result.bodyDetail,result.bodyWarning);
-    if(result.bodyVerified)result.bodyDetail=result.bodyWarning.empty()?"VENUS and witch body routes verified in the active file list.":result.bodyWarning;
+    else if(result.hex.valid&&result.bodyMode==BodyMode::Vanilla)result.hex.detail+=" The installed preset values are applied relative to each witch's original body; the result depends on that base.";
+    result.bodyVerified=result.bodySourceReady()&&verifyMountedDependencies(base,result.manifest.path,result.bodyDetail,result.bodyWarning);
+    if(result.bodyMode==BodyMode::Invalid)result.bodyDetail="The mounted witch bodies are missing or mixed. Enable one Hex Appeal body option, remove any stale older entry and remount.";
+    if(result.bodyVerified)result.bodyDetail=result.bodyWarning.empty()?(result.bodyMode==BodyMode::Vanilla?"Vanilla body selected explicitly; all seven witch body routes checked. VENUS is not required.":"VENUS and witch body routes verified in the active file list."):result.bodyWarning;
     else if(result.bodyDetail.empty())result.bodyDetail=result.venus.detail;
     return result;
 }
@@ -165,7 +238,7 @@ bool saveDependencyPaths(const fs::path& file,const DependencyPaths& paths,std::
     out.flush();const bool written=bool(out);out.close();if(!written||!MoveFileExW(temporary.c_str(),file.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH)){error="Dependency paths could not be saved atomically.";return false;}return true;
 }
 std::string profileDependencyIssue(const Profile& profile,bool shaping,bool hasHex,bool weightReady) {
-    if(!shaping)return "Shaping is unavailable. Check VENUS, Instant Surgery and active body files in Settings.";
+    if(!shaping)return "Shaping is unavailable. Check the selected body, Instant Surgery and active body files in Settings.";
     if(((profile.top==Preset::Hex&&profile.topBlend>0)||(profile.bottom==Preset::Hex&&profile.bottomBlend>0))&&!hasHex)return "HEX is unavailable. Install or locate Hex's required preset in Settings.";
     if(profile.weight!=0&&!weightReady)return "Native Weight controls are unavailable. Check shaping status in Settings; no outfit dependency is required.";
     return {};

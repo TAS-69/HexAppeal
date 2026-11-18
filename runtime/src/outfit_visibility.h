@@ -8,7 +8,7 @@
 
 namespace hex {
 struct OutfitPartPreference {std::string part;bool visible=true;};
-struct OutfitVisibilityPolicy {bool owned=false,enabled=false;uintptr_t owner=0;std::string prefab;std::vector<OutfitPartPreference> parts;};
+struct OutfitVisibilityPolicy {bool owned=false,enabled=false,replaceBaseUnderwear=false;uintptr_t owner=0;std::string prefab;std::vector<OutfitPartPreference> parts;};
 struct OutfitVisibilityCalls {
     bool (*intern)(const char*,uint32_t*)=nullptr;
     bool (*baseline)(void*,uint32_t,float*)=nullptr;

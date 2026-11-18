@@ -45,7 +45,10 @@ int main(){
     check(!hex::captureWardrobeSnapshot(ptr(f.actor.data()),3,base,out),"matching suffix alone cannot identify a witch");
     check(hex::wardrobeWitchForAppearance("character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20166.app_xml")==0,"Lyselia path");
     check(hex::wardrobePartKind(1,"cd_phw_00_ub_00_0157")==hex::WardrobePartKind::DefaultGarment,"alternate Bari default");
+    check(hex::wardrobePartKind(1,"phw_00_uw_00_0002")==hex::WardrobePartKind::Underwear&&!hex::defaultOutfitPart(1,"phw_00_uw_00_0002"),"original alternate Bari underwear stays separate from clothing");
     check(hex::defaultOutfitPart(3,"cd_nhw_so_ub_20168")&&hex::defaultOutfitPart(3,"cd_phw_00_hel_00_0186")&&hex::defaultOutfitPart(3,"cd_phw_00_foot_00_0160"),"Hide outfit owns Elowen's exact default robe hat and footwear");
+    check(hex::defaultOutfitPart(3,"ha_phw_00_foot_00_0160")&&hex::defaultOutfitPart(2,"ha_phw_00_foot_00_0161_index01")&&hex::defaultOutfitPart(1,"ha_phw_00_foot_00_0163"),"isolated witch footwear retains exact Hide outfit ownership");
+    check(!hex::defaultOutfitPart(0,"ha_phw_00_foot_00_0160")&&!hex::defaultOutfitPart(3,"ha_phw_00_foot_00_0163"),"isolated footwear does not grant cross-witch ownership");
     check(!hex::defaultOutfitPart(3,"phw_00_nude_00_0001_damian")&&!hex::defaultOutfitPart(3,"phw_00_head_00_0141")&&!hex::defaultOutfitPart(3,"phw_00_hair_00_0006_04")&&!hex::defaultOutfitPart(3,"example_ub_custom")&&!hex::defaultOutfitPart(2,"cd_phw_00_hel_00_0186"),"Hide outfit excludes body hair head foreign outfits and another witch's accessories");
     Fixture bounds;put(bounds.node.data(),0x60,uintptr_t(65)|(uintptr_t(65)<<32));
     check(!hex::captureWardrobeSnapshot(ptr(bounds.actor.data()),3,base,out),"claim cap enforced");

@@ -64,3 +64,7 @@ Native accessory visibility and Base underwear linkage have sampled live coverag
 Combined multi-control prefab matrices have offline coverage; rendered coverage is still required for an adopting outfit. See [advanced integrations](ADVANCED-EXAMPLES.md) for a complete eight-state matrix, independent accessory bindings, custom renderer code and refresh/error handling.
 
 My SDK code and examples are 0BSD. They confer no licence to game assets or another outfit mod. Obtain any permissions needed for your own patch and retain the original credits.
+
+## An outfit with its own underwear
+
+Add top-level `replace_base_underwear: true` and keep clothing on `follow_outfit_hide`, bra/briefs on `follow_base_underwear`. Follow the [scoped policy guide](BASE-UNDERWEAR-POLICY.md). The normal pair is suppressed only for an available owned replacement; Hide outfit retains custom underwear and Default restores natural base rules. The generator checks the optional capability before registering. Do not change the player's persistent checkbox automatically or replace shared Damiane underwear files. Test actual assets in all visibility combinations.

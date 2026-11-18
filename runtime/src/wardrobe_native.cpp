@@ -274,10 +274,11 @@ bool ownedOutfitVisibility(uintptr_t actor,int witch,OutfitVisibilityPolicy& pol
     bool present=false;for(uint32_t i=0;i<snapshot.claimCount;++i)if(entry.current==snapshot.claims[i].prefab)present=true;
     if(!present)return false;
     policy.owned=true;policy.owner=entry.node;policy.prefab=entry.current;
-    if(faulted)return true;
+    if(!engineReady||!writesAllowed||faulted)return true;
     WardrobeProviderOutfit provider;std::string error;
     if(!resolveWardrobeProvider(wardrobeOutfitId(selected.choices[witch]),witch,provider,error)||provider.prefab!=entry.current)return true;
-    policy.enabled=true;for(const auto& part:provider.visibilityParts)policy.parts.push_back({part.part,part.visible});
+    policy.enabled=true;policy.replaceBaseUnderwear=(provider.policyFlags&HA_REPLACE_BASE_UNDERWEAR)!=0;
+    for(const auto& part:provider.visibilityParts)policy.parts.push_back({part.part,part.visible});
     return true;
 }
 }

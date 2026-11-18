@@ -57,6 +57,10 @@ int main(int argc,char** argv){try{
     r.reportCompatibility(hex::Feature::Hex,hex::CompatibilityState::Ready,"External preset parsed.");frame();click("TOP.preset1");if(r.model.draft.top!=hex::Preset::Hex)throw std::runtime_error("fixed preset did not recover its controls");
     r.reportCompatibility(hex::Feature::Weight,hex::CompatibilityState::Blocked,"Native Weight interface is unavailable.");frame();const auto blockedWeight=r.model.draft.weight;click("weight",.15f);if(r.model.draft.weight!=blockedWeight)throw std::runtime_error("weight capability block was ignored");r.reportCompatibility(hex::Feature::Weight,hex::CompatibilityState::Ready,"Native controls available.");
     r.publishDependencies(unverified);frame();const auto missingOutfitWeight=r.model.draft.weight;click("weight",.2f);if(r.model.draft.weight==missingOutfitWeight)throw std::runtime_error("missing Dancer source disabled Weight");
+    auto vanilla=unverified;vanilla.bodyMode=hex::BodyMode::Vanilla;vanilla.venus={};r.publishDependencies(vanilla);frame();
+    const auto vanillaHeight=r.model.draft.height;click("height",.6f);if(r.model.draft.height==vanillaHeight)throw std::runtime_error("explicit vanilla option was blocked by missing VENUS");
+    click("TOP.preset0");click("BOTTOM.preset2");if(r.model.draft.top!=hex::Preset::Venus||r.model.draft.bottom!=hex::Preset::Flat)throw std::runtime_error("vanilla baseline/FLAT controls were not selectable");
+    r.publishDependencies(unverified);frame();
     hex::Model noOutfitSaved;if(!noOutfitSaved.load(r.profiles,error)||noOutfitSaved.saved[0].weight!=r.model.draft.weight)throw std::runtime_error("Weight without Dancer did not save");
     r.publishDependencies({});click("reset");
     r.hexAvailable=false;frame();const auto noHex=r.model.draft;click("TOP.preset1");pad(.1f,.8f);

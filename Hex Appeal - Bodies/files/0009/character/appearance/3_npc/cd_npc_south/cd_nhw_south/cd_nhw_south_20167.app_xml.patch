@@ -1,3 +1,4 @@
 <xml-patch>
   <set find="Prefab" key="phw_00_nude_00_0001" attr="Name" value="phw_00_nude_00_0001_damian" />
+  <set find="Prefab" key="cd_phw_00_foot_00_0163" attr="Name" value="ha_phw_00_foot_00_0163" />
 </xml-patch>

@@ -9,6 +9,7 @@ Start with [Installation](Installation.md), then open the game panel with **F9**
 | I want to… | Read this |
 | --- | --- |
 | Install or remove the mod | [Installation](Installation.md) |
+| Choose VENUS or original witch bodies | [Body options](Body-options.md) |
 | Mix shapes and change proportions | [Shape controls](Shape-controls.md) |
 | Change outfits, colours or underwear | [Wardrobe](Wardrobe.md) |
 | Remove supported clothing and restore it | [Hide outfit](Outfit-Visibility.md) |

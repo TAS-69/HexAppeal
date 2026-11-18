@@ -29,3 +29,5 @@ The [advanced examples](SDK-examples.md) include the complete JSON, generated-he
 ## Test the patch
 
 Check every combination, supported witch, shape range, detail level and moving cloth. Verify Base underwear overrides and stored-choice restoration, actor rebuilds, missing resources, save reload, full restart and custom spouse/barber equipment. Registration alone cannot establish rendering or fitting correctness.
+
+For an outfit supplying its own bra/briefs, see [scoped base underwear replacement](SDK-Base-Underwear-Policy.md). This hides the normal pair only while the selected replacement is owned, without changing the player's saved preference.

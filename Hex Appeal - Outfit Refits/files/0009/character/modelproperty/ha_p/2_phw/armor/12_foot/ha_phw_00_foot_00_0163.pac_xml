@@ -1,0 +1,1906 @@
+﻿<SkinnedMeshPropertyCommon ReflectObjectXMLDataVersion="9"/>
+<ModelPropertyList>
+	<ModelProperty Index="0" Version="Reflection">
+		<SkinnedMeshProperty ReflectObjectXMLDataVersion="9">
+			<Vector Name="_subMeshResources" IdBase="509" isOverrided="true">
+				<SkinnedMeshMaterialWrapper ItemID="506" _subMeshName="cd_phw_00_foot_00_0163_02" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="268440082" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355810" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="7"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#00000005" Index="8"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#896d50ff" Index="9"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="10"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="11">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#65503fff" Index="29"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="30"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="31"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="32"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="33"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="37522" Index="35"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="37"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="38"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="4" Index="39"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="507" _subMeshName="cd_phw_00_foot_00_0163_01" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshStandard_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="4286516750" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355769" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="10"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#ffffff00" Index="11"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#406a89f5" Index="12"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="13"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#092135f5" Index="32"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="33"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#130b04ff" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="35"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="37"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="10280" Index="38"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="39"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="8224" Index="40"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="508" _subMeshName="cd_phw_00_foot_00_0163_03" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="8481" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255456" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="6"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#767070ff" Index="7"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="8"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="9">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="10">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="11">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#170f0bff" Index="27"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="28"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="29"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453122" Index="30"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="31"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="32"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="29298" Index="33"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="35"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="36"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="5" Index="37"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="509" _subMeshName="cd_phw_00_foot_00_0163" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_overlayColorTexture" ItemID="1" _name="_overlayColorTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_01_o.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="5">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="1157632530" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="15677" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="65280" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="10"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355810" Index="11"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="12"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#00000005" Index="13"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#000000ff" Index="14"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="15"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0004.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0004_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0004_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureG" ItemID="2589949493772286" _name="_grimeDiffuseTextureG" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureG" ItemID="2626264966889470" _name="_grimeNormalTextureG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureG" ItemID="4492833149943806" _name="_grimeMaterialTextureG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0001.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0001_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0001_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="32">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0001_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="33">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="34">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="35">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="36">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#7a5f4aff" Index="37"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#6f6f6fff" Index="38"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#170f0bff" Index="39"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143420543" Index="40"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="41"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="42"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="5654" Index="43"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="3084" Index="44"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="45"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="46"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="4" Index="47"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+			</Vector>
+		</SkinnedMeshProperty>
+	</ModelProperty>
+	<ModelProperty Index="1" Version="Reflection">
+		<SkinnedMeshProperty ReflectObjectXMLDataVersion="9">
+			<Vector Name="_subMeshResources" IdBase="233" isOverrided="true">
+				<SkinnedMeshMaterialWrapper ItemID="230" _subMeshName="cd_phw_00_foot_00_0163_02" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="134222354" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278243885" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355763" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="8"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#00000005" Index="9"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#483c2bff" Index="10"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="11"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#2f0410ff" Index="30"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="31"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="32"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="33"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="35"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="44975" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="37"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="38"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="39"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="4" Index="40"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="231" _subMeshName="cd_phw_00_foot_00_0163_01" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshStandard_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="4286516750" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355769" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="10"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#ffffff00" Index="11"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#406a89f5" Index="12"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="13"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#092135f5" Index="32"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="33"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#130b04ff" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="35"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="37"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="10280" Index="38"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="39"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="8224" Index="40"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="232" _subMeshName="cd_phw_00_foot_00_0163_03" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="8481" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255456" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="6"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#767070ff" Index="7"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="8"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="9">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="10">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="11">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#170f0bff" Index="27"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="28"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="29"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453122" Index="30"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="31"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="32"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="29298" Index="33"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="35"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="36"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="5" Index="37"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="233" _subMeshName="cd_phw_00_foot_00_0163" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_overlayColorTexture" ItemID="1" _name="_overlayColorTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_01_o.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="5">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="704647698" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="13107" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="7000621" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="10"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8357555" Index="11"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="12"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#00000005" Index="13"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#483c2bff" Index="14"/>
+							<MaterialParameterColor StringItemID="_tintColorG" ItemID="1221679076343806" _name="_tintColorG" _value="#4b4b4bff" Index="15"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="16"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureG" ItemID="2589949493772286" _name="_grimeDiffuseTextureG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0004.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureG" ItemID="2626264966889470" _name="_grimeNormalTextureG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0004_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureG" ItemID="4492833149943806" _name="_grimeMaterialTextureG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0004_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1004_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0016.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0016_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="32">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0016_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="33">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0016_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="34">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="35">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="36">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="37">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#2f0410ff" Index="38"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#777777ff" Index="39"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#170f0bff" Index="40"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143420543" Index="41"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="42"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="43"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="8738" Index="44"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="6682" Index="45"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="46"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.020000" Index="47"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="48"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="4" Index="49"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+			</Vector>
+		</SkinnedMeshProperty>
+	</ModelProperty>
+	<ModelProperty Index="2" Version="Reflection">
+		<SkinnedMeshProperty ReflectObjectXMLDataVersion="9">
+			<Vector Name="_subMeshResources" IdBase="207" isOverrided="true">
+				<SkinnedMeshMaterialWrapper ItemID="204" _subMeshName="cd_phw_00_foot_00_0163_02" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="201331218" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255418" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355792" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="8"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#00000005" Index="9"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#483c2bff" Index="10"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="11"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#0f0f0fff" Index="30"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="31"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="32"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="33"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="35"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="3598" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="37"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="38"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="39"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="40"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="4" Index="41"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="205" _subMeshName="cd_phw_00_foot_00_0163_01" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshStandard_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="4286516750" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355769" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="10"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#ffffff00" Index="11"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#406a89f5" Index="12"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="13"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#092135f5" Index="32"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="33"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#130b04ff" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="35"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="37"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="10280" Index="38"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="39"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="8224" Index="40"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="41"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="206" _subMeshName="cd_phw_00_foot_00_0163_03" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="8481" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255456" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="6"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#767070ff" Index="7"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="8"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="9">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="10">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="11">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#170f0bff" Index="27"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="28"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="29"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453122" Index="30"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="31"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="32"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="29298" Index="33"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="35"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="36"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="37"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="5" Index="38"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="207" _subMeshName="cd_phw_00_foot_00_0163" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_overlayColorTexture" ItemID="1" _name="_overlayColorTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_01_o.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="5">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="201331218" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="15677" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255418" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="10"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355792" Index="11"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="12"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#00000005" Index="13"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#483c2bff" Index="14"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="15"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureG" ItemID="2589949493772286" _name="_grimeDiffuseTextureG" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureG" ItemID="2626264966889470" _name="_grimeNormalTextureG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureG" ItemID="4492833149943806" _name="_grimeMaterialTextureG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="32">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="33">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="34">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="35">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="36">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#0f0f0fff" Index="37"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#a4a4a4ff" Index="38"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#170f0bff" Index="39"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="40"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="41"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="42"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="3598" Index="43"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="7196" Index="44"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="45"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="46"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="47"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="4" Index="48"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+			</Vector>
+		</SkinnedMeshProperty>
+	</ModelProperty>
+	<ModelProperty Index="3" Version="Reflection">
+		<SkinnedMeshProperty ReflectObjectXMLDataVersion="9">
+			<Vector Name="_subMeshResources" IdBase="259" isOverrided="true">
+				<SkinnedMeshMaterialWrapper ItemID="256" _subMeshName="cd_phw_00_foot_00_0163_02" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="4278194706" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255450" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355651" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="8"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#00000005" Index="9"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#000000ff" Index="10"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="11"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1001_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1101.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1101_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1101_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1101_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#000000ff" Index="30"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="31"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="32"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="33"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="35"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="59624" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="37"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="38"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="39"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="40"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="4" Index="41"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="257" _subMeshName="cd_phw_00_foot_00_0163_01" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshStandard_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="4286516750" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355769" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="10"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#ffffff00" Index="11"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#406a89f5" Index="12"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="13"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#092135f5" Index="32"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="33"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#0f0f0fff" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="35"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="37"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="10280" Index="38"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="39"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="8224" Index="40"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="41"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="258" _subMeshName="cd_phw_00_foot_00_0163_03" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="8481" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255456" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="6"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#767070ff" Index="7"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="8"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="9">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="10">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="11">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#332117ff" Index="27"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="28"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="29"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453122" Index="30"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="31"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="32"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="32896" Index="33"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="35"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.040000" Index="36"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="37"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="5" Index="38"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="259" _subMeshName="cd_phw_00_foot_00_0163" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_overlayColorTexture" ItemID="1" _name="_overlayColorTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_01_o.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="5">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="201331218" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="15677" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255418" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="10"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355753" Index="11"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="12"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#483c2bff" Index="13"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="14"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0103_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureG" ItemID="2589949493772286" _name="_grimeDiffuseTextureG" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureG" ItemID="2626264966889470" _name="_grimeNormalTextureG" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureG" ItemID="4492833149943806" _name="_grimeMaterialTextureG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1003_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_1003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="32">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="33">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="34">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="35">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#000000ff" Index="36"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#544328ff" Index="37"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#332117ff" Index="38"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="39"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="40"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="41"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="3598" Index="42"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="7196" Index="43"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="44"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="45"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="46"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="4" Index="47"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+			</Vector>
+		</SkinnedMeshProperty>
+	</ModelProperty>
+	<ModelProperty Index="4" Version="Reflection">
+		<SkinnedMeshProperty ReflectObjectXMLDataVersion="9">
+			<Vector Name="_subMeshResources" IdBase="71" isOverrided="true">
+				<SkinnedMeshMaterialWrapper ItemID="68" _subMeshName="cd_phw_00_foot_00_0163_02" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="6299166" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="5"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#0e0f1600" Index="6"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#00000057" Index="7"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="8"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="9">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="10">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="11">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureG" ItemID="2626264966889470" _name="_grimeNormalTextureG" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0020_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureG" ItemID="4492833149943806" _name="_grimeMaterialTextureG" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0020_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#c5cdd4ff" Index="29"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="30"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="31"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453024" Index="32"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="33"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="2034443" Index="35"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="37"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="38"/>
+							<MaterialParameterClothCategory StringItemID="_clothCategory" ItemID="2079719859159038" _name="_clothCategory" _value="Silk" Index="39"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="1" Index="40"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="69" _subMeshName="cd_phw_00_foot_00_0163_01" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshStandard_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="4286516750" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_scratchRoughness" ItemID="638052851515390" _name="_scratchRoughness" _value="8355769" Index="9"/>
+							<MaterialParameterByte4 StringItemID="_scratchMetallic" ItemID="488189023223806" _name="_scratchMetallic" _value="8355584" Index="10"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#ffffff00" Index="11"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#406a89f5" Index="12"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="13"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0003_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#092135f5" Index="32"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="33"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#130b04ff" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453055" Index="35"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="37"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="10280" Index="38"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="39"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="8224" Index="40"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="41"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="70" _subMeshName="cd_phw_00_foot_00_0163_03" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/temp_r.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_common_default_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="8481" Index="2"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="3355443" Index="3"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="4"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter" ItemID="3928856515837950" _name="_grimeBlendingOpacityParameter" _value="4278255456" Index="5"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="6"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#767070ff" Index="7"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="8"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="9">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="10">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="11">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="12">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0006_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#0a0808ff" Index="27"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#977a40ff" Index="28"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#040910ff" Index="29"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453122" Index="30"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="31"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="32"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="29298" Index="33"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="925985" Index="34"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="35"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="36"/>
+							<MaterialParameterFloat StringItemID="_sheen" ItemID="403124275642366" _name="_sheen" _value="0.700000" Index="37"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="5" Index="38"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+				<SkinnedMeshMaterialWrapper ItemID="71" _subMeshName="cd_phw_00_foot_00_0163" _jiggleWindWeight="0">
+					<Material Name="_resourceMaterial" _materialName="SkinnedMeshCloth_Ver2">
+						<Vector Name="_permutations"/>
+						<Vector Name="_parameters">
+							<MaterialParameterTexture StringItemID="_normalTexture" ItemID="7" _name="_normalTexture" Index="0">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_heightTexture" ItemID="5" _name="_heightTexture" Index="1">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterFloat StringItemID="_screenSpaceDisplacementScale" ItemID="3" _name="_screenSpaceDisplacementScale" _value="0.136000" Index="2"/>
+							<MaterialParameterTexture StringItemID="_overlayColorTexture" ItemID="1" _name="_overlayColorTexture" Index="3">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_01_o.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_colorBlendingMaskTexture" ItemID="3936485985222654" _name="_colorBlendingMaskTexture" Index="4">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_ma.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaskTexture" ItemID="2838988925698046" _name="_detailMaskTexture" Index="5">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_phw_00_foot_00_0166_mg.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterR" ItemID="4065675573198846" _name="_grimeBlendingParameterR" _value="6299166" Index="6"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterG" ItemID="3297423466168318" _name="_grimeBlendingParameterG" _value="15677" Index="7"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingParameterB" ItemID="690165107392510" _name="_grimeBlendingParameterB" _value="8481" Index="8"/>
+							<MaterialParameterByte4 StringItemID="_grimeBlendingOpacityParameter1" ItemID="3046188559368190" _name="_grimeBlendingOpacityParameter1" _value="65376" Index="9"/>
+							<MaterialParameterColor StringItemID="_scratchTintColorR" ItemID="274243605495806" _name="_scratchTintColorR" _value="#0e0f1600" Index="10"/>
+							<MaterialParameterColor StringItemID="_tintColorR" ItemID="1922282603675646" _name="_tintColorR" _value="#00000057" Index="11"/>
+							<MaterialParameterColor StringItemID="_tintColorB" ItemID="1355186969772030" _name="_tintColorB" _value="#767070ff" Index="12"/>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureR" ItemID="1747043000254462" _name="_grimeDiffuseTextureR" Index="13">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureR" ItemID="3993162129342462" _name="_grimeNormalTextureR" Index="14">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureR" ItemID="3401228360876030" _name="_grimeMaterialTextureR" Index="15">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureG" ItemID="2589949493772286" _name="_grimeDiffuseTextureG" Index="16">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureG" ItemID="2626264966889470" _name="_grimeNormalTextureG" Index="17">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureG" ItemID="4492833149943806" _name="_grimeMaterialTextureG" Index="18">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_002_0001_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeDiffuseTextureB" ItemID="789522652594174" _name="_grimeDiffuseTextureB" Index="19">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeNormalTextureB" ItemID="1127148739887102" _name="_grimeNormalTextureB" Index="20">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_grimeMaterialTextureB" ItemID="438556814213118" _name="_grimeMaterialTextureB" Index="21">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0002_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskR" ItemID="1028073018359806" _name="_detailDiffuseMaskR" Index="22">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskR" ItemID="2341195301781502" _name="_detailNormalMaskR" Index="23">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskR" ItemID="2477341709172734" _name="_detailHeightMaskR" Index="24">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskR" ItemID="3806852434362366" _name="_detailMaterialMaskR" Index="25">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0025_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskG" ItemID="3547446084894718" _name="_detailDiffuseMaskG" Index="26">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskG" ItemID="4185113797591038" _name="_detailNormalMaskG" Index="27">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskG" ItemID="552493925793790" _name="_detailHeightMaskG" Index="28">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskG" ItemID="2857745963286526" _name="_detailMaterialMaskG" Index="29">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_003_0202_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailDiffuseMaskB" ItemID="339208423079934" _name="_detailDiffuseMaskB" Index="30">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailNormalMaskB" ItemID="2187181978288126" _name="_detailNormalMaskB" Index="31">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_n.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailHeightMaskB" ItemID="3555280570810366" _name="_detailHeightMaskB" Index="32">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_disp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterTexture StringItemID="_detailMaterialMaskB" ItemID="2987548997582846" _name="_detailMaterialMaskB" Index="33">
+								<ResourceReferencePath_ITexture Name="_value" _path="character/texture/cd_texturelayer_001_0021_sp.dds"/>
+							</MaterialParameterTexture>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskR" ItemID="3396111256518654" _name="_dyeingDetailLayerColorMaskR" _value="#c5cdd4ff" Index="34"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskG" ItemID="2124937389146110" _name="_dyeingDetailLayerColorMaskG" _value="#a4a4a4ff" Index="35"/>
+							<MaterialParameterColor StringItemID="_dyeingDetailLayerColorMaskB" ItemID="345410345369598" _name="_dyeingDetailLayerColorMaskB" _value="#0a0808ff" Index="36"/>
+							<MaterialParameterByte4 StringItemID="_dyeingPropertyBlend" ItemID="3323518988058622" _name="_dyeingPropertyBlend" _value="2143453024" Index="37"/>
+							<MaterialParameterBitFlag32 StringItemID="_colorBlendingFlag" ItemID="1263404788482046" _name="_colorBlendingFlag" _value="4095" Index="38"/>
+							<MaterialParameterByte4 StringItemID="_dyeingGlobalOpacity" ItemID="685773182468094" _name="_dyeingGlobalOpacity" _value="16777215" Index="39"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty0" ItemID="2380709743296510" _name="_dyeingTransformProperty0" _value="2034443" Index="40"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty1" ItemID="2427310400602110" _name="_dyeingTransformProperty1" _value="7196" Index="41"/>
+							<MaterialParameterByte4 StringItemID="_dyeingTransformProperty3" ItemID="3193012944371710" _name="_dyeingTransformProperty3" _value="6168" Index="42"/>
+							<MaterialParameterFloat StringItemID="_detailScreenSpaceDisplacementScale" ItemID="3900249546424318" _name="_detailScreenSpaceDisplacementScale" _value="0.010000" Index="43"/>
+							<MaterialParameterClothCategory StringItemID="_clothCategory" ItemID="2079719859159038" _name="_clothCategory" _value="Silk" Index="44"/>
+							<MaterialParameterBitFlag32 StringItemID="_clothMaskBit" ItemID="4443551599427582" _name="_clothMaskBit" _value="1" Index="45"/>
+						</Vector>
+					</Material>
+				</SkinnedMeshMaterialWrapper>
+			</Vector>
+		</SkinnedMeshProperty>
+	</ModelProperty>
+</ModelPropertyList>
+

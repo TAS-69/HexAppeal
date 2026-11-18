@@ -41,6 +41,17 @@ class DefinitionTests(unittest.TestCase):
         self.definition['native_controls']=[c['id'] for c in self.definition['controls']]
         with self.assertRaisesRegex(ValueError,'256'):module.validate(self.definition)
     def test_schema_boolean_rejected(self):self.invalid(lambda d:d.update(schema=True))
+    def test_scoped_underwear_policy(self):
+        self.definition['replace_base_underwear']=True
+        code=module.render(module.validate(self.definition))
+        self.assertIn('if(!client.HasOutfitPolicy())return HA_UNAVAILABLE;',code)
+        self.assertIn('client.Policy(token,HA_REPLACE_BASE_UNDERWEAR)',code)
+        self.assertIn('client.Unregister(token)',code)
+        self.assertNotIn('HideBase',code)
+    def test_scoped_underwear_policy_requires_boolean(self):
+        self.invalid(lambda d:d.update(replace_base_underwear=1))
+    def test_legacy_definition_needs_no_policy_extension(self):
+        self.assertNotIn('HasOutfitPolicy',module.render(module.validate(self.definition)))
     def parts(self):
         self.definition.pop('native_controls');self.definition.pop('states')
         self.definition['part_visibility']=[{'control':'bra','part':'MyBra'},{'control':'panties','part':'MyBriefs'}]

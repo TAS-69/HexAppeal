@@ -9,6 +9,7 @@ The C ABI is in `HexAppealWardrobe.h`; the C++17 helper is `HexAppealWardrobeCli
 | `HexAppeal_GetWardrobeAPI(1)` | Registration, readiness, saved selections and controls; original 72-byte v1 table |
 | `HexAppeal_GetNativeWardrobeAPI(1)` | Checked native replacement prefabs and visibility bindings |
 | `HexAppeal_GetBaseUnderwearAPI(1)` | Base preference and effective garment values |
+| `HexAppeal_GetOutfitPolicyAPI(1)` | Optional per-outfit replacement of normal base underwear |
 | `HexAppeal_GetOutfitVisibilityAPI(1)` | Separate Hide outfit preference, revision and readiness |
 | `HexAppeal_RequestWardrobeRefreshV1` | Refresh after an external resource change is complete and verified |
 | `HA_GLOBAL` | Shared control, such as one shared texture |

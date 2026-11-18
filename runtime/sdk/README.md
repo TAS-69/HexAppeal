@@ -68,6 +68,8 @@ Ordinary choices/toggles are rendered and saved by Wardrobe; your mod applies th
 
 ## Follow Base underwear
 
+If your outfit supplies its own pair, use [outfit-scoped base underwear replacement](BASE-UNDERWEAR-POLICY.md). Set `replace_base_underwear: true` in the definition. This suppresses the normal pair only on the owned replacement, keeps custom underwear when Hide outfit is on, and leaves the player's saved checkbox unchanged. It requires the optional `HasOutfitPolicy()` capability; older definitions remain unchanged.
+
 `HexAppeal_GetBaseUnderwearAPI(1)` supplies `GetState`, `SetHidden` and `GetEffectiveControl`; check `HasBaseUnderwear()`. The separate menu section controls the game's combined base bra/panties and this opt-in policy.
 
 Declare `HA_FOLLOW_BASE_UNDERWEAR` on **per-witch toggles**, with 1 visible and 0 hidden. While Base underwear is hidden, effective value is 0. Stored choices remain unchanged, including edits made while hidden. Showing Base underwear restores each saved outfit choice. Unmarked accessories are unaffected.

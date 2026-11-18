@@ -6,11 +6,11 @@ Select one witch or **All witches**. Changes save automatically and apply when t
 
 ## The pad
 
-**Vertical = Top. Horizontal = Bottom.** Each axis runs HEX → VENUS → FLAT. The centre is VENUS/VENUS. The upper-left is HEX/HEX; the lower-right is FLAT/FLAT. Every original combination is still present, with continuous blends between them.
+**Vertical = Top. Horizontal = Bottom.** Each axis runs HEX → baseline → FLAT. The centre is VENUS/VENUS or VANILLA/VANILLA, depending on your body option. The upper-left is HEX/HEX; the lower-right is FLAT/FLAT. Every original combination is still present, with continuous blends between them.
 
 The nine marked points have gentle detents: snap within two pixels, release beyond three. The Top and Bottom buttons move only their own axis to an exact preset; the other region keeps its current blend.
 
-VENUS uses the actual installed VENUS Human/Elf body with a neutral native deformation. HEX reads the external original preset, including its stomach/waist parameters. Automatic discovery prefers the checked 1.3 preset. FLAT uses the native minimum for the selected breast/butt size region; it does not scale a body part to zero. Other regional parameters blend through the same native shaping route.
+VENUS uses the actual installed VENUS Human/Elf body with neutral native deformation. Vanilla preserves each witch's original body and proportions at the centre, with Height and Weight zero. HEX reads the external preset, including its stomach/waist parameters. Discovery prefers a matching body preset where available. FLAT uses the native minimum for the selected breast/butt size region; it does not scale a body part to zero. Other regional parameters blend through the same native shaping route.
 
 ## Height and Weight
 
@@ -18,7 +18,7 @@ Both are separate from the pad and from each other. **Shortest height with maxim
 
 ## Profiles and status
 
-Each of the six witches has a profile. **Copy / Paste** transfers shape and proportions. **Reset** returns to VENUS/VENUS with neutral proportions. All witches applies the edit to every profile; mixed choices can be shown when profiles differ.
+Each of the six witches has a profile. **Copy / Paste** transfers shape and proportions. **Reset** returns to the selected baseline with neutral proportions. All witches applies the edit to every profile; mixed choices can be shown when profiles differ.
 
 **Saved / active** means the native body/outfit upload was acknowledged. **Saved / waiting** means the choice is stored and waiting for its witch, dependency or upload. Rapid edits are combined so the final choice is retained. Saved shapes restore when supported actors load, including after a restart.
 

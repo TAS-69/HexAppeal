@@ -1,6 +1,6 @@
 # Release versioning
 
-**The first Nexus release is version 1.0.0.** `VERSION` stays at that number during preparation, including the explicitly requested core-only package. Previous private release files and tags are backed up before replacement; release notes identify the current scope and hashes.
+**The first Nexus release is 1.0.0. The requested body-choice update is 1.0.1.** Existing published downloads and tags stay intact. Release notes identify the scope and hashes.
 
 `DEV_VERSION` is independent. Ordinary edits, commits and development builds do not advance the public number. After the Nexus release, I assign a new public number only when requesting another public package. Packaging never increments it automatically.
 

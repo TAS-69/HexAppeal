@@ -174,7 +174,7 @@ void Runtime::tickAuto(uint64_t now,bool flush) {
     if(dependency.scanned){
         for(size_t i=0;i<model.saved.size();++i)if(mask&(1u<<i)){
             const auto issue=profileDependencyIssue(model.saved[i],shapingAvailable,hexAvailable,weightAvailable);
-            if(!issue.empty()){mask&=~(1u<<i);if(error.empty())error=dependency.game.valid&&dependency.instant.valid&&dependency.venus.valid&&dependency.bodyVerified&&!native.shapingDetail.empty()?native.shapingDetail:issue;}
+            if(!issue.empty()){mask&=~(1u<<i);if(error.empty())error=dependency.game.valid&&dependency.instant.valid&&dependency.bodySourceReady()&&dependency.bodyVerified&&!native.shapingDetail.empty()?native.shapingDetail:issue;}
         }
         if(!mask){model.message=error;autoError=false;return;}
     }

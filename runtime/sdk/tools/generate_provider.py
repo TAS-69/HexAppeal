@@ -24,10 +24,13 @@ def prefab(value,label):
 def validate(data):
     if not isinstance(data,dict) or type(data.get('schema')) is not int or data.get('schema')!=1:
         raise ValueError('schema must be 1')
-    allowed={'schema','id','label','prefab','credit','requirements','controls','native_controls','states','part_visibility'}
+    allowed={'schema','id','label','prefab','credit','requirements','controls','native_controls','states','part_visibility','replace_base_underwear'}
     if set(data)-allowed:raise ValueError('Unknown outfit fields: '+', '.join(sorted(set(data)-allowed)))
     out={key:text(data.get(key,''),size,key,empty=key in {'credit','requirements'}) for key,size in [('id',96),('label',64),('credit',128),('requirements',256)]}
     identifier(out['id'],96,'id',True);out['prefab']=prefab(data.get('prefab'),'prefab')
+    replace=data.get('replace_base_underwear',False)
+    if type(replace) is not bool:raise ValueError('replace_base_underwear must be a boolean')
+    out['replace_base_underwear']=replace
     raw=data.get('controls',[])
     if not isinstance(raw,list) or len(raw)>8:raise ValueError('Declare at most eight controls')
     controls=[];ids=set();variant_count=0
@@ -124,6 +127,7 @@ def render(out):
     literal=lambda value:json.dumps(value,ensure_ascii=False)
     symbol='Register_'+re.sub(r'[^A-Za-z0-9_]','_',out['id'])
     lines=['#pragma once','#include "HexAppealWardrobeClient.hpp"','',f'inline int {symbol}(hexappeal::WardrobeClient& client,uint64_t& token){{',f'    std::array<HA_Control,{len(out["controls"])}> controls{{}};']
+    if out['replace_base_underwear']:lines.append('    if(!client.HasOutfitPolicy())return HA_UNAVAILABLE;')
     for i,c in enumerate(out['controls']):
         lines += [f'    controls[{i}]=hexappeal::Sized<HA_Control>();',f'    controls[{i}].type={"HA_TOGGLE" if c["type"]=="toggle" else "HA_CHOICE"};',f'    controls[{i}].scope={"HA_GLOBAL" if c["scope"]=="global" else "HA_PER_WITCH"};',f'    controls[{i}].flags={c["flags"]}; controls[{i}].defaultValue={c["default"]};']
         for name in ['id','label','help']:lines.append(f'    hexappeal::Text(controls[{i}].{name},{literal(c[name])});')
@@ -150,8 +154,13 @@ def render(out):
         lines += ['    auto native=hexappeal::Sized<HA_NativeOutfit>();','    native.outfit=&outfit;']
         if out['native_mask']:lines += [f'    native.controlMask={out["native_mask"]}; native.stateCount={len(out["states"])};','    native.states=states.data();']
         if out['parts']:lines += [f'    native.partCount={len(out["parts"])};','    native.parts=parts.data();']
-        lines.append('    return client.RegisterNative(native,token);')
-    else:lines.append('    return client.Register(outfit,token);')
+        call='client.RegisterNative(native,token)'
+    else:call='client.Register(outfit,token)'
+    if out['replace_base_underwear']:
+        lines += [f'    const auto result={call};','    if(result!=HA_OK)return result;',
+                  '    const auto policy=client.Policy(token,HA_REPLACE_BASE_UNDERWEAR);',
+                  '    if(policy!=HA_OK){client.Unregister(token);return policy;}','    return HA_OK;']
+    else:lines.append(f'    return {call};')
     lines += ['}','']
     return '\n'.join(lines)
 
