@@ -26,7 +26,7 @@ class WardrobeSelection {
 public:
     bool load(const std::filesystem::path& path,std::string& error);
     WardrobeSelectionSnapshot snapshot()const;
-    bool change(int target,WardrobeField field,int value,const WardrobeCapabilities& available,std::string& error);
+    bool change(int target,WardrobeField field,int value,std::string& error);
     bool providerOutfit(int target,const std::string& id,std::string& error);
     void invalidate(int target,const std::string& id);
 };

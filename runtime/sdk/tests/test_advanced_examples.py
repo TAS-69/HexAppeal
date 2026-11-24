@@ -33,5 +33,15 @@ class AdvancedExamples(unittest.TestCase):
         guide=(root/'ADVANCED-EXAMPLES.md').read_text(encoding='utf-8')
         for name in ('AdvancedOutfitProvider.cpp','CustomRendererProvider.cpp'):
             self.assertIn((root/'examples'/name).read_text(encoding='utf-8').strip(),guide)
+    def test_equipped_item_examples(self):
+        guide=(root/'EQUIPPED-ITEMS.md').read_text(encoding='utf-8')
+        simple,matrix=map(json.loads,re.findall(r'```json\n(.*?)\n```',guide,re.S))
+        for definition in (simple,matrix,self.definition('equipped-cloak.json')):
+            parsed=module.validate(definition)
+            self.assertTrue(parsed['equip_item'])
+            self.assertIn('client.BindItem(token,"visible")',module.render(parsed))
+        self.assertEqual(len(module.validate(matrix)['states']),4)
+        matrix['native_controls'].append('visible')
+        with self.assertRaises(ValueError):module.validate(matrix)
 
 if __name__=='__main__':unittest.main()

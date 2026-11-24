@@ -2,7 +2,9 @@
 
 ## Panel controls
 
-**F9** opens the panel. Change the shortcut and panel scale in Settings if needed.
+**F9** opens the panel. Change the shortcut and panel scale in Settings. The panel scales with your resolution. The **Scale** slider adjusts both text and panel size from 80% to 130% and applies when you release it.
+
+**Outfit update range** controls how far away Hex Appeal checks for outfit changes on loaded characters. It defaults to **45 m** and goes up to **120 m**. Lower it to check fewer characters or set it to **0** to use the original game-driven updates. The range covers outfit assembly, slot visibility and base underwear for witches and enabled character patches. Older game builds without the checked distance route use the original updates.
 
 **Block game input** starts checked. Uncheck it to keep moving or using the camera with the panel open. Interface gestures and focused text entry still belong to the panel. The setting persists in full and quick views. Blocking input does not pause the world. Capture fails open if the interface stops drawing.
 
@@ -13,6 +15,8 @@
 Detection checks known DMM layouts, configured storage and the active served-file manifest. Mods may be downloaded or staged in different places; merely finding a download does not prove it is mounted.
 
 Use a manual file/folder path when detection misses a dependency. Clear that field to return to automatic detection. The runtime validates the resource before enabling its feature. The current manager adapter requires DMM's runtime and manifest format; pointing to another manager's folder does not add support for its mounting system.
+
+**Shape preset source** lists Instant Surgery's saved body and local outfit presets. Pick one or paste the path to an exported `.ini`. The selected preset occupies the HEX slot and appears as **PRESET** when using a custom file. Each witch keeps her saved blends, Height and Weight. Choose **Automatic (Hex)** to return to the original preset source. Use a symmetric preset for blending.
 
 | Status | What happens |
 | --- | --- |
@@ -26,3 +30,9 @@ Saved shapes needing a missing resource wait without being silently changed. Wei
 ## Saved files
 
 User preferences and logs live in `%LOCALAPPDATA%/HexAppeal/`. `profiles.ini` stores shape choices, `wardrobe.ini` stores outfit/provider preferences, `interface.ini` stores panel preferences, and `paths.ini` stores overrides. Back up the folder before troubleshooting resets. Do not share it publicly without checking paths and logs first.
+
+## Log
+
+Open **F9 → Log** for feature checks, detected dependency paths and each witch’s body and visibility status. **Checks and mod sources** lists mounted mod names, relevant file routes and conflicts or merged appearances recorded by DMM. **Recent runtime log** shows the latest entries with UTC timestamps.
+
+Use **Save report** to write a text file to `%LOCALAPPDATA%/HexAppeal/` or **Copy report** to copy it. Review the report for local paths before sharing it. If the game closes before you can open F9, check `HexAppeal.log` in the same folder and the last DMM mount log.

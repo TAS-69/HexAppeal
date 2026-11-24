@@ -1,12 +1,12 @@
 from pathlib import Path
 import argparse, concurrent.futures, configparser, ctypes, hashlib, json, shutil, struct, subprocess, tempfile
+from zipfile import ZipFile
 
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description='Run offline runtime checks. Does not launch Crimson Desert.')
 parser.add_argument('--instant', type=Path, help='Installed InstantSurgery.asi; a test copy is made without modifying the original.')
 parser.add_argument('--game', type=Path, help='Read the actual DMM manifest and test conflicting-body rejection in an isolated fixture.')
 parser.add_argument('--venus-human', type=Path, help='Check the original VENUS 2.6 Human Body on both manifest aliases. Requires --game.')
-parser.add_argument('--skip-quarantined-interface-test', action='store_true', help='Do not open or execute the Windows-flagged interface_preferences.exe. Records an incomplete verification, never a full pass.')
 args = parser.parse_args()
 if args.venus_human and not args.game:parser.error('--venus-human requires --game')
 for name in ('instant','game','venus_human'):
@@ -18,34 +18,51 @@ build = root / 'build'
 report_dir = root / 'reports'
 report_dir.mkdir(exist_ok=True)
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+addon_pack = root.parent/'addons/maegu-woosa'
+addon_source = addon_pack/'Characters/maegu-woosa.tsv'
+addon_preview = fixture/'addon-menu'
+shutil.copytree(addon_pack/'Characters', addon_preview/'Characters')
+addon_zip = fixture/'character-addon.zip'
+addon_route = subprocess.check_output([
+    __import__('sys').executable, str(root.parent/'tools/package_character_addon.py'),
+    str(addon_source), str(addon_pack/'README.md'), str(addon_zip),
+    '--title', 'Hex Appeal - Maegu and Woosa',
+    '--version', (addon_pack/'VERSION').read_text(encoding='ascii').strip(),
+    '--license-file', str(root.parent/'LICENSE')
+], text=True).strip()
+addon_payload = fixture/'maegu-woosa.xml'
+with ZipFile(addon_zip) as archive:
+    addon_payload.write_bytes(archive.read('files/0009/'+addon_route))
 commands = [
     ('sdk_definition_generator', [__import__('sys').executable,'-m','unittest','discover','-s',str(root/'sdk/tests'),'-p','test_*.py']),
+    ('skin_setup', [__import__('sys').executable,'-m','unittest','discover','-s',str(root.parent/'tools/tests'),'-p','test_witch_skin_setup.py']),
     ('model', [str(build/'model_tests.exe'), str(build/'test profiles.ini')]),
     ('auto_apply', [str(build/'auto_apply_tests.exe'),str(build/'auto-fixture'/'profiles.ini')]),
     ('frame_dispatch_abi', [str(build/'frame_dispatch_tests.exe')]),
-    ('menu', [str(build/'preview.exe'), str(build/'menu-preview.bin'), str(build/'preview profiles.ini')]),
+    ('menu', [str(build/'preview.exe'), str(build/'menu-preview.bin'), str(build/'preview profiles.ini'), str(addon_preview)]),
     ('input_lifecycle', [str(build/'input_lifecycle.exe')]),
-    ('interface_preferences', [str(build/'interface_preferences.exe'),str(build/'preferences-fixture'/'profiles.ini')]),
+    ('interface_preferences', [str(build/'auto_apply_tests.exe'),'--interface-preferences',str(fixture/'preferences'/'profiles.ini')]),
     ('creation_chain', [str(build/'creation_chain_tests.exe')]),
     ('appearance_hook_compatibility', [str(build/'appearance_hook_tests.exe')]),
     ('feature_compatibility', [str(build/'compatibility_tests.exe')]),
     ('wardrobe_instance_ownership', [str(build/'wardrobe_snapshot_tests.exe')]),
+    ('character_addons', [str(build/'character_addon_tests.exe'), str(fixture/'character-addons'), str(addon_source), str(addon_payload)]),
     ('wardrobe_selection', [str(build/'wardrobe_selection_tests.exe'),str(build/'wardrobe-fixture'/'wardrobe.ini')]),
+    ('wardrobe_outfit_slots', [str(build/'wardrobe_slots_tests.exe'),str(fixture/'outfit-slots.txt')]),
     ('wardrobe_transport_abi', [str(build/'wardrobe_transport_tests.exe')]),
+    ('barber_catalog', [str(build/'barber_catalog_tests.exe'),str(fixture/'barber-catalog.xml')]),
     ('wardrobe_provider_api', [str(build/'wardrobe_api_tests.exe'),str(fixture/'provider-api')]),
     ('underwear_policy', [str(build/'underwear_tests.exe'),str(build/'underwear-fixture'/'profiles.ini')]),
     ('outfit_visibility_ownership', [str(build/'outfit_visibility_tests.exe')]),
 ]
 if args.game:
+    commands.append(('wardrobe_stock_items',[str(build/'wardrobe_stock_tests.exe'),str(args.game)]))
+    commands.append(('witch_skin_routes',[str(build/'skin_routes.exe'), str(args.game), str(fixture/'skin-routes')]))
+    if args.venus_human:commands[-1][1].append(str(args.venus_human))
     commands.append(('served_dependency_routes', [str(build/'dependency_routes.exe'), str(args.game), str(fixture/'dependency-routes')]))
     if args.venus_human:commands[-1][1].append(str(args.venus_human))
     commands.append(('dependency_discovery', [str(build/'dependency_discovery.exe'), str(args.game), str(fixture/'discovery')]))
 source_hash = None
-blocked = []
-if args.skip_quarantined_interface_test:
-    commands = [item for item in commands if item[0] != 'interface_preferences']
-    blocked.append({'name':'interface_preferences','pass':False,'blocked':True,
-                    'reason':'Windows security flagged/quarantined the test executable. It was not opened or executed; full verification remains incomplete.'})
 if args.instant:
     source_hash = sha(args.instant)
     if source_hash != '92d7cab4e244004ea433d1079c42288a985627fce9cb585844030282e591f009':
@@ -57,6 +74,9 @@ if args.instant:
     if args.game and (args.game/'bin64/BodyPhysics.asi').is_file():
         physics=fixture/'BodyPhysics-test-copy.asi';shutil.copyfile(args.game/'bin64/BodyPhysics.asi',physics);compatibility.append(str(physics))
     commands.append(('native_menu_export', [str(build/'native_menu_test.exe'), str(copy)]))
+    unknown = fixture / 'InstantSurgery-unverified-test-copy.asi'
+    unknown.write_bytes(copy.read_bytes()+b'Hex Appeal version-probe fixture')
+    commands.append(('unverified_native_interface', [str(build/'native_menu_test.exe'), str(unknown), '--probe-only']))
 
 def run(item):
     name, command = item
@@ -70,25 +90,32 @@ def run(item):
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
     results = list(pool.map(run, commands))
-results.extend(blocked)
 asi = root/'dist'/'HexAppeal.asi'
 data = asi.read_bytes()
 expected_version=json.loads((root/'dist/build.json').read_text(encoding='utf-8-sig'))['version']
 size=ctypes.windll.version.GetFileVersionInfoSizeW(str(asi),None)
 version_buffer=ctypes.create_string_buffer(size) if size else None
-version_text=ctypes.c_void_p()
-version_length=ctypes.c_uint()
-version_ok=bool(size and ctypes.windll.version.GetFileVersionInfoW(str(asi),0,size,version_buffer) and ctypes.windll.version.VerQueryValueW(version_buffer,'\\StringFileInfo\\040904b0\\FileVersion',ctypes.byref(version_text),ctypes.byref(version_length)))
-file_version=ctypes.wstring_at(version_text.value) if version_ok else None
-results.append({'name':'public_version_metadata','pass':file_version==expected_version,'file_version':file_version,'expected_version':expected_version})
+loaded_version=bool(size and ctypes.windll.version.GetFileVersionInfoW(str(asi),0,size,version_buffer))
+def version_string(field):
+    address,length=ctypes.c_void_p(),ctypes.c_uint()
+    if loaded_version and ctypes.windll.version.VerQueryValueW(
+        version_buffer,'\\StringFileInfo\\040904b0\\'+field,ctypes.byref(address),ctypes.byref(length)
+    ):
+        return ctypes.wstring_at(address.value)
+    return None
+file_version=version_string('FileVersion')
+product_version=version_string('ProductVersion')
+results.append({'name':'public_version_metadata','pass':file_version==product_version==expected_version,
+                'file_version':file_version,'product_version':product_version,'expected_version':expected_version})
 settings = configparser.ConfigParser()
 settings.read(root/'dist/HexAppeal.ini', encoding='utf-8-sig')
 observe = settings.getboolean('Development','ObserveNpcUploads',fallback=False)
 writes = settings.getboolean('Development','EnableNpcWrites',fallback=False)
 wardrobe_observe=settings.getboolean('Development','ObserveWardrobe',fallback=False)
 wardrobe_writes=settings.getboolean('Development','EnableWardrobeWrites',fallback=False)
-results.append({'name':'packaged_runtime_configuration','pass':observe and writes and wardrobe_observe and wardrobe_writes and (root/'dist/HexAppeal.ini').read_bytes()==(root/'HexAppeal.ini').read_bytes(),
-                'writes_require_validated_transaction':True,'saved_shapes_restore_automatically':True})
+wardrobe_interaction=settings.getboolean('Wardrobe','EnableInteraction',fallback=False)
+results.append({'name':'packaged_runtime_configuration','pass':observe and writes and wardrobe_observe and wardrobe_writes and wardrobe_interaction and (root/'dist/HexAppeal.ini').read_bytes()==(root/'HexAppeal.ini').read_bytes(),
+                'writes_require_validated_transaction':True,'saved_shapes_restore_automatically':True,'wardrobe_interaction_default':wardrobe_interaction})
 pe = struct.unpack_from('<I', data, 0x3c)[0]
 pe64 = data[pe:pe+4] == b'PE\0\0' and struct.unpack_from('<H',data,pe+4)[0] == 0x8664
 if args.instant:

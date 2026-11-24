@@ -66,7 +66,9 @@
 
     static void PostPresentDeviceCheck(bool drew)
     {
-        if (drew && g_device)
+        if (!drew) return;
+        const std::unique_lock<std::recursive_mutex> render(g_renderMutex,std::try_to_lock);
+        if (render && g_device)
         {
             const HRESULT removed = g_device->GetDeviceRemovedReason();
             if (removed != S_OK)
@@ -74,6 +76,8 @@
                 LOG_ERR("Device removed (0x%08X) after overlay submit - overlay disabled.", removed);
                 DumpDred();
                 g_renderDisabled = true;
+                State::Get().lastDrawAt.store(0);
+                gui::OverlayInterrupted();
             }
         }
     }
@@ -102,8 +106,24 @@
 
     static bool IsGameWindow(HWND window)
     {
-        return window && (window == g_hwnd ||
-                          GetAncestor(window, GA_ROOT) == GetForegroundWindow());
+        DWORD pid = 0;
+        return window && GetWindowThreadProcessId(window, &pid) && pid == GetCurrentProcessId() &&
+            (window == g_gameHwnd.load() || GetAncestor(window, GA_ROOT) == GetForegroundWindow());
+    }
+
+    static std::atomic<uint64_t> g_lastEffectsFrame{0};
+    static thread_local bool t_drewBeforePresent = false;
+    struct NativePresentDraw
+    {
+        bool previous = t_drewBeforePresent;
+        explicit NativePresentDraw(bool drew) { t_drewBeforePresent = previous || drew; }
+        ~NativePresentDraw() { t_drewBeforePresent = previous; }
+    };
+    static bool RenderNativeOverlay(IDXGISwapChain3* swapChain, bool gameFacing, UINT flags)
+    {
+        const auto last = g_lastEffectsFrame.load(std::memory_order_relaxed);
+        if (t_drewBeforePresent || (last && GetTickCount64() - last < 300)) return false;
+        return RenderOverlay(swapChain, gameFacing, flags);
     }
 
 
@@ -153,23 +173,22 @@
         reshade_api::CommandQueue *queue = runtime->get_command_queue();
         if (!queue)
             return;
-        auto *nativeQueue = reinterpret_cast<ID3D12CommandQueue *>(queue->get_native());
         auto *nativeSwapChain = reinterpret_cast<IDXGISwapChain *>(runtime->get_native());
         IDXGISwapChain3 *chain = nullptr;
-        if (!nativeQueue || !nativeSwapChain ||
+        if (!nativeSwapChain ||
             FAILED(nativeSwapChain->QueryInterface(IID_PPV_ARGS(&chain))))
             return;
 
         DXGI_SWAP_CHAIN_DESC desc = {};
-        if (SUCCEEDED(chain->GetDesc(&desc)) && IsGameWindow(desc.OutputWindow))
+        if (SUCCEEDED(chain->GetDesc(&desc)) && IsGameWindow(desc.OutputWindow) &&
+            desc.BufferDesc.Width >= 256 && desc.BufferDesc.Height >= 256)
         {
-
-
-
-
-            queue->flush_immediate_command_list();
-            const bool drew = RenderOverlay(chain, true, 0, nativeQueue);
-            PostPresentDeviceCheck(drew);
+            if (!t_drewBeforePresent)
+            {
+                const bool drew = RenderOverlay(chain, true, 0, queue);
+                if (drew) g_lastEffectsFrame.store(GetTickCount64(), std::memory_order_relaxed);
+                PostPresentDeviceCheck(drew);
+            }
         }
         else
         {
@@ -180,7 +199,8 @@
 
     static void OnReShadeDestroySwapChain(reshade_api::DeviceObject *swapChain, bool resize)
     {
-        if (!g_imguiReady || !g_swapChain || !swapChain)
+        const std::unique_lock<std::recursive_mutex> lock(g_renderMutex,std::try_to_lock);
+        if (!lock || !g_imguiReady || !g_swapChain || !swapChain)
             return;
         const auto *device = swapChain->get_device();
         if (!device || device->get_api() != reshade_api::d3d12)
@@ -194,6 +214,7 @@
         if (!ours)
             return;
 
+        g_lastEffectsFrame.store(0, std::memory_order_relaxed);
         PreResizeCleanup();
         g_swapChain = nullptr;
         if (!resize)
@@ -222,16 +243,39 @@
     static bool IsGameChain(IDXGISwapChain* swapChain)
     {
         if (!swapChain) return false;
-        if (g_swapChain && static_cast<IDXGISwapChain*>(g_swapChain) == swapChain) return true;
         DXGI_SWAP_CHAIN_DESC desc = {};
         if (FAILED(swapChain->GetDesc(&desc)) || !desc.OutputWindow) return false;
         if (IsProbeChain(desc.BufferDesc.Width, desc.BufferDesc.Height)) return false;
-        return g_gameHwnd ? desc.OutputWindow == g_gameHwnd : IsGameWindow(desc.OutputWindow);
+        if (desc.OutputWindow != g_gameHwnd && !IsGameWindow(desc.OutputWindow)) return false;
+        static thread_local UINT lastWidth = 0, lastHeight = 0;
+        const auto width = desc.BufferDesc.Width, height = desc.BufferDesc.Height;
+        if (width != lastWidth || height != lastHeight)
+        {
+            lastWidth = width;
+            lastHeight = height;
+            hex::observeGraphicsSwapchain(width, height);
+        }
+        return true;
+    }
+
+    static bool DrawGamePresent(IDXGISwapChain* swapChain, UINT flags)
+    {
+        const auto last = g_lastEffectsFrame.load(std::memory_order_relaxed);
+        const bool preferEffects = last && GetTickCount64() - last < 300;
+        if (t_drewBeforePresent || preferEffects || (flags & DXGI_PRESENT_TEST) || !IsGameChain(swapChain))
+            return false;
+        IDXGISwapChain3* chain = nullptr;
+        if (FAILED(swapChain->QueryInterface(IID_PPV_ARGS(&chain))) || !chain)
+            return false;
+        const bool drew = RenderOverlay(chain, true, flags, nullptr, true);
+        chain->Release();
+        return drew;
     }
 
     static HRESULT WINAPI hkPresent(IDXGISwapChain3* swapChain, UINT syncInterval, UINT flags)
     {
-        const bool drew = RenderOverlay(swapChain, !g_wrapperActive && IsGameChain(swapChain), flags);
+        const bool drew = DrawGamePresent(swapChain, flags);
+        const NativePresentDraw draw(drew);
         const HRESULT hr = oPresent(swapChain, syncInterval, flags);
         PostPresentDeviceCheck(drew);
         return hr;
@@ -243,8 +287,8 @@
     {
 
 
-        const bool drew = RenderOverlay(static_cast<IDXGISwapChain3*>(swapChain),
-                                        !g_wrapperActive && IsGameChain(swapChain), flags);
+        const bool drew = DrawGamePresent(swapChain, flags);
+        const NativePresentDraw draw(drew);
         const HRESULT hr = oPresent1(swapChain, syncInterval, flags, pp);
         PostPresentDeviceCheck(drew);
         return hr;
@@ -253,7 +297,8 @@
         IDXGISwapChain3* swapChain, UINT bufferCount,
         UINT width, UINT height, DXGI_FORMAT format, UINT flags)
     {
-        if (!g_imguiReady || g_wrapperActive)
+        const std::lock_guard<std::recursive_mutex> lock(g_renderMutex);
+        if (!g_imguiReady || t_wrappedResize || swapChain != g_swapChain)
             return oResizeBuffers(swapChain, bufferCount, width, height, format, flags);
         PreResizeCleanup();
         const HRESULT hr = oResizeBuffers(swapChain, bufferCount, width, height, format, flags);
@@ -274,7 +319,8 @@
         UINT width, UINT height, DXGI_FORMAT format, UINT flags,
         const UINT* nodeMask, IUnknown* const* queues)
     {
-        if (!g_imguiReady || g_wrapperActive)
+        const std::lock_guard<std::recursive_mutex> lock(g_renderMutex);
+        if (!g_imguiReady || t_wrappedResize || swapChain != g_swapChain)
             return oResizeBuffers1(swapChain, bufferCount, width, height, format, flags, nodeMask, queues);
         PreResizeCleanup();
         const HRESULT hr = oResizeBuffers1(swapChain, bufferCount, width, height, format, flags, nodeMask, queues);

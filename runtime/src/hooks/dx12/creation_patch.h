@@ -1,177 +1,223 @@
+    using CreateFactory = HRESULT (WINAPI*)(REFIID, void**);
+    using CreateFactory2 = HRESULT (WINAPI*)(UINT, REFIID, void**);
+    using ResolveExport = FARPROC (WINAPI*)(HMODULE, LPCSTR);
+    using UpgradeInterface = int (WINAPI*)(void**);
 
+    static std::atomic<ResolveExport> resolveExport{nullptr};
+    static std::atomic<HMODULE> gameDxgi{nullptr};
+    static std::atomic<HMODULE> gameStreamline{nullptr};
+    static std::atomic<unsigned> gameFactoriesWrapped{0};
+    static thread_local bool creatingGameFactory = false;
 
-
-
-
-
-
-
-    static bool PatchVtableSlot(void** vtable, int index, void* newFn, void** origOut)
+    static GameDXGIFactory* AsGameFactory(IUnknown* object)
     {
-        DWORD old = 0;
-        if (!VirtualProtect(&vtable[index], sizeof(void*), PAGE_EXECUTE_READWRITE, &old))
+        GameDXGIFactory* wrapper = nullptr;
+        if (object && SUCCEEDED(object->QueryInterface(GameDXGIFactory::Identity,
+                reinterpret_cast<void**>(&wrapper))) && wrapper)
+        {
+            const bool sameObject = static_cast<IUnknown*>(wrapper) == object;
+            wrapper->Release();
+            if (sameObject) return wrapper;
+        }
+        return nullptr;
+    }
+
+    static void WrapGameFactory(REFIID iid, void** result)
+    {
+        if (!result || !*result || !GameDXGIFactory::Supports(iid)) return;
+        auto* original = static_cast<IUnknown*>(*result);
+        if (AsGameFactory(original)) return;
+        IDXGIFactory7* factory = nullptr;
+        if (FAILED(original->QueryInterface(IID_PPV_ARGS(&factory))) || !factory) return;
+        ObserveStreamlineFactory(factory);
+        auto* wrapper = new (std::nothrow) GameDXGIFactory(factory);
+        if (!wrapper)
+        {
+            factory->Release();
+            return;
+        }
+        original->Release();
+        *result = static_cast<IDXGIFactory7*>(wrapper);
+        if (gameFactoriesWrapped.fetch_add(1, std::memory_order_relaxed) == 0)
+            LOG("Hex Appeal attached to a DXGI factory returned to Crimson Desert.");
+    }
+
+    template<class Call>
+    static HRESULT CreateGameFactory(Call&& create, REFIID iid, void** result)
+    {
+        if (creatingGameFactory) return DXGI_ERROR_INVALID_CALL;
+        struct Reset
+        {
+            ~Reset() { creatingGameFactory = false; }
+        } reset;
+        creatingGameFactory = true;
+
+        const HRESULT hr = create();
+        if (SUCCEEDED(hr)) WrapGameFactory(iid, result);
+        return hr;
+    }
+
+    enum class FactorySource { DxgiImport, DxgiExport, StreamlineImport, StreamlineExport };
+    template<FactorySource Source>
+    struct FactoryCallbacks
+    {
+        inline static std::atomic<CreateFactory> create{nullptr};
+        inline static std::atomic<CreateFactory> create1{nullptr};
+        inline static std::atomic<CreateFactory2> create2{nullptr};
+        inline static std::atomic<UpgradeInterface> upgrade{nullptr};
+
+        static HRESULT WINAPI Create(REFIID iid, void** result)
+        {
+            return CreateGameFactory([&] { return create.load(std::memory_order_acquire)(iid, result); }, iid, result);
+        }
+
+        static HRESULT WINAPI Create1(REFIID iid, void** result)
+        {
+            return CreateGameFactory([&] { return create1.load(std::memory_order_acquire)(iid, result); }, iid, result);
+        }
+
+        static HRESULT WINAPI Create2(UINT flags, REFIID iid, void** result)
+        {
+            return CreateGameFactory([&] { return create2.load(std::memory_order_acquire)(flags, iid, result); }, iid, result);
+        }
+
+        static int WINAPI Upgrade(void** result)
+        {
+            const auto forward = upgrade.load(std::memory_order_acquire);
+            auto* wrapper = result ? AsGameFactory(static_cast<IUnknown*>(*result)) : nullptr;
+            if (!wrapper)
+            {
+                const auto status = forward(result);
+                if (status == 0) WrapGameFactory(__uuidof(IUnknown), result);
+                return status;
+            }
+
+            auto* native = wrapper->Inner();
+            native->AddRef();
+            void* upgraded = native;
+            const auto status = forward(&upgraded);
+            if (status == 0)
+            {
+                wrapper->Release();
+                *result = upgraded;
+                WrapGameFactory(__uuidof(IUnknown), result);
+            }
+            else
+            {
+                native->Release();
+            }
+            return status;
+        }
+    };
+
+    template<class Function>
+    static FARPROC BindResolvedFactory(FARPROC entry, Function callback, std::atomic<Function>& original)
+    {
+        auto next = reinterpret_cast<Function>(entry);
+        if (hex::creation::Observe(reinterpret_cast<void*>(next), reinterpret_cast<void*>(callback), true).state !=
+            hex::creation::EntryState::Other) return entry;
+        Function previous = nullptr;
+        if (original.compare_exchange_strong(previous, next))
+            LOG("Hex Appeal attached to a DXGI factory export resolved by Crimson Desert.");
+        else if (previous != next)
+            return entry;
+        return reinterpret_cast<FARPROC>(callback);
+    }
+
+    template<FactorySource Source>
+    static FARPROC BindFactoryExport(FARPROC entry, LPCSTR name)
+    {
+        using Callbacks = FactoryCallbacks<Source>;
+        if (std::strcmp(name, "CreateDXGIFactory") == 0)
+            return BindResolvedFactory(entry, &Callbacks::Create, Callbacks::create);
+        if (std::strcmp(name, "CreateDXGIFactory1") == 0)
+            return BindResolvedFactory(entry, &Callbacks::Create1, Callbacks::create1);
+        if (std::strcmp(name, "CreateDXGIFactory2") == 0)
+            return BindResolvedFactory(entry, &Callbacks::Create2, Callbacks::create2);
+        if constexpr (Source == FactorySource::StreamlineExport)
+            if (std::strcmp(name, "slUpgradeInterface") == 0)
+                return BindResolvedFactory(entry, &Callbacks::Upgrade, Callbacks::upgrade);
+        return entry;
+    }
+
+    static FARPROC WINAPI OnResolveExport(HMODULE library, LPCSTR name)
+    {
+        const auto entry = resolveExport.load(std::memory_order_acquire)(library, name);
+        if (!entry || !name || IS_INTRESOURCE(name)) return entry;
+        const auto error = GetLastError();
+        auto result = entry;
+        if (library == gameDxgi.load())
+            result = BindFactoryExport<FactorySource::DxgiExport>(entry, name);
+        else if (library == gameStreamline.load())
+            result = BindFactoryExport<FactorySource::StreamlineExport>(entry, name);
+        SetLastError(error);
+        return result;
+    }
+
+    template<class Function>
+    static bool InstallGameImport(const MODULEINFO& module, const char* library, const char* name,
+                                  Function callback, std::atomic<Function>& original)
+    {
+        auto** slot = hex::creation::FindNamedImport(module.lpBaseOfDll, module.SizeOfImage, library, name);
+        if (!slot) return false;
+
+        void* entry = nullptr;
+        if (!hex::creation::Read(slot, &entry, sizeof entry)) return false;
+        if (entry == reinterpret_cast<void*>(callback)) return true;
+        if (hex::creation::Observe(entry, reinterpret_cast<void*>(callback), true).state != hex::creation::EntryState::Other)
+        {
+            LOG_ERR("The game import for %s does not have a callable target.", name);
             return false;
-        *origOut = vtable[index];
-        vtable[index] = newFn;
-        VirtualProtect(&vtable[index], sizeof(void*), old, &old);
-        return true;
+        }
+
+        Function previous = nullptr;
+        if (!original.compare_exchange_strong(previous, reinterpret_cast<Function>(entry)) &&
+            previous != reinterpret_cast<Function>(entry))
+            return false;  // Cached callbacks must keep their original target.
+        DWORD protection = 0;
+        if (!VirtualProtect(slot, sizeof(void*), PAGE_READWRITE, &protection))
+            return false;
+        const bool installed = InterlockedCompareExchangePointer(slot, reinterpret_cast<void*>(callback), entry) == entry;
+        DWORD discarded = 0;
+        VirtualProtect(slot, sizeof(void*), protection, &discarded);
+        if (installed) LOG("Hex Appeal attached to the game's %s!%s import.", library, name);
+        else LOG_ERR("The game import for %s changed during installation.", name);
+        return installed;
     }
 
-
-
-
-    static void WatchCreationDetour()
+    template<FactorySource Source>
+    static bool InstallFactoryLibrary(const MODULEINFO& game, const char* library)
     {
-        HANDLE thread = CreateThread(nullptr, 0, [](LPVOID) -> DWORD {
-            int displaced = 0;
-            for (int i = 0; i < 600; ++i)
-            {
-                Sleep(50);
-                if (g_factoryCalls.load(std::memory_order_relaxed) > 0) break;
-                const auto observed = hex::creation::Observe(
-                    g_factoryFn, reinterpret_cast<void*>(&hkFactoryCreateSwapChainForHwnd));
-                if (observed.state == hex::creation::EntryState::Ours) { displaced = 0; continue; }
-                if (++displaced < 10) continue;
-                char owner[64] = "?";
-                if (observed.destination) OwningModule(observed.destination, owner, sizeof owner);
-                LOG("[hook] CreateSwapChainForHwnd entry now leads to %s at %p (inspection=%u). "
-                    "Keeping the captured original and foreign relays unchanged; another hook may still call ours.",
-                    owner, observed.destination, static_cast<unsigned>(observed.state));
-                break;
-            }
-            return 0;
-        }, nullptr, 0, nullptr);
-        if (thread) CloseHandle(thread);
+        using Callbacks = FactoryCallbacks<Source>;
+        const bool base = InstallGameImport(game, library, "CreateDXGIFactory", &Callbacks::Create, Callbacks::create);
+        const bool first = InstallGameImport(game, library, "CreateDXGIFactory1", &Callbacks::Create1, Callbacks::create1);
+        const bool second = InstallGameImport(game, library, "CreateDXGIFactory2", &Callbacks::Create2, Callbacks::create2);
+        bool upgrade = false;
+        if constexpr (Source == FactorySource::StreamlineImport)
+            upgrade = InstallGameImport(game, library, "slUpgradeInterface", &Callbacks::Upgrade, Callbacks::upgrade);
+        return base || first || second || upgrade;
     }
 
-    static void InstallSwapChainCreationPatch()
+#include "xess_handoff.h"
+
+    static bool InstallFactoryImports()
     {
-        IDXGIFactory2* factory = nullptr;
-        if (FAILED(CreateDXGIFactory2(0, IID_PPV_ARGS(&factory))) || !factory)
-        {
-            if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))) || !factory)
-            {
-                LOG_ERR("FG: no factory to patch - overlay-over-FrameGen disabled.");
-                return;
-            }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        void** vt = *reinterpret_cast<void***>(factory);
-        const auto began=GetTickCount64();hex::creation::FactorySettle settle(began);
-        uintptr_t first=0,current=0;
-        for(;;){
-            if(!hex::creation::Read(vt+15,&current,sizeof current)){factory->Release();LOG_ERR("FG: factory dispatch became unreadable before installation.");return;}
-            if(!first)first=current;
-            if(settle.observe(GetTickCount64(),current))break;
-            Sleep(50);
-        }
-        LOG("FG: factory dispatch settled after %llu ms (%p -> %p). No previous hook or relay was redirected.",GetTickCount64()-began,reinterpret_cast<void*>(first),reinterpret_cast<void*>(current));
-        void* fn = vt[15];
-        g_factoryVt = vt;
-        g_factoryFn = fn;
-        if (LogHookTarget("Factory CreateSwapChainForHwnd", fn, true) &&
-            MH_CreateHook(fn, reinterpret_cast<void*>(&hkFactoryCreateSwapChainForHwnd),
-                          reinterpret_cast<void**>(&oFactoryCreateSwapChainForHwnd)) == MH_OK &&
-            MH_EnableHook(fn) == MH_OK)
-        {
-            g_factoryInPlace = true;
-            g_factoryOwnTramp = oFactoryCreateSwapChainForHwnd;
-            LOG("FG: CreateSwapChainForHwnd detoured in place - the factory slot still points into dxgi.dll, so Steam's overlay keeps its hooks.");
-            WatchCreationDetour();
-        }
-        else
-        {
-
-            LOG_ERR("FG: could not detour CreateSwapChainForHwnd in place; replacing the vtable slot instead, which Steam's overlay may refuse to hook over.");
-            if (PatchVtableSlot(vt, 15, reinterpret_cast<void*>(&hkFactoryCreateSwapChainForHwnd),
-                                reinterpret_cast<void**>(&oFactoryCreateSwapChainForHwnd)))
-                LOG("FG: CreateSwapChainForHwnd slot patched.");
-            else
-                LOG_ERR("FG: VirtualProtect of CreateSwapChainForHwnd slot failed.");
-        }
-
-        factory->Release();
+        MODULEINFO game = {};
+        if (!K32GetModuleInformation(GetCurrentProcess(), GetModuleHandleW(nullptr), &game, sizeof game))
+            return false;
+        gameDxgi = GetModuleHandleW(L"dxgi.dll");
+        gameStreamline = GetModuleHandleW(L"sl.interposer.dll");
+        const bool dxgi = InstallFactoryLibrary<FactorySource::DxgiImport>(game, "dxgi.dll");
+        const bool streamline = InstallFactoryLibrary<FactorySource::StreamlineImport>(game, "sl.interposer.dll");
+        const bool dynamic = InstallGameImport(game, "kernel32.dll", "GetProcAddress", &OnResolveExport, resolveExport);
+        const bool xess = InstallXeSSImports(game);
+        return dxgi || streamline || dynamic || xess;
     }
-
-
-
-
-
-
-
-
-
-
-    static void LogEntry(const char* what, void* fn)
-    {
-        char mod[64] = "?", bytes[40] = "", into[96] = "";
-        if (!fn || IsBadReadPtr(fn, 16)) { LOG("[creation] %s @ %p: unreadable", what, fn); return; }
-        OwningModule(fn, mod, sizeof mod);
-        uint8_t b[16];
-        memcpy(b, fn, sizeof b);
-        int w = 0;
-        for (int i = 0; i < 8; ++i) w += snprintf(bytes + w, sizeof bytes - w, "%02X ", b[i]);
-        const char* detour = ExistingDetour(b);
-        if (detour) DescribeDetour(b, fn, into, sizeof into);
-        if (w > 0) bytes[w - 1] = 0;
-        LOG("[creation] %s @ %p in %s (%s) %s%s%s", what, fn, mod, bytes,
-            detour ? "starts with " : "not detoured", detour ? detour : "", into);
-    }
-
-    static void ReportCreationPath()
-    {
-        void** vt = g_factoryVt;
-        if (vt && !IsBadReadPtr(vt, 25 * sizeof(void*)))
-        {
-            LOG("[creation] this mod's CreateSwapChainForHwnd detour has run %ld time(s); the slot %s the function it was read from",
-                g_factoryCalls.load(std::memory_order_relaxed), vt[15] == g_factoryFn ? "still points at" : "no longer points at");
-            char owner[64] = "";
-            if (!g_factoryInPlace)
-                LOG("[creation] the in-place detour never went in, so this mod relies on the slot patch");
-            else if (DetourOwner(g_factoryFn, owner, sizeof owner))
-                LOG("[creation] the entry it was installed on jumps into %s%s", owner[0] == '?' ? "an allocated stub" : owner,
-                    _stricmp(owner, OwnModuleName()) == 0 ? ", so the detour is still first in line"
-                                                              : ", so something detoured it after this mod did");
-            else
-                LOG("[creation] the entry it was installed on is not detoured any more: something put the original bytes back");
-            LogEntry("slot 15 CreateSwapChainForHwnd", vt[15]);
-            LogEntry("slot 10 CreateSwapChain", vt[10]);
-            LogEntry("slot 16 CreateSwapChainForCoreWindow", vt[16]);
-            LogEntry("slot 24 CreateSwapChainForComposition", vt[24]);
-        }
-        else
-            LOG("[creation] the factory's CreateSwapChainForHwnd was never looked at, so there is no detour to compare");
-        if (HMODULE dxgi = GetModuleHandleW(L"dxgi.dll"))
-        {
-            LogEntry("CreateDXGIFactory1", reinterpret_cast<void*>(GetProcAddress(dxgi, "CreateDXGIFactory1")));
-            LogEntry("CreateDXGIFactory2", reinterpret_cast<void*>(GetProcAddress(dxgi, "CreateDXGIFactory2")));
-        }
-        if (HMODULE d3d = GetModuleHandleW(L"d3d12.dll"))
-            LogEntry("D3D12CreateDevice", reinterpret_cast<void*>(GetProcAddress(d3d, "D3D12CreateDevice")));
-    }
-
-
-
 
     void LogSwapChainCreationPath()
     {
-        __try { ReportCreationPath(); }
-        __except (EXCEPTION_EXECUTE_HANDLER) { LOG("[creation] a read faulted part way through, so the lines above are all there is"); }
+        LOG("Hex Appeal observed %u game DXGI factories and %ld swapchain creation calls. The shared factory table stays untouched.",
+            gameFactoriesWrapped.load(std::memory_order_relaxed), g_factoryCalls.load(std::memory_order_relaxed));
+        LOG("Renderer handoffs observed: Streamline %u, XeSS-FG %u.",
+            streamlineFactoryHandoffs.load(std::memory_order_relaxed), xessHandoffs.load(std::memory_order_relaxed));
     }

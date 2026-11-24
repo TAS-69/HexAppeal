@@ -2,7 +2,7 @@
 
 Open **F9 → Wardrobe → Outfit visibility** and tick **Hide outfit**. Choose one witch or **All witches**. Changes apply and save automatically.
 
-This hides recognised default clothing, hat and footwear through the game's outfit system. Switching it off restores those outfit parts. Shape, Weight and outfit variants stay as selected.
+This masks the recognised clothing slots in the renderer. To hide a single slot, open **Wardrobe → Outfit slots**. Uncheck its box to restore visibility. Equipped part IDs and saved outfits stay in their slots.
 
 **Base underwear is independent.** Use **Hide base bra & panties** in its own section. The checked base underwear is exposed by the game as one combined part, so this control remains combined. An outfit provider may offer separate bra and panties options when its own assets supply separate parts.
 
@@ -13,7 +13,7 @@ This hides recognised default clothing, hat and footwear through the game's outf
 | Off | On | Outfit retained; base underwear hidden |
 | On | On | Both hidden |
 
-Other outfits must explicitly support Hide outfit through the Wardrobe SDK. Unsupported custom spouse/barber outfits are retained; the setting waits for a supported outfit.
+Registered clothing parts can be masked while equipped. A mod that combines parts into one draw group shares that group’s visibility. If a remover strips a part from the mounted asset, the visibility switch has no mesh to show. SDK providers can supply their own controls for additional parts.
 
 Right-click **Hide outfit** to pin it to the quick panel, or use **Settings → Quick panel pins**.
 

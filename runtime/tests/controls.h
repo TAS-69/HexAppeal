@@ -5,4 +5,5 @@
 namespace hex::test {
 struct Rect{ImVec2 min,max;};
 inline std::map<std::string,Rect> controls;
+inline std::string hoveredHelp;
 }

@@ -1,10 +1,12 @@
 <p align="center"><img src="docs/assets/banner.png" alt="Hex Appeal — Even dark magic deserves better curves" width="100%"></p>
 <p align="center"><b>VENUS. HEX. FLAT. Your questionable little blend of all three.</b></p>
-<p align="center"><img src="https://img.shields.io/badge/RELEASE-1.0.2-631d48?style=for-the-badge&amp;labelColor=201525" alt="Release 1.0.2"> <img src="https://img.shields.io/badge/ORIGINAL_CODE-0BSD-dcb782?style=for-the-badge&amp;labelColor=201525" alt="Original code: 0BSD"> <img src="https://img.shields.io/badge/OPEN_PANEL-F9-c35a94?style=for-the-badge&amp;labelColor=201525" alt="Open panel: F9"></p>
+<p align="center"><img src="https://img.shields.io/badge/VERSION-1.1.2-631d48?style=for-the-badge&amp;labelColor=201525" alt="Version 1.1.2"> <img src="https://img.shields.io/badge/ORIGINAL_CODE-0BSD-dcb782?style=for-the-badge&amp;labelColor=201525" alt="Original code: 0BSD"> <img src="https://img.shields.io/badge/OPEN_PANEL-F9-c35a94?style=for-the-badge&amp;labelColor=201525" alt="Open panel: F9"></p>
 
-I made **Hex Appeal** to give Crimson Desert's human witches a choice of the actual installed **VENUS Human Body or Elf Body**, or their own **Vanilla bodies**, with an in-game shape editor and a shared **Wardrobe** for compatible outfits. Pick a witch, mix the top and bottom, and carry on. Changes save and apply automatically.
+Applies the Venus body to every witch in Crimson Desert. Because even dark magic deserves better curves.
 
-**Version 1.0.2:** corrected DMM import grouping and matching mod/ASI version labels. Remove the previous package before installing; keep your saved settings. One player ZIP includes both body choices and the F9 editor. Vanilla preserves each witch's original midpoint; VENUS uses your separately installed body. Dancer remains a separate future patch pending permission.
+Choose **VENUS** for the witches or keep their original **Vanilla** bodies. Press **F9** to mix shapes, adjust Height and Weight, and save a look in Wardrobe.
+
+**Version 1.1.2** keeps the 1.1.1 performance work, with less rendering and input work while the menus are closed. It no longer creates a test swapchain at startup, and the log and saved reports name the exact build. Remove the previous package before installing and keep your saved settings. See the [changelog](CHANGELOG.md) for details.
 
 **[Downloads](https://github.com/TAS-69/HexAppeal/releases) · [Install](docs/wiki/Installation.md) · [Player guide](docs/wiki/Home.md) · [Wardrobe SDK](docs/wiki/SDK-quick-start.md) · [Requirements & credits](DEPENDENCIES-AND-REFERENCES.md)**
 
@@ -24,7 +26,7 @@ Supported human forms: **Lyselia, Bari, Areciel, Elowen, Sylvia and White Crow**
 ## Get started
 
 1. Install **DMM** and **Instant Surgery**. Add **Hex's Hentai Preset** for HEX; add one **VENUS Human Body or Elf Body** variant if choosing VENUS. DMM includes ASI loader installation.
-2. Close the game and import **HexAppeal-1.0.2.zip** into **Definitive Mod Manager**. Enable exactly **[01] VENUS** or **[02] Vanilla**, plus its ASI switch, then mount once. Disable the other body choice. When upgrading, remove the previous Hex Appeal package first to avoid duplicate entries; keep your saved settings. See [upgrading](docs/wiki/Installation.md#update-or-remove).
+2. Close the game and import **HexAppeal-1.1.2.zip** into **Definitive Mod Manager**. Enable exactly **[01] VENUS** or **[02] Vanilla**, plus its ASI switch, then mount once. When upgrading, remove the previous Hex Appeal package first to avoid duplicate entries; keep your saved settings. See [upgrading](docs/wiki/Installation.md#update-or-remove).
 3. Load a save near a witch and press **F9**. Check **Settings → Dependencies & paths** if something is unavailable.
 
 The [installation guide](docs/wiki/Installation.md) covers packages and priorities. Players need no Python or outfit setup; Python is needed for building tools.
@@ -43,6 +45,9 @@ Register an outfit's real name and the options it actually supports. Wardrobe ha
 
 Base underwear does not remove arbitrary geometry from other outfits. Each provider declares what its resources support. Extreme proportions can still clip. See [compatibility and tested limits](docs/wiki/Compatibility.md).
 
-**Validation:** 22 offline runtime checks, 36 SDK definition cases and 38 helper tests; 44 isolated native weighted cases, all nine regional combinations and eleven unchanged reference poses. Both body options received close idle Elowen checks on the earlier runtime. The corrected layout passed actual DMM import and mount checks. See [verification](docs/VERIFICATION-1.0.2.md) for exact binaries, startup evidence and limits.
+- **Game closes during startup:** the Steam overlay can crash in its own swapchain code when several mods start at the same moment, most often on the first launch after a restart. Turn off "Enable the Steam Overlay while in-game" for Crimson Desert in Steam.
+- **Reporting a problem:** send F9 > Log > Save report, or `%LOCALAPPDATA%\HexAppeal\HexAppeal.log`. Its first line names the exact build.
+
+**Validation:** 1.1.2 passes 29 offline runtime checks and 58 helper tests. Earlier native fixture checks covered nine blends, 44 weighted cases and eleven reference poses.
 
 Downloaded bodies, presets, plugins and outfit files are **external dependencies**. They are not included here. My code and SDK are **0BSD**; compiled overlay/library adaptations retain their own notices. Original witch bodies, underwear and default garment resources remain Pearl Abyss content. Thanks to **Kasprutz, Hex0x0, AlexeySova, Vincent1681**, and everyone credited in [dependency use & credits](DEPENDENCIES-AND-REFERENCES.md).

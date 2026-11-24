@@ -1,4 +1,8 @@
 #include "pose_access.h"
+#include "game_layout.h"
+#include "model.h"
+#include "wardrobe_snapshot.h"
+#include "character_addons.h"
 #include <Windows.h>
 #include <algorithm>
 #include <cstring>
@@ -31,6 +35,49 @@ void* contextActorGuard(HMODULE surgery,void* context) {
 }
 uintptr_t ptr(uintptr_t p,size_t off){return p?*reinterpret_cast<const uintptr_t*>(p+off):0;}
 uint32_t word(uintptr_t p,size_t off){return p?*reinterpret_cast<const uint32_t*>(p+off):0;}
+bool resolveCharacter(const char* name,uintptr_t actor,ActorIdentity& output,int (*addonLookup)(std::string_view)){
+    for(const auto& row:identities)if(_stricmp(name,row.name)==0){
+        output={};output.witch=row.witch;output.recordKey=row.key;output.actor=actor;
+        strcpy_s(output.name,name);
+        return true;
+    }
+    if(addonLookup){
+        const auto target=addonLookup(name);
+        if(const auto* addon=characterAddon(target)){
+            output={};output.witch=target;output.recordKey=addon->recordKey;output.actor=actor;
+            strcpy_s(output.name,name);
+            return true;
+        }
+    }
+    return false;
+}
+bool gameIdentity(void* actor,ActorIdentity& output,int (*addonLookup)(std::string_view)){
+    const auto* layout=loadedGameLayout();
+    if(!actor||!layout)return false;
+    const auto address=reinterpret_cast<uintptr_t>(actor);
+    const auto game=reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
+    char name[96]{};
+    if(layout->characterInfo&&readWardrobeCharacterRecord(address,game,game+layout->characterInfo,name)&&
+       resolveCharacter(name,address,output,addonLookup))return true;
+    char appearance[256]{};
+    if(!readWardrobeActorAppearance(address,game,appearance))return false;
+    const auto witch=wardrobeWitchForAppearance(appearance);
+    if(witch>=0&&size_t(witch)<witches.size()){
+        output={};output.witch=witch;output.actor=address;
+        strcpy_s(output.name,witches[witch].name);
+        return true;
+    }
+    if(addonLookup){
+        const auto target=enabledAddonTargetForAppearance(appearance);
+        const auto* addon=characterAddon(target);
+        if(addon){
+            output={};output.witch=target;output.recordKey=addon->recordKey;output.actor=address;
+            strncpy_s(output.name,addon->label.c_str(),_TRUNCATE);
+            return true;
+        }
+    }
+    return false;
+}
 bool partCountGuard(void* model,uint32_t* count,uintptr_t* list) {
     __try {*count=word(reinterpret_cast<uintptr_t>(model),0x78);*list=ptr(reinterpret_cast<uintptr_t>(model),0x70);return *list&&*count>0&&*count<=128;}
     __except(EXCEPTION_EXECUTE_HANDLER){return false;}
@@ -102,16 +149,19 @@ bool writable(const void* p,size_t bytes) {
     return true;
 }
 }
-bool readWitchIdentity(HMODULE surgery,void* actor,ActorIdentity& output) {
+bool readWitchIdentity(HMODULE surgery,void* actor,ActorIdentity& output,int (*addonLookup)(std::string_view)) {
+    if(!actor)return false;
+    if(gameIdentity(actor,output,addonLookup))return true;
     NativeIdentity value{};
-    if(!surgery||!actor||!nativeIdentityGuard(surgery,actor,&value)||!value.valid||!memchr(value.name,0,sizeof(value.name)))return false;
-    for(const auto& row:identities)if(strcmp(value.name,row.name)==0) {
-        output.witch=row.witch;output.recordKey=row.key;output.actor=reinterpret_cast<uintptr_t>(actor);memcpy(output.name,value.name,sizeof(output.name));return true;
-    }
-    return false;
+    const auto address=reinterpret_cast<uintptr_t>(actor);
+    return surgery&&nativeIdentityGuard(surgery,actor,&value)&&value.valid&&memchr(value.name,0,sizeof value.name)&&
+        resolveCharacter(value.name,address,output,addonLookup);
 }
-bool readContextWitchIdentity(HMODULE surgery,void* context,ActorIdentity& output) {
-    return surgery&&context&&readWitchIdentity(surgery,contextActorGuard(surgery,context),output);
+bool readWardrobeIdentity(void* actor,ActorIdentity& output){
+    return gameIdentity(actor,output,addonTargetForRecord);
+}
+bool readContextWitchIdentity(HMODULE surgery,void* context,ActorIdentity& output,int (*addonLookup)(std::string_view)) {
+    return surgery&&context&&readWitchIdentity(surgery,contextActorGuard(surgery,context),output,addonLookup);
 }
 bool capturePoseParts(void* upload,void* model,std::vector<PosePart>& output,std::string& error) {
     uint32_t count=0;uintptr_t list=0;
@@ -141,7 +191,10 @@ bool capturePoseParts(void* upload,void* model,std::vector<PosePart>& output,std
     output=std::move(next);return true;
 }
 bool poseBytesEqual(const PoseMatrix* address,const std::vector<PoseMatrix>& expected) {
-    std::vector<PoseMatrix> copy(expected.size());return copyGuard(copy.data(),address,copy.size()*sizeof(PoseMatrix))&&memcmp(copy.data(),expected.data(),copy.size()*sizeof(PoseMatrix))==0;
+    if(expected.empty())return true;
+    if(!address)return false;
+    __try {return memcmp(address,expected.data(),expected.size()*sizeof(PoseMatrix))==0;}
+    __except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
 bool readPoseBytes(const PoseMatrix* address,size_t count,std::vector<PoseMatrix>& output) {
     if(!count||count>2048)return false;

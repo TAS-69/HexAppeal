@@ -2,8 +2,8 @@
   "date": "2026-11-18",
   "development_runtime_sha256": "7dc53d2906582d1c047ea71d51f1b72eb627f54c4bda560e0d736ef1f0e49578",
   "development_version": "0.5.14-development",
-  "public_version": "1.0.2",
-  "public_runtime_sha256": "104fbe304ce3392389732061d26ad4e84abd8ec7c9429413c8218c36f2fe0ee7",
+  "public_version": "1.0.3",
+  "public_runtime_sha256": "9174cf4942d58aa3a597cac846bbcf85d6a4655e1a94ff01387e81eb484a79e6",
   "public_startup_checked": true,
   "temporary_helpers_absent": true,
   "game": "2.05.00 / Steam 26636972",
@@ -122,10 +122,10 @@
       "files/0009/character/modelproperty/ha_p/2_phw/nude/hvw_00_nude_00_0002.pac_xml": "9a43a02c0461bb6246168e297e04d40dbb219da2f606c164c41088c4215ae106",
       "files/0009/character/bin__/meshphysics/ha_p/2_phw/nude/hvw_00_nude_00_0002.hkx": "466ce78d335590c36cd8126b75fedd2c1f0cf3d8decd2e69ea1599d00c80642d",
       "files/0009/character/model/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0001.pac": "3980db667e49908e72f249ad0ae0ab448e3dc4b40285caed8c466484f5c2900f",
-      "files/0009/character/modelproperty/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0001.pac_xml": "6c71be0a12229f33d75047c74db15fb253cf8650ab1693ba9ee4de9b3e10e30e",
+      "files/0009/character/modelproperty/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0001.pac_xml": "66fa57006389d2bde8620a6d9f5406f75deca1a6113d087229d4aa0660ee39f1",
       "files/0009/character/bin__/meshphysics/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0001.hkx": "b2beab76e99472d3cca449c3f0987f3e6bcb995019cf37c2ea818d925fd18194",
       "files/0009/character/model/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0002.pac": "fee99b3cb35529eddfa4831976ada780c1579c3cb1e0f476b9c2ac3ccf8cc669",
-      "files/0009/character/modelproperty/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0002.pac_xml": "c0ce527648d6968727374d663e54d5089092e456db2d40e538fb781c4b16c895",
+      "files/0009/character/modelproperty/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0002.pac_xml": "cbe294e21e55a4ee10085b57e63892a51794fad02bfb181f75677cfae7452945",
       "files/0009/character/bin__/meshphysics/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0002.hkx": "80be01ca9ccb30d1e5e534789c43040acb586c56291489e6c2e7d709bd49ed6d",
       "files/0009/character/appearance/2_mon/cd_m0001_00_twofeet/cd_m0001_00_phw_north/cd_m0001_00_phw_north_44001.app_xml.patch": "99bd219d5f47656f5d7afdbf3c06e62a09e52f1ee54b2c0e8f27c8d0b8bc106d",
       "files/0009/character/appearance/3_npc/cd_npc_north/cd_nhw_north/cd_nhw_north_20026.app_xml.patch": "d3ac681078a259fdc59f0a2d2e3ba72bd51434b4ec7da57a8df699020ebc8667",
@@ -136,14 +136,17 @@
       "files/0009/character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20169.app_xml.patch": "b3fca1b2c9e88c1550213aae3f2db8e95a149b79819e55e390367d33cc071dfa",
       "files/0009/character/model/ha_p/2_phw/armor/12_foot/ha_phw_00_foot_00_0160.pac": "e1e12a3bcdc17b853b9f9847583fa4156f9679a9c105c40a968b3eaed9aa7d1e",
       "files/0009/character/model/ha_p/2_phw/armor/12_foot/ha_phw_00_foot_00_0161.pac": "e59d707a1aac0191dd8ec90bb15f0ace084e4d38edb6e61afad2990d2bfd8353",
-      "files/0009/character/model/ha_p/2_phw/armor/12_foot/ha_phw_00_foot_00_0163.pac": "45d84554c48d12a23591dea09d361c3c70dd5c34e05bb92d07981d326400f958"
+      "files/0009/character/model/ha_p/2_phw/armor/12_foot/ha_phw_00_foot_00_0163.pac": "45d84554c48d12a23591dea09d361c3c70dd5c34e05bb92d07981d326400f958",
+      "files/0009/character/texture/hvw_00_uw_00_0001_ma.dds": "b305116bf3cd9b34db7b0c48389437a065d8a21dcc674115a4fc5ce56faea483",
+      "files/0009/character/texture/hvw_00_uw_00_0001_mg.dds": "5f5be86d6486652e2e8e21cfa1f0d1d8c30145d43f39597ac11d21d341f51e84",
+      "files/0009/character/texture/hvw_00_uw_00_0001_n.dds": "ce6d75de4f505c4b4c9a087a870fc4ced5ed54b3ceb6d96d405dbf064020b17e"
     }
   },
   "sdk_scoped_underwear_policy": {
     "offline_verified": true,
     "custom_authored_asset_live_verified": false
   },
-  "scope": "Development 0.5.14 passed the recorded close idle Elowen body/robe, visibility, independent proportions and UI checks with the armour pack enabled. Both body choices were mounted separately and their actual resource routes verified. Feet were obscured in the final robe pass. Public startup acceptance is recorded separately. Earlier SDK refresh and broader player-reported checks retain their original binaries and scope. Every witch, detail level, controller, motion case, external texture cache and custom authored underwear outfit is not certified.",
+  "scope": "The combined 1.0.3 layout and all three body setups passed earlier manual ZIP checks. The same Vanilla texture files passed with White Pearl and were verified after manual import. The final ASI passed offline checks and live Lyselia outfit edits and switching. Spouse Overhaul did not reapply a recalled spouse's look in one scenario even when Hex Appeal was disabled. Manual reimport of the final combined ZIP is pending.",
   "preceding_public_startup": {
     "version": "1.0.1",
     "runtime_sha256": "55f5baaf419bbfaa5a1b4a089e0a0236d34a70d0f3b4490f3b70ada66f9b4791",
@@ -180,5 +183,38 @@
       "paths.ini": true
     },
     "scope": "User-reported successful world/F9 startup after actual 1.0.2 import, with current-version plugin and panel-rendering logs. No new full deformation or outfit visibility matrix."
+  },
+  "previous_public_version": "1.0.2",
+  "release_103_acceptance": {
+    "vanilla_without_venus": true,
+    "vanilla_with_damiane_venus": true,
+    "venus_witches": true,
+    "dynamic_hidden_lantern_2_1_venus_loadout": true,
+    "vanilla_texture_isolation": {
+      "tested_by_player": true,
+      "mount_sha256": "a5a8f76145f37d47efb718f36edf37d6ab1887e6c9146e5d848b086596d1a2ae",
+      "stock_maps_and_materials_verified": {
+        "files/0009/character/modelproperty/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0001.pac_xml": "66fa57006389d2bde8620a6d9f5406f75deca1a6113d087229d4aa0660ee39f1",
+        "files/0009/character/modelproperty/ha_p/2_phw/armor/38_underwear/hvw_00_uw_00_0002.pac_xml": "cbe294e21e55a4ee10085b57e63892a51794fad02bfb181f75677cfae7452945",
+        "files/0009/character/texture/hvw_00_uw_00_0001_ma.dds": "b305116bf3cd9b34db7b0c48389437a065d8a21dcc674115a4fc5ce56faea483",
+        "files/0009/character/texture/hvw_00_uw_00_0001_mg.dds": "5f5be86d6486652e2e8e21cfa1f0d1d8c30145d43f39597ac11d21d341f51e84",
+        "files/0009/character/texture/hvw_00_uw_00_0001_n.dds": "ce6d75de4f505c4b4c9a087a870fc4ced5ed54b3ceb6d96d405dbf064020b17e"
+      },
+      "white_pearl_still_active_for_damiane": true,
+      "diagnostic_report_sha256": "fc1db5cabee13725c5d3704795e515434ddb908b3180595d5a27c61e2e3e2c39"
+    },
+    "final_combined_import_pending": true,
+    "barber_rebind_correction": {
+      "runtime_sha256": "9174cf4942d58aa3a597cac846bbcf85d6a4655e1a94ff01387e81eb484a79e6",
+      "spouse_overhaul": "0.6.0",
+      "character_creator": "9.1.41 Barber",
+      "offline_checks_passed": 23,
+      "world_saved_look_change_after_barber_passed": true,
+      "default_and_barber_switches_after_edit_passed": true,
+      "dismissed_actor_replaced_and_default_bound": true,
+      "new_actor_started_with_default": true,
+      "barber_save_propagation_after_dismiss_and_summon": "Failure reproduced with HexAppeal absent. Spouse Overhaul recorded saves, but the player confirmed the world actor stayed in Default.",
+      "rebind_with_custom_already_rendered": "Not exercised in the controlled respawn because Spouse Overhaul did not apply the custom world outfit."
+    }
   }
 }

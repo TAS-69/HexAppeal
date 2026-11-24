@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "example/emberglass-cloak",
+  "label": "Emberglass Cloak",
+  "prefab": "example_cloak_emberglass_black",
+  "equip_item": true,
+  "item_visibility": "visible",
+  "controls": [
+    {
+      "id": "colour",
+      "label": "Cloak colour",
+      "type": "choice",
+      "default": "black",
+      "prefab_variant": true,
+      "options": [
+        {"id": "black", "label": "Black", "prefab": "example_cloak_emberglass_black"},
+        {"id": "jade", "label": "Jade", "prefab": "example_cloak_emberglass_jade"}
+      ]
+    },
+    {
+      "id": "visible",
+      "label": "Show cloak",
+      "help": "Keeps the cloak equipped when hidden.",
+      "type": "toggle",
+      "default": true,
+      "follow_outfit_hide": true
+    }
+  ]
+}

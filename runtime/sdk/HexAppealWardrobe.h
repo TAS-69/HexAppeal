@@ -117,6 +117,7 @@ typedef const HA_NativeWardrobeAPI* (HA_CALL *HA_GetNativeWardrobeAPI)(uint32_t 
 
 
 typedef int (HA_CALL *HA_RequestWardrobeRefreshV1)(int32_t witch,const char* outfit);
+typedef int (HA_CALL *HA_BindWardrobeItemV1)(uint64_t token,const char* visibilityControl);
 
 
 

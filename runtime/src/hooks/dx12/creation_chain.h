@@ -11,13 +11,44 @@ struct EntryObservation {
     void* destination;
 };
 
+class FactoryCall {
+    inline static thread_local const FactoryCall* active = nullptr;
+    const FactoryCall* previous = active;
+    HWND window;
+    bool entered = false;
+public:
+    explicit FactoryCall(HWND hwnd) : window(hwnd) {
+        unsigned depth = 0;
+        for (auto call = previous; call; call = call->previous) {
+            if (call->window == window || ++depth == 8) return;
+        }
+        active = this;
+        entered = true;
+    }
+    FactoryCall(const FactoryCall&) = delete;
+    FactoryCall& operator=(const FactoryCall&) = delete;
+    ~FactoryCall() { if (entered) active = previous; }
+    static bool Active() { return active != nullptr; }
+    explicit operator bool() const { return entered; }
+    bool nested() const { return previous != nullptr; }
+};
+
 inline bool Read(const void* source, void* destination, size_t size) {
     __try { std::memcpy(destination, source, size); return true; }
     __except (EXCEPTION_EXECUTE_HANDLER) { return false; }
 }
 
 
-inline EntryObservation Observe(void* entry, void* ours) {
+inline bool ExecutableAddress(const void* address){
+    MEMORY_BASIC_INFORMATION region{};
+    if(!address||!VirtualQuery(address,&region,sizeof region)||region.State!=MEM_COMMIT||
+       (region.Protect&(PAGE_GUARD|PAGE_NOACCESS)))return false;
+    const auto protection=region.Protect&0xff;
+    return protection==PAGE_EXECUTE||protection==PAGE_EXECUTE_READ||
+           protection==PAGE_EXECUTE_READWRITE||protection==PAGE_EXECUTE_WRITECOPY;
+}
+
+inline EntryObservation Observe(void* entry, void* ours, bool executableOnly=false) {
     void* visited[16]{};
     void* at = entry;
     for (unsigned hop = 0; hop < 16; ++hop) {
@@ -26,7 +57,7 @@ inline EntryObservation Observe(void* entry, void* ours) {
             if (visited[i] == at) return {EntryState::Cycle, at};
         visited[hop] = at;
         uint8_t code[16]{};
-        if (!at || !Read(at, code, sizeof code)) return {EntryState::Unreadable, at};
+        if ((executableOnly&&!ExecutableAddress(at))||!at||!Read(at, code, sizeof code)) return {EntryState::Unreadable, at};
         const uintptr_t address = reinterpret_cast<uintptr_t>(at);
         if (code[0] == 0xE9) {
             int32_t relative{}; std::memcpy(&relative, code + 1, sizeof relative);
@@ -45,5 +76,17 @@ inline EntryObservation Observe(void* entry, void* ours) {
     }
     return at == ours && at ? EntryObservation{EntryState::Ours, at}
                            : EntryObservation{EntryState::HopLimit, at};
+}
+
+// A probe swapchain is a last resort for finding the game's presentation
+// when its swapchain creation was never seen. Creating one while the game or
+// other mods create theirs can make the Steam overlay's factory hook recurse
+// until the game crashes during startup, so the first probe waits until
+// startup is long over, and none is made once the game's swapchain was seen.
+inline constexpr unsigned long long firstProbeDelayMs = 30000;
+inline constexpr unsigned long long probeRetryMs = 15000;
+inline bool PresentationProbeDue(unsigned long long now, unsigned long long nextProbe,
+                                 bool probed, bool gameSwapChainSeen) {
+    return !probed && !gameSwapChainSeen && now >= nextProbe;
 }
 }

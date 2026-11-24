@@ -7,7 +7,9 @@
 - [Wardrobe](Wardrobe.md)
 - [Outfit visibility](Outfit-Visibility.md)
 - [Settings & paths](Settings-and-paths.md)
+- [Skin setup](Skin-setup.md)
 - [Compatibility](Compatibility.md)
+- [Releases](Versioning.md)
 
 **OUTFIT CREATORS**
 
@@ -19,4 +21,4 @@
 - [Outfit visibility support](SDK-Outfit-Visibility.md)
 - [Building](Building.md)
 
-[Credits](Credits.md) · [Versioning](Versioning.md)
+[Credits](Credits.md) · [Releases & versioning](Versioning.md)

@@ -9,15 +9,16 @@ static void require(bool ok,const char* what){if(!ok)throw std::runtime_error(wh
 static int began,prepared,committed,aborted,failAt;
 static bool commitOK=true,readyOK=true;
 static int pollState=1;
+static const char* pollReason="";
 static std::set<uint32_t> seen;
 static int ready(char* reason,uint32_t cap){if(!readyOK&&cap>20)strcpy_s(reason,cap,"Not ready for NPCs.");return readyOK;}
 static int begin(uint32_t count,uint64_t* txn){began=int(count);*txn=123;return 1;}
 static int prepare(uint64_t txn,const HexAppealTargetV1* target,const HexAppealProfileV1* profile){require(txn==123,"transaction");require(profile->size==sizeof(*profile),"profile ABI");require(target->size==sizeof(*target),"target ABI");++prepared;for(uint32_t i=0;i<target->keyCount;++i)seen.insert(target->characterRecordKeys[i]);return prepared!=failAt;}
 static int commit(uint64_t txn){require(txn==123,"commit token");++committed;return commitOK;}
 static void abortTx(uint64_t txn){require(txn==123,"abort token");++aborted;}
-static int pollTx(uint64_t txn,char*,uint32_t){require(txn==123,"poll token");return pollState;}
+static int pollTx(uint64_t txn,char* reason,uint32_t cap){require(txn==123,"poll token");if(cap)strcpy_s(reason,cap,pollReason);return pollState;}
 static HexAppealBackendV1 backend={sizeof(HexAppealBackendV1),HEX_APPEAL_BACKEND_ABI,255,"TEST ONLY - no game deformation",ready,begin,prepare,commit,abortTx,pollTx};
-static void reset(){began=prepared=committed=aborted=failAt=0;commitOK=readyOK=true;pollState=1;backend.capabilities=255;seen.clear();}
+static void reset(){began=prepared=committed=aborted=failAt=0;commitOK=readyOK=true;pollState=1;pollReason="";backend.capabilities=255;seen.clear();}
 int main(int argc,char** argv){try{
     require(argc==2,"output path argument");const auto path=std::filesystem::path(argv[1]);
     hex::Model m;std::string err;
@@ -35,6 +36,9 @@ int main(int argc,char** argv){try{
     reset();require(m.apply(&backend,err)&&m.applied,"valid contract acknowledgement");require(began==6&&prepared==6&&committed==1&&aborted==0,"six-witch batch committed once");require(seen.size()==8&&seen.count(1001091)&&seen.count(1001374),"Bari variants included");
     reset();failAt=3;require(!m.apply(&backend,err)&&!m.applied&&aborted==1&&committed==0,"prepare failure aborts whole batch");
     reset();commitOK=false;require(!m.apply(&backend,err)&&aborted==1&&!m.applied,"commit failure aborts");
+    reset();commitOK=false;pollState=-1;pollReason="Saved shapes will apply when the selected witches are visible.";
+    require(!m.apply(&backend,err)&&aborted==1&&!m.pendingTransaction&&err==pollReason,
+            "explain an offscreen deferral without acknowledging an unrendered shape");
     reset();backend.capabilities&=~HEX_CAP_FLAT_BOUNDED;require(!m.apply(&backend,err)&&began==0,"unbounded Flat rejected before mutation");
     reset();backend.capabilities&=~HEX_CAP_HEX_12_RESOLVED;require(!m.apply(&backend,err)&&began==0,"unresolved Hex macros rejected");
     reset();backend.capabilities&=~HEX_CAP_COORDINATED_BODY_OUTFIT;require(!m.apply(&backend,err)&&began==0,"auto-fit requires coordinated body and outfit update");

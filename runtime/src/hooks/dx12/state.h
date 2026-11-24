@@ -28,32 +28,18 @@
 
 
 
-    using CSFH_t = HRESULT (STDMETHODCALLTYPE*)(IDXGIFactory2*, IUnknown*, HWND, const DXGI_SWAP_CHAIN_DESC1*, const DXGI_SWAP_CHAIN_FULLSCREEN_DESC*, IDXGIOutput*, IDXGISwapChain1**);
-
-    static CSFH_t oFactoryCreateSwapChainForHwnd = nullptr;
-
-
-    static CSFH_t g_factoryOwnTramp = nullptr;
 
 
 
-    static void** g_factoryVt = nullptr;
-    static void*  g_factoryFn = nullptr;
-    static bool   g_factoryInPlace = false;
+
     static std::atomic<long> g_factoryCalls{0};
 
 
 
 
-    static bool g_wrapperActive = false;
-
-
-
-
-
-    static std::atomic<unsigned> g_presentSeen{0};
-
-
+    static std::atomic<unsigned> g_wrappedChains{0};
+    static std::recursive_mutex g_renderMutex;
+    static thread_local bool t_wrappedResize = false;
 
 
 
@@ -63,28 +49,26 @@
 
 
 
-    static thread_local bool t_inSwapChainCreate = false;
-
-
-
-
-    struct CreateGuard
-    {
-        bool wasNested;
-        CreateGuard() : wasNested(t_inSwapChainCreate) { t_inSwapChainCreate = true; }
-        ~CreateGuard() { if (!wasNested) t_inSwapChainCreate = false; }
-    };
 
 
 
 
 
-    static HWND g_wrappedHwnd = nullptr;
 
 
 
 
-    static HWND g_gameHwnd = nullptr;
+
+
+
+
+
+
+
+
+    static std::atomic<HWND> g_gameHwnd{nullptr};
+    // Set once Hex Appeal has seen the game create its swapchain.
+    static std::atomic<bool> g_gameSwapChainSeen{false};
 
 
     struct FrameContext
@@ -142,8 +126,9 @@
     static UINT                       g_scHeight       = 0;
     static DXGI_FORMAT                g_scFormat       = DXGI_FORMAT_UNKNOWN;
     static bool                       g_imguiReady     = false;
-    static bool                       g_initFailed     = false;
+    static uint64_t                   g_overlayInitRetryAt = 0;
     static bool                       g_renderDisabled = false;
+    static bool                       g_unfencedSubmit = false;
 
 
 

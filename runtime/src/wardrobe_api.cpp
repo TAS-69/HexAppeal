@@ -110,6 +110,44 @@ int HA_CALL setAvailable(uint64_t handle,uint32_t available,const char* reason){
     const std::string message=available?"":text[0]?text:"Provider dependencies are not ready.";
     std::lock_guard<std::mutex> lock(registryMutex);for(auto& entry:outfits)if(entry.token==handle&&!entry.removed){if(entry.available==(available!=0)&&entry.reason==message)return HA_OK;entry.available=available!=0;entry.reason=message;++revision;return HA_OK;}return fail(HA_NOT_FOUND,"The registration token is unknown.");
 }catch(...){return fail(HA_INVALID,"Availability update failed.");}}
+int HA_CALL bindItem(uint64_t handle,const char* visibilityControl){try{
+    char visibility[32]{};
+    if(!cstring(visibilityControl,visibility,sizeof visibility))return fail(HA_INVALID,"Provide a toggle ID or an empty string.");
+    std::lock_guard<std::mutex> lock(registryMutex);
+    const auto found=std::find_if(outfits.begin(),outfits.end(),[=](const auto& row){return row.token==handle&&!row.removed;});
+    if(found==outfits.end())return fail(HA_NOT_FOUND,"The registration token is unknown.");
+    auto& entry=*found;
+    if(entry.available||!entry.itemSlot.empty())return fail(HA_UNAVAILABLE,"Bind an item before advertising availability.");
+    const auto slot=outfitSlotForPart(entry.prefab);
+    if(slot.empty()||protectedOutfitPart(entry.prefab)||entry.controls.empty()||entry.policyFlags||!entry.visibilityParts.empty())
+        return fail(HA_INVALID,"Use an equipable prefab with item controls and no full-outfit policy or visibility bindings.");
+    const auto fits=[&](const auto& name){return !protectedOutfitPart(name)&&outfitSlotForPart(name)==slot;};
+    bool visibilityFound=!visibility[0];
+    for(size_t index=0;index<entry.controls.size();++index){
+        const auto& control=entry.controls[index];
+        bool applied=(entry.nativeMask&(1u<<index))!=0;
+        if(control.flags&HA_PREFAB_VARIANT){
+            applied=true;
+            if(control.options[control.defaultValue].prefab!=entry.prefab||
+               std::any_of(control.options.begin(),control.options.end(),[&](const auto& option){return !fits(option.prefab);}))
+                return fail(HA_INVALID,"Item variants must use the same slot and match the default prefab.");
+        }
+        if(control.id==visibility){
+            if(applied||control.type!=HA_TOGGLE)return fail(HA_INVALID,"Item visibility needs its own toggle.");
+            applied=visibilityFound=true;
+        }
+        if(!applied||control.scope!=HA_PER_WITCH)return fail(HA_INVALID,"Each item control must drive per-witch variants or item visibility.");
+    }
+    if(!visibilityFound||std::any_of(entry.prefabStates.begin(),entry.prefabStates.end(),[&](const auto& state){return !fits(state.prefab);}))
+        return fail(HA_INVALID,"Check the visibility toggle ID and the slot of each item state.");
+    if(std::any_of(outfits.begin(),outfits.end(),[&](const auto& row){return !row.removed&&!row.itemSlot.empty()&&row.prefab==entry.prefab;}))
+        return fail(HA_DUPLICATE,"Another provider already binds this item prefab.");
+    entry.itemSlot=slot;
+    entry.itemVisibility=visibility;
+    ++revision;
+    lastError.clear();
+    return HA_OK;
+}catch(...){return fail(HA_INVALID,"The item controls could not be bound.");}}
 int HA_CALL unregisterOutfit(uint64_t handle){std::lock_guard<std::mutex> lock(registryMutex);for(auto& entry:outfits)if(entry.token==handle&&!entry.removed){entry.removed=true;entry.available=false;entry.reason="Outfit provider is unloaded. Select Default to restore.";++revision;return HA_OK;}return fail(HA_NOT_FOUND,"The registration token is unknown.");}
 int HA_CALL selectOutfit(int32_t witch,const char* source){try{char id[96]{};if(!cstring(source,id,sizeof id))return fail(HA_INVALID,"An outfit ID is required.");std::string error;if(!requestWardrobeOutfit(witch,id,error))return fail(HA_UNAVAILABLE,error);return HA_OK;}catch(...){return fail(HA_INVALID,"Outfit selection failed.");}}
 int HA_CALL getSelection(int32_t witch,HA_Selection* output){try{
@@ -123,7 +161,7 @@ int HA_CALL setControl(int32_t witch,const char* outfit,const char* control,uint
 int HA_CALL getControl(int32_t witch,const char* outfit,const char* control,HA_ControlValue* output){try{
     uint32_t size=0;char id[96]{},name[32]{};if(!copy(&size,output,4)||size!=sizeof(HA_ControlValue)||!cstring(outfit,id,sizeof id)||!cstring(control,name,sizeof name))return fail(HA_INVALID,"Invalid control query.");
     HA_ControlValue result{};result.size=sizeof result;std::lock_guard<std::mutex> lock(registryMutex);
-    for(const auto& entry:outfits)if(entry.id==id)for(const auto& c:entry.controls)if(c.id==name){if(witch< -1||witch>5||(c.scope==HA_PER_WITCH&&witch<0))return fail(HA_INVALID,"Choose one witch for a per-witch query.");result.value=valueFor(entry,c,witch);result.scope=c.scope;result.revision=revision;return copy(output,&result,sizeof result)?HA_OK:HA_INVALID;}
+    for(const auto& entry:outfits)if(entry.id==id&&entry.itemSlot.empty())for(const auto& c:entry.controls)if(c.id==name){if(witch< -1||witch>5||(c.scope==HA_PER_WITCH&&witch<0))return fail(HA_INVALID,"Choose one witch for a per-witch query.");result.value=valueFor(entry,c,witch);result.scope=c.scope;result.revision=revision;return copy(output,&result,sizeof result)?HA_OK:HA_INVALID;}
     return fail(HA_NOT_FOUND,"The outfit control is not registered.");
 }catch(...){return fail(HA_INVALID,"Control query failed.");}}
 int HA_CALL getLastError(char* output,uint32_t capacity){if(!output||!capacity||capacity>65536)return HA_INVALID;const auto count=std::min<size_t>(lastError.size(),capacity-1);const char zero=0;if(!copy(output,lastError.c_str(),count)||!copy(output+count,&zero,1))return HA_INVALID;return count==lastError.size()?HA_OK:HA_LIMIT;}
@@ -147,7 +185,7 @@ int HA_CALL getEffectiveControl(int32_t witch,const char* outfit,const char* con
     if(witch<0||witch>5||!copy(&size,output,4)||size!=sizeof(HA_EffectiveControlValue)||!cstring(outfit,id,sizeof id)||!cstring(control,name,sizeof name))return fail(HA_INVALID,"Query one witch and set effective value.size.");
     HA_EffectiveControlValue result{};result.size=sizeof result;bool found=false;
     {std::lock_guard<std::mutex> lock(registryMutex);if(settingsFile.empty())return fail(HA_NOT_READY,"Wardrobe is not initialized yet.");
-        for(const auto& entry:outfits)if(entry.id==id){
+        for(const auto& entry:outfits)if(entry.id==id&&entry.itemSlot.empty()){
             if(!entry.available||entry.removed)return fail(HA_UNAVAILABLE,"The outfit provider is unavailable.");
             for(const auto& c:entry.controls)if(c.id==name){result.storedValue=valueFor(entry,c,witch);result.value=result.storedValue;result.scope=c.scope;result.flags=c.flags;result.revision=revision;found=true;break;}break;}}
     if(!found)return fail(HA_NOT_FOUND,"The outfit control is not registered.");
@@ -177,6 +215,7 @@ int HA_CALL setOutfitPolicy(uint64_t token,uint32_t flags){try{
     std::lock_guard<std::mutex> lock(registryMutex);
     for(auto& entry:outfits)if(entry.token==token&&!entry.removed){
         if(entry.available)return fail(HA_UNAVAILABLE,"Set the outfit policy before marking the provider available.");
+        if(flags&&!entry.itemSlot.empty())return fail(HA_INVALID,"Full-outfit policy requires a full outfit registration.");
         if(entry.policyFlags!=flags){entry.policyFlags=flags;++revision;}lastError.clear();return HA_OK;
     }return fail(HA_NOT_FOUND,"The registration token is unknown.");
 }catch(...){return fail(HA_INVALID,"The outfit policy could not be set.");}}
@@ -197,9 +236,67 @@ bool initializeWardrobeAPI(const std::filesystem::path& path,std::string& error)
     settingsFile=path;values=std::move(loaded);++revision;return true;
 }
 std::vector<WardrobeProviderOutfit> wardrobeProviderOutfits(){std::lock_guard<std::mutex> lock(registryMutex);return outfits;}
+namespace {
+bool matchesItem(const WardrobeProviderOutfit& entry,const OutfitSlots& slots){
+    if(entry.itemSlot.empty()||entry.removed)return false;
+    const auto found=slots.find(entry.itemSlot);
+    return found!=slots.end()&&found->second.size()==1&&*found->second.begin()==entry.prefab;
+}
+uint32_t itemValue(const WardrobeProviderOutfit& entry,const WardrobeControl& control,const WardrobeItemOptions& options){
+    const auto found=options.find({entry.id,control.id});
+    if(found==options.end())return control.defaultValue;
+    if(control.type==HA_TOGGLE)return found->second=="1"?1:found->second=="0"?0:control.defaultValue;
+    const auto option=std::find_if(control.options.begin(),control.options.end(),[&](const auto& row){return row.id==found->second;});
+    return option==control.options.end()?control.defaultValue:uint32_t(std::distance(control.options.begin(),option));
+}
+bool suppressedControl(const WardrobeControl& control,bool outfitHidden,bool underwearHidden){
+    return (outfitHidden&&(control.flags&HA_FOLLOW_OUTFIT_HIDE))||
+           (underwearHidden&&(control.flags&HA_FOLLOW_BASE_UNDERWEAR));
+}
+}
+std::vector<WardrobeItemControl> wardrobeItemControls(const OutfitSlots& slots,const WardrobeItemOptions& options){
+    std::vector<WardrobeItemControl> controls;
+    if(slots.empty())return controls;
+    std::lock_guard<std::mutex> lock(registryMutex);
+    for(const auto& entry:outfits)if(matchesItem(entry,slots)){
+        for(const auto& control:entry.controls)
+            controls.push_back({entry.id,entry.label,entry.reason,entry.itemSlot,control,itemValue(entry,control,options),entry.available});
+    }
+    return controls;
+}
+WardrobeItemLook resolveWardrobeItems(const OutfitSlots& slots,const WardrobeItemOptions& options,bool outfitHidden,bool underwearHidden){
+    WardrobeItemLook look{slots,{},{}};
+    if(slots.empty())return look;
+    std::lock_guard<std::mutex> lock(registryMutex);
+    for(const auto& entry:outfits)if(entry.available&&matchesItem(entry,slots)){
+        std::string_view prefabName=entry.prefab;
+        bool visible=true, underwear=false;
+        std::array<uint32_t,HA_WARDROBE_MAX_CONTROLS> state{};
+        for(size_t index=0;index<entry.controls.size();++index){
+            const auto& control=entry.controls[index];
+            const auto value=suppressedControl(control,outfitHidden,underwearHidden)?0:itemValue(entry,control,options);
+            if(entry.nativeMask&(1u<<index))state[index]=value;
+            if(control.flags&HA_PREFAB_VARIANT)prefabName=control.options[value].prefab;
+            if(control.id==entry.itemVisibility){
+                visible=value!=0;
+                underwear=(control.flags&HA_FOLLOW_BASE_UNDERWEAR)!=0;
+            }
+        }
+        if(entry.nativeMask){
+            const auto row=std::find_if(entry.prefabStates.begin(),entry.prefabStates.end(),[&](const auto& candidate){return candidate.values==state;});
+            if(row==entry.prefabStates.end())continue;
+            prefabName=row->prefab;
+        }
+        auto name=std::string(prefabName);
+        if(!visible)look.hidden.insert(name);
+        if(underwear)look.underwear.insert(name);
+        look.slots.at(entry.itemSlot)={std::move(name)};
+    }
+    return look;
+}
 bool resolveWardrobeProvider(const std::string& id,int witch,WardrobeProviderOutfit& output,std::string& error){
     if(witch<0||witch>5){error="Choose one supported witch.";return false;}
-    std::lock_guard<std::mutex> lock(registryMutex);for(const auto& entry:outfits)if(entry.id==id){output=entry;if(!entry.available||entry.removed){error=entry.reason;return false;}
+    std::lock_guard<std::mutex> lock(registryMutex);for(const auto& entry:outfits)if(entry.id==id&&entry.itemSlot.empty()){output=entry;if(!entry.available||entry.removed){error=entry.reason;return false;}
         if((entry.policyFlags&HA_REPLACE_BASE_UNDERWEAR)&&!underwearStatus(witch).ready){error="This outfit requires the native Base underwear visibility route.";return false;}
         const bool nude=(outfitHiddenPreference().hiddenMask&(1u<<witch))!=0;
         const bool hidden=(baseUnderwearPreference().hiddenMask&(1u<<witch))!=0;
@@ -217,7 +314,7 @@ bool readWardrobeControl(int witch,const std::string& outfit,const std::string& 
 bool writeWardrobeControl(int witch,const std::string& outfit,const std::string& control,uint32_t value,std::string& error){
     bool native=false;int affected=witch;{
         std::lock_guard<std::mutex> lock(registryMutex);if(witch< -1||witch>5){error="Choose a supported witch.";return false;}
-        const auto entry=std::find_if(outfits.begin(),outfits.end(),[&](const auto& e){return e.id==outfit;});if(entry==outfits.end()||!entry->available||entry->removed){error="The outfit provider is unavailable.";return false;}
+        const auto entry=std::find_if(outfits.begin(),outfits.end(),[&](const auto& e){return e.id==outfit&&e.itemSlot.empty();});if(entry==outfits.end()||!entry->available||entry->removed){error="The outfit provider is unavailable.";return false;}
         const auto item=std::find_if(entry->controls.begin(),entry->controls.end(),[&](const auto& c){return c.id==control;});if(item==entry->controls.end()||value>=(item->type==HA_TOGGLE?2:item->options.size())){error="Choose a supported outfit option.";return false;}
         auto pending=values;if(item->scope==HA_GLOBAL){pending[key(outfit,-1,control)]=value;affected=-1;}else for(int i=0;i<6;++i)if(witch<0||witch==i)pending[key(outfit,i,control)]=value;
         if(pending.size()>2048){error="Wardrobe saved-option limit reached.";return false;}if(pending==values)return true;if(!save(pending,error))return false;values=std::move(pending);++revision;native=item->flags==HA_PREFAB_VARIANT||(entry->nativeMask&(1u<<std::distance(entry->controls.begin(),item)))!=0;
@@ -234,3 +331,4 @@ extern "C" __declspec(dllexport) const HA_BaseUnderwearAPI* HA_CALL HexAppeal_Ge
 extern "C" __declspec(dllexport) const HA_NativeWardrobeAPI* HA_CALL HexAppeal_GetNativeWardrobeAPI(uint32_t version){return version==HA_NATIVE_WARDROBE_ABI?&hex::nativeWardrobeAPI:nullptr;}
 extern "C" __declspec(dllexport) const HA_OutfitVisibilityAPI* HA_CALL HexAppeal_GetOutfitVisibilityAPI(uint32_t version){return version==HA_OUTFIT_VISIBILITY_ABI?&hex::outfitVisibilityAPI:nullptr;}
 extern "C" __declspec(dllexport) const HA_OutfitPolicyAPI* HA_CALL HexAppeal_GetOutfitPolicyAPI(uint32_t version){return version==HA_OUTFIT_POLICY_ABI?&hex::outfitPolicyAPI:nullptr;}
+extern "C" __declspec(dllexport) int HA_CALL HexAppeal_BindWardrobeItemV1(uint64_t token,const char* visibilityControl){return hex::bindItem(token,visibilityControl);}

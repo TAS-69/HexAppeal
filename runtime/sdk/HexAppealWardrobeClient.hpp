@@ -21,10 +21,11 @@ class WardrobeClient {
     const HA_OutfitVisibilityAPI* visibility_=nullptr;
     const HA_OutfitPolicyAPI* policy_=nullptr;
     HA_RequestWardrobeRefreshV1 refresh_=nullptr;
+    HA_BindWardrobeItemV1 bindItem_=nullptr;
     std::string localError_;
     int unavailable(const char* reason){localError_=reason;return HA_UNAVAILABLE;}
 public:
-    bool Attach(HA_GetWardrobeAPI getAPI,HA_GetBaseUnderwearAPI getBase=nullptr,HA_GetNativeWardrobeAPI getNative=nullptr,HA_RequestWardrobeRefreshV1 refresh=nullptr,HA_GetOutfitVisibilityAPI getVisibility=nullptr,HA_GetOutfitPolicyAPI getPolicy=nullptr){
+    bool Attach(HA_GetWardrobeAPI getAPI,HA_GetBaseUnderwearAPI getBase=nullptr,HA_GetNativeWardrobeAPI getNative=nullptr,HA_RequestWardrobeRefreshV1 refresh=nullptr,HA_GetOutfitVisibilityAPI getVisibility=nullptr,HA_GetOutfitPolicyAPI getPolicy=nullptr,HA_BindWardrobeItemV1 bindItem=nullptr){
         Reset();api_=getAPI?getAPI(HA_WARDROBE_ABI):nullptr;
         if(!api_||api_->version!=HA_WARDROBE_ABI||api_->size<sizeof(HA_WardrobeAPI)||!api_->RegisterOutfit||!api_->SetAvailable||!api_->UnregisterOutfit||!api_->SelectOutfit||!api_->GetSelection||!api_->SetControl||!api_->GetControl||!api_->GetLastError){Reset();localError_="Hex Appeal Wardrobe API v1 is unavailable or incomplete.";return false;}
         base_=getBase?getBase(HA_BASE_UNDERWEAR_ABI):nullptr;
@@ -35,7 +36,7 @@ public:
         if(visibility_&&(visibility_->version!=HA_OUTFIT_VISIBILITY_ABI||visibility_->size<sizeof(HA_OutfitVisibilityAPI)||!visibility_->GetState||!visibility_->SetHidden))visibility_=nullptr;
         policy_=getPolicy?getPolicy(HA_OUTFIT_POLICY_ABI):nullptr;
         if(policy_&&(policy_->version!=HA_OUTFIT_POLICY_ABI||policy_->size<sizeof(HA_OutfitPolicyAPI)||!policy_->SetPolicy))policy_=nullptr;
-        refresh_=refresh;return true;
+        refresh_=refresh;bindItem_=bindItem;return true;
     }
 #ifdef _WIN32
     bool Connect(){
@@ -46,10 +47,11 @@ public:
             reinterpret_cast<HA_GetNativeWardrobeAPI>(GetProcAddress(module,"HexAppeal_GetNativeWardrobeAPI")),
             reinterpret_cast<HA_RequestWardrobeRefreshV1>(GetProcAddress(module,"HexAppeal_RequestWardrobeRefreshV1")),
             reinterpret_cast<HA_GetOutfitVisibilityAPI>(GetProcAddress(module,"HexAppeal_GetOutfitVisibilityAPI")),
-            reinterpret_cast<HA_GetOutfitPolicyAPI>(GetProcAddress(module,"HexAppeal_GetOutfitPolicyAPI")));
+            reinterpret_cast<HA_GetOutfitPolicyAPI>(GetProcAddress(module,"HexAppeal_GetOutfitPolicyAPI")),
+            reinterpret_cast<HA_BindWardrobeItemV1>(GetProcAddress(module,"HexAppeal_BindWardrobeItemV1")));
     }
 #endif
-    void Reset(){api_=nullptr;base_=nullptr;native_=nullptr;visibility_=nullptr;policy_=nullptr;refresh_=nullptr;localError_.clear();}
+    void Reset(){api_=nullptr;base_=nullptr;native_=nullptr;visibility_=nullptr;policy_=nullptr;refresh_=nullptr;bindItem_=nullptr;localError_.clear();}
     bool Connected()const{return api_!=nullptr;}
     bool HasBaseUnderwear()const{return base_!=nullptr;}
     bool HasNativeCombinations()const{return native_!=nullptr;}
@@ -57,6 +59,8 @@ public:
     bool HasRefresh()const{return refresh_!=nullptr;}
     bool HasOutfitVisibility()const{return visibility_!=nullptr;}
     bool HasOutfitPolicy()const{return policy_!=nullptr;}
+    bool HasItemControls()const{return bindItem_!=nullptr;}
+    int BindItem(uint64_t token,const char* visibilityControl=""){localError_.clear();return bindItem_?bindItem_(token,visibilityControl):unavailable("This build does not support equipped item controls.");}
     int Policy(uint64_t token,uint32_t flags){localError_.clear();return policy_?policy_->SetPolicy(token,flags):unavailable("This outfit requires the outfit-policy extension.");}
     int OutfitVisibilityState(int witch,HA_OutfitVisibilityState& value){localError_.clear();value=Sized<HA_OutfitVisibilityState>();return visibility_?visibility_->GetState(witch,&value):unavailable("The Hide outfit extension is unavailable.");}
     int HideOutfit(int witch,bool hidden){localError_.clear();return visibility_?visibility_->SetHidden(witch,hidden?1:0):unavailable("The Hide outfit extension is unavailable.");}

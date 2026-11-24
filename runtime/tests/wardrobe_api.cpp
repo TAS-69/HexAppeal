@@ -14,6 +14,7 @@ extern "C" const HA_NativeWardrobeAPI* HA_CALL HexAppeal_GetNativeWardrobeAPI(ui
 extern "C" const HA_OutfitVisibilityAPI* HA_CALL HexAppeal_GetOutfitVisibilityAPI(uint32_t);
 extern "C" const HA_OutfitPolicyAPI* HA_CALL HexAppeal_GetOutfitPolicyAPI(uint32_t);
 extern "C" int HA_CALL HexAppeal_RequestWardrobeRefreshV1(int32_t,const char*);
+extern "C" int HA_CALL HexAppeal_BindWardrobeItemV1(uint64_t,const char*);
 namespace hex {
 static std::string selection="hexappeal/default";static std::atomic<unsigned> reapplied{0};
 static UnderwearPreference preference{};static bool rejectUnderwearSave=false;
@@ -33,6 +34,57 @@ bool requestSelectedWardrobeRefresh(int witch,const std::string& id,std::string&
 static void check(bool value,const char* message){if(!value)throw std::runtime_error(message);}
 static HA_WardrobeAPI invalidClientAPI{};
 static const HA_WardrobeAPI* HA_CALL invalidClientFactory(uint32_t){return &invalidClientAPI;}
+static void testEquippedItems(){
+    hexappeal::WardrobeClient client;
+    check(client.Attach(HexAppeal_GetWardrobeAPI, nullptr, nullptr, nullptr, nullptr,
+                        HexAppeal_GetOutfitPolicyAPI, HexAppeal_BindWardrobeItemV1)&&client.HasItemControls(),
+          "discover optional equipped item extension");
+    auto outfit=hexappeal::Sized<HA_Outfit>();
+    hexappeal::Text(outfit.id,"example/cloak");hexappeal::Text(outfit.label,"Example cloak");hexappeal::Text(outfit.prefab,"custom_cloak_black");
+    HA_Option options[2]{};
+    hexappeal::Text(options[0].id,"black");hexappeal::Text(options[0].label,"Black");hexappeal::Text(options[0].prefab,"custom_cloak_black");
+    hexappeal::Text(options[1].id,"jade");hexappeal::Text(options[1].label,"Jade");hexappeal::Text(options[1].prefab,"custom_cloak_jade");
+    HA_Control controls[]={hexappeal::Sized<HA_Control>(),hexappeal::Sized<HA_Control>()};
+    controls[0].flags=HA_PREFAB_VARIANT;controls[0].optionCount=2;controls[0].options=options;
+    hexappeal::Text(controls[0].id,"colour");hexappeal::Text(controls[0].label,"Colour");
+    controls[1].type=HA_TOGGLE;controls[1].defaultValue=1;controls[1].flags=HA_FOLLOW_OUTFIT_HIDE;
+    hexappeal::Text(controls[1].id,"visible");hexappeal::Text(controls[1].label,"Show cloak");
+    outfit.controls=controls;outfit.controlCount=2;
+    uint64_t token=0;
+    check(client.Register(outfit,token)==HA_OK&&client.BindItem(token,"no-such-control")==HA_INVALID&&
+          client.BindItem(token,"visible")==HA_OK,"attach an exact equipped prefab before advertising readiness");
+    check(client.Policy(token,HA_REPLACE_BASE_UNDERWEAR)==HA_INVALID,"equipped control cannot claim base body underwear");
+    const hex::OutfitSlots equipped={{"Cloak",{"custom_cloak_black"}},{"Feet",{"normal_foot_boots"}}};
+    const hex::WardrobeItemOptions saved={{{"example/cloak","colour"},"jade"}};
+    auto ui=hex::wardrobeItemControls(equipped,saved);
+    check(ui.size()==2&&!ui.front().available&&ui.front().value==1&&
+          hex::resolveWardrobeItems(equipped,saved,false,false).slots==equipped,"rely on equipped fallback until provider is ready");
+    check(client.Available(token,true)==HA_OK&&client.Select(3,"example/cloak")==HA_UNAVAILABLE,"equipped items are never selectable as full outfits");
+    check(hex::wardrobeItemControls({{"Feet",{"normal_foot_boots"}}},saved).empty()&&
+          hex::wardrobeItemControls({{"Cloak",{"custom_cloak_black","other_cloak"}}},saved).empty(),
+          "generic and ambiguous loadouts gain no extra controls");
+    const auto selected=hex::resolveWardrobeItems(equipped,saved,false,false);
+    check(selected.slots.at("Cloak")==hex::OutfitParts{"custom_cloak_jade"}&&selected.slots.at("Feet")==equipped.at("Feet")&&
+          selected.hidden.empty()&&equipped.at("Cloak")==hex::OutfitParts{"custom_cloak_black"},"variant changes only its own rendered appearance");
+    const auto hidden=hex::resolveWardrobeItems(equipped,saved,true,false);
+    check(hidden.slots==selected.slots&&hidden.hidden==hex::OutfitParts{"custom_cloak_jade"}&&
+          hex::resolveWardrobeItems(equipped,saved,false,true).hidden.empty(),"outfit hide leaves equipment, colour, and underwear state independent");
+    check(client.Unregister(token)==HA_OK&&hex::wardrobeItemControls(equipped,saved).empty()&&
+          hex::resolveWardrobeItems(equipped,saved,false,false).slots==equipped,"provider removal restores the equipped appearance");
+
+    hexappeal::Text(outfit.id,"example/briefs");hexappeal::Text(outfit.label,"Example fitted briefs");
+    hexappeal::Text(outfit.prefab,"custom_lb_briefs");
+    outfit.controls=controls+1;outfit.controlCount=1;controls[1].flags=HA_FOLLOW_BASE_UNDERWEAR;
+    check(client.Register(outfit,token)==HA_OK&&client.BindItem(token,"visible")==HA_OK&&client.Available(token,true)==HA_OK,
+          "link independent equipped underwear to the base visibility preference");
+    const hex::OutfitSlots briefs={{"Lower body",{"custom_lb_briefs"}}};
+    for(bool hideOutfit:{false,true})for(bool hideBase:{false,true}){
+        const auto look=hex::resolveWardrobeItems(briefs,{},hideOutfit,hideBase);
+        check(look.slots==briefs&&look.underwear==hex::OutfitParts{"custom_lb_briefs"}&&
+              look.hidden.count("custom_lb_briefs")==size_t(hideBase),"base override independent of outfit hiding and saved slots");
+    }
+    check(client.Unregister(token)==HA_OK,"release equipped underwear registration");
+}
 int wmain(int argc,wchar_t** argv){try{
     check(argc==2,"fixture path required");const auto root=std::filesystem::path(argv[1]);std::filesystem::create_directories(root);const auto file=root/L"controls.ini";std::error_code ec;std::filesystem::remove(file,ec);
     const auto* base=HexAppeal_GetBaseUnderwearAPI(1);HA_BaseUnderwearState state{};state.size=sizeof state;
@@ -42,6 +94,7 @@ int wmain(int argc,wchar_t** argv){try{
     check(base&&base->size==sizeof(HA_BaseUnderwearAPI)&&!HexAppeal_GetBaseUnderwearAPI(2),"optional versioned underwear ABI");
     check(base->GetState(3,&state)==HA_NOT_READY&&base->SetHidden(3,1)==HA_NOT_READY,"pre-initialization calls fail before publishing preferences");
     std::string error;check(hex::initializeWardrobeAPI(file,error),"initialize API settings");const auto* api=HexAppeal_GetWardrobeAPI(1);check(api&&api->size==72&&!HexAppeal_GetWardrobeAPI(2),"original versioned C ABI layout unchanged");
+    testEquippedItems();
     HA_Option variants[2]{};strcpy_s(variants[0].id,"red");strcpy_s(variants[0].label,"Red");strcpy_s(variants[0].prefab,"test_dress_red");strcpy_s(variants[1].id,"blue");strcpy_s(variants[1].label,"Blue");strcpy_s(variants[1].prefab,"test_dress_blue");
     HA_Control controls[4]{};for(auto& control:controls)control.size=sizeof control;
     strcpy_s(controls[0].id,"colour");strcpy_s(controls[0].label,"Colour");controls[0].flags=HA_PREFAB_VARIANT;controls[0].optionCount=2;controls[0].options=variants;

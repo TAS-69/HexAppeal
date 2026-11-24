@@ -295,6 +295,7 @@
         }
 
 
+        hex::observeGraphicsSwapchain(newW, newH);
         WaitForOverlayIdle();
 
 
@@ -347,6 +348,36 @@
         return true;
     }
 
+    static void ResetOverlayInitialization()
+    {
+        if (ImGui::GetCurrentContext())
+        {
+            const auto& io = ImGui::GetIO();
+            if (io.BackendRendererUserData) ImGui_ImplDX12_Shutdown();
+            if (io.BackendPlatformUserData) ImGui_ImplWin32_Shutdown();
+            ImGui::DestroyContext();
+        }
+        CleanupRenderTargets();
+        ReleaseOffscreenTarget();
+        const auto release = [](auto*& value) { if (value) { value->Release(); value = nullptr; } };
+        for (auto& frame : g_frames) release(frame.commandAllocator);
+        g_frames.clear();
+        release(g_commandList);
+        release(g_srvHeap);
+        release(g_rtvHeap);
+        release(g_fence);
+        release(g_compositePSO);
+        release(g_compositeRootSig);
+        release(g_device);
+        g_compositeFormat = DXGI_FORMAT_UNKNOWN;
+        g_fenceValue = 0;
+        g_swapChain = nullptr;
+        g_imguiReady = false;
+        if (g_fenceEvent) { CloseHandle(g_fenceEvent); g_fenceEvent = nullptr; }
+        if (g_frameFenceEvent) { CloseHandle(g_frameFenceEvent); g_frameFenceEvent = nullptr; }
+        g_bufferCount = 0;
+    }
+
     static bool InitImGui(IDXGISwapChain3* swapChain)
     {
         if (FAILED(swapChain->GetDevice(IID_PPV_ARGS(&g_device))))
@@ -356,7 +387,10 @@
         }
 
         DXGI_SWAP_CHAIN_DESC desc = {};
-        swapChain->GetDesc(&desc);
+        if (FAILED(swapChain->GetDesc(&desc)) || !desc.OutputWindow || !desc.BufferCount)
+            return false;
+        const LUID adapter = g_device->GetAdapterLuid();
+        hex::observeGraphicsSwapchain(desc.BufferDesc.Width, desc.BufferDesc.Height, &adapter);
         g_hwnd        = desc.OutputWindow;
         g_bufferCount = desc.BufferCount;
         g_scWidth     = desc.BufferDesc.Width;
@@ -417,7 +451,8 @@
             LOG_ERR("InitImGui: command list creation failed.");
             return false;
         }
-        g_commandList->Close();
+        if (FAILED(g_commandList->Close()))
+            return false;
 
 
         g_commandList->SetName(L"ModActivatorOverlayCmdList");
@@ -459,17 +494,19 @@
         io.ConfigErrorRecoveryEnableTooltip = false;
         io.ConfigErrorRecoveryEnableAssert  = false;
 
-        gui::InitStyle(static_cast<float>(desc.BufferDesc.Height) / 1080.0f);
+        gui::InitStyle(static_cast<float>(g_scHeight));
 
-        ImGui_ImplWin32_Init(g_hwnd);
+        if (!ImGui_ImplWin32_Init(g_hwnd))
+            return false;
 
 
 
 
-        ImGui_ImplDX12_Init(
+        if (!ImGui_ImplDX12_Init(
             g_device, g_bufferCount, DXGI_FORMAT_R8G8B8A8_UNORM, g_srvHeap,
             g_srvHeap->GetCPUDescriptorHandleForHeapStart(),
-            g_srvHeap->GetGPUDescriptorHandleForHeapStart());
+            g_srvHeap->GetGPUDescriptorHandleForHeapStart()))
+            return false;
 
 
         input::Init(g_hwnd);

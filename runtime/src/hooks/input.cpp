@@ -594,7 +594,18 @@ namespace ml::input
 
     void Init(HWND hwnd)
     {
-        if (g_original) return;
+        if (!hwnd || (g_original && g_hwnd == hwnd)) return;
+        if (g_original && IsWindow(g_hwnd))
+        {
+            // Give up if another window procedure still chains through ours.
+            if (reinterpret_cast<WNDPROC>(GetWindowLongPtrW(g_hwnd, GWLP_WNDPROC)) != WndProc)
+                return;
+            SetLastError(ERROR_SUCCESS);
+            if (!SetWindowLongPtrW(g_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(g_original)) &&
+                GetLastError() != ERROR_SUCCESS)
+                return;
+        }
+        const bool installPollingHooks = !g_csReady;
         if (!g_csReady) { InitializeCriticalSection(&g_cs); g_csReady = true; }
         g_hwnd = hwnd;
         g_ours = &WndProc;
@@ -607,7 +618,7 @@ namespace ml::input
         if (replaced && replaced != g_original)
             g_original = replaced;
         EnsureRawInput();
-        if (HMODULE user32 = GetModuleHandleW(L"user32.dll"))
+        if (HMODULE user32 = installPollingHooks ? GetModuleHandleW(L"user32.dll") : nullptr)
         {
             HMODULE self=nullptr;
             if(GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,reinterpret_cast<LPCWSTR>(&Init),&self)){

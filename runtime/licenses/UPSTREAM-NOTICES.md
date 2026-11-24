@@ -29,4 +29,8 @@ Vendored from the inspected ModActivator tree, version 1.91.5, https://github.co
 ## MinHook
 Vendored from the inspected ModActivator tree, https://github.com/TsudaKageyu/minhook. BSD 2-Clause License, Copyright (C) 2009-2017 Tsuda Kageyu. Its bundled HDE disassembler is used by `src/hooks/farhook.cpp` to measure function prologues. Full notices, including HDE, remain in `MINHOOK-LICENSE.txt` and the vendored sources.
 
+## Archive format references
+
+I used CrimsonForge to verify the game’s archive decoder and CDUMM to verify the character archive index layout. The skin setting reads the installed archives directly. Their MIT notices are in `CrimsonForge-MIT.txt` and `CDUMM-MIT.txt`. [CrimsonForge](https://github.com/hzeem/CrimsonForge) · [CDUMM](https://github.com/faisalkindi/CDUMM)
+
 An x64 ASI loader is required to load the plugin and is not included. VENUS, Hex's preset, Instant Surgery, Legion, and game assets are not redistributed in the runtime archive.

@@ -15,11 +15,11 @@
     "variant_order_verified": true,
     "appearance_routes_per_option": 7,
     "venus_resources_verified": 46,
-    "vanilla_resources_verified": 30,
+    "vanilla_resources_verified": 33,
     "private_boot_registrations_per_option": 3,
     "vanilla_primary_and_secondary_body_registrations": 3,
     "live_tested_development_sha256": "7dc53d2906582d1c047ea71d51f1b72eb627f54c4bda560e0d736ef1f0e49578",
-    "acceptance_scope": "Actual local candidate imports and both selected body mounts. Final output is audited against the accepted layout and unchanged runtime/game resources; its updated documents are not a fresh import test.",
+    "acceptance_scope": "Manual DMM import checked the 1.0.3 layout and both body choices. All three body setups passed in-game. The five Vanilla texture changes passed using a standalone replacement variant with the same runtime. The updated combined ZIP is pending its own import.",
     "final_zip_freshly_imported": false,
     "live_reports": [
       "build-data/live-compatibility-20261118.json"

@@ -7,9 +7,12 @@
 #include "underwear.h"
 #include "wardrobe.h"
 #include "wardrobe_native.h"
+#include "wardrobe_snapshot.h"
+#include "character_addons.h"
 #include "native_interface.h"
 #include "core/log.h"
 #include <MinHook.h>
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstring>
@@ -20,11 +23,19 @@
 
 namespace hex {
 namespace {
+constexpr auto characterCapacity=firstAddonCharacter+maximumAddonCharacters;
+constexpr uint64_t addonPoseVersionBit=1ull<<63;
 struct Snapshot {
     uint64_t version=0;
     std::array<bool,6> enabled{};
     std::array<Profile,6> profiles{};
     std::array<SurgeryProfile,6> shapes{};
+};
+struct AddonPose {
+    uint64_t version=0,profileRevision=0,dependencyVersion=0;
+    Profile profile;
+    SurgeryProfile shape{};
+    bool ready=false;
 };
 struct Transaction {
     std::shared_ptr<Snapshot> next;
@@ -45,6 +56,7 @@ struct CachedPart {
 struct ActorCache {
     int witch=-1;
     DWORD last=0;
+    uint64_t retryPoseAt=0;
     std::map<uintptr_t,CachedPart> parts;
 };
 struct PhysicsReceipt {
@@ -62,7 +74,7 @@ struct RuntimeState {
     std::atomic<bool> failed{false};
     std::atomic<bool> allowWrites{false};
     std::atomic<uint32_t> seen{0};
-    std::array<std::atomic<DWORD>,6> lastSeen{};
+    std::array<std::atomic<DWORD>,characterCapacity> lastSeen{};
     std::mutex mutex;
     std::mutex applicationMutex;
     std::mutex engineMutex;
@@ -71,22 +83,70 @@ struct RuntimeState {
     std::map<uint64_t,Transaction> transactions;
     uint64_t sequence=0;
     std::shared_ptr<const Snapshot> active=std::make_shared<Snapshot>();
+    std::array<std::shared_ptr<const AddonPose>,maximumAddonCharacters> addonPoses;
+    std::array<std::atomic<uint64_t>,maximumAddonCharacters> rejectedAddonPose{};
+    std::array<std::atomic<uint64_t>,maximumAddonCharacters> addonApplied{};
+    uint64_t addonPoseSequence=0,addonDependencyVersion=0;
     std::map<uintptr_t,ActorCache> actors;
     std::atomic<uint64_t> persistVersion{0};
     std::filesystem::path observations;
-    std::array<uint32_t,6> capturedFrames{};
-    std::array<DWORD,6> capturedAt{};
-    std::array<std::atomic<uint64_t>,6> physicsCalls{};
-    bool physicsRoute=false;
-    bool wardrobeObservation=false;
+    std::array<uint32_t,characterCapacity> capturedFrames{};
+    std::array<DWORD,characterCapacity> capturedAt{};
+    std::array<std::atomic<uint64_t>,characterCapacity> physicsCalls{};
+    std::atomic<bool> physicsRoute{false};
     int (*physicsApplied)(void*)=nullptr;
     std::map<std::pair<uintptr_t,uintptr_t>,PhysicsReceipt> receipts;
-    std::array<uint32_t,6> receiptChecks{};
+    DWORD receiptsPrunedAt=0;
+    std::array<uint32_t,characterCapacity> receiptChecks{};
 };
 RuntimeState& state(){static RuntimeState s;return s;}
-bool dependenciesAllow(const Profile& profile){
+bool dependenciesAllow(int witch,const Profile& profile){
     if(!state().dependenciesControlled)return true;const auto& r=Runtime::get();
-    return r.shapingAvailable&&(!(profile.top==Preset::Hex&&profile.topBlend>0)&&!(profile.bottom==Preset::Hex&&profile.bottomBlend>0)||r.hexAvailable)&&(profile.weight==0||r.weightAvailable);
+    return r.shapingAvailable&&(witch>=firstAddonCharacter?characterAddonEnabled(witch):
+        !(r.unavailableBodyWitches.load()&(1u<<witch)))&&
+        (!(profile.top==Preset::Hex&&profile.topBlend>0)&&!(profile.bottom==Preset::Hex&&profile.bottomBlend>0)||r.hexAvailable)&&
+        (profile.weight==0||r.weightAvailable);
+}
+const CharacterAddon* checkedAddon(const ActorIdentity& identity){
+    const auto* addon=characterAddon(identity.witch);
+    return addon&&matchesWardrobeAppearance(identity.actor,reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr)),
+        addon->appearance.c_str())?addon:nullptr;
+}
+std::shared_ptr<const AddonPose> currentAddonPose(int target){
+    return std::atomic_load(&state().addonPoses[target-firstAddonCharacter]);
+}
+bool addonPoseReady(int target,const std::shared_ptr<const AddonPose>& pose){
+    return pose&&pose->ready&&dependenciesAllow(target,pose->profile)&&
+        state().rejectedAddonPose[target-firstAddonCharacter].load()!=pose->version;
+}
+void prepareAddonPoses(){
+    auto& s=state();
+    if(!s.allowWrites||s.failed)return;
+    for(int target:enabledAddonTargets()){
+        const auto current=addonBodyProfile(target);
+        const auto previous=currentAddonPose(target);
+        if(!current.revision||(previous&&previous->profileRevision==current.revision&&
+           previous->dependencyVersion==s.addonDependencyVersion))continue;
+        auto pose=std::make_shared<AddonPose>();
+        pose->version=addonPoseVersionBit|++s.addonPoseSequence;
+        pose->profileRevision=current.revision;
+        pose->dependencyVersion=s.addonDependencyVersion;
+        pose->profile=current.profile;
+        std::string detail;
+        if(current.profile==Profile{})detail="The character uses its mounted body midpoint.";
+        else if(!dependenciesAllow(target,current.profile))detail="Waiting for the selected shape dependencies.";
+        else {
+            ResolvedShape resolved;
+            std::lock_guard<std::mutex> lock(s.engineMutex);
+            if(s.engine.compose(current.profile,resolved,detail)){
+                pose->shape=resolved.native;
+                pose->ready=true;
+                detail="Shape saved. Bring the character into view to apply it.";
+            }
+        }
+        std::atomic_store(&s.addonPoses[target-firstAddonCharacter],std::shared_ptr<const AddonPose>(pose));
+        reportAddonShape(target,current.revision,std::move(detail));
+    }
 }
 using UpdateFn=void(*)(void*,void*,void*);
 UpdateFn originalUpdate=nullptr;
@@ -136,7 +196,7 @@ int ready(char* out,uint32_t cap) {
     else if(s.dependenciesControlled&&!Runtime::get().shapingAvailable)message="Shaping is disabled until its dependencies are ready. Check Settings.";
     else if(s.failed)message="NPC shaping stopped after a rejected pose. Restart before retrying.";
     else if(!s.hooked)message="The Instant Surgery NPC route is not installed.";
-    else if(!visibleMask())message="Keep a supported witch visible so her body and outfit buffers can be checked.";
+    else if(!(visibleMask()&~Runtime::get().unavailableBodyWitches.load()))message="Keep a supported witch visible so her body and outfit buffers can be checked.";
     if(!message.empty()){reason(out,cap,message);return 0;}
     return 1;
 }
@@ -159,7 +219,7 @@ int prepare(uint64_t id,const HexAppealTargetV1* target,const HexAppealProfileV1
     if(witch<0)return 0;
     Profile choice;choice.top=Preset(input->top);choice.bottom=Preset(input->bottom);choice.topBlend=input->topBlend;choice.bottomBlend=input->bottomBlend;choice.autoFit=input->autoFit!=0;choice.height=input->height;choice.weight=input->weight;
     ResolvedShape shape;std::string error;auto& s=state();
-    {std::lock_guard<std::mutex> engineLock(s.engineMutex);if(!dependenciesAllow(choice)||!s.engine.compose(choice,shape,error)){setStatus(error.empty()?"A required dependency is unavailable.":error);return 0;}}
+    {std::lock_guard<std::mutex> engineLock(s.engineMutex);if(!dependenciesAllow(witch,choice)||!s.engine.compose(choice,shape,error)){setStatus(error.empty()?"A required dependency is unavailable.":error);return 0;}}
     std::lock_guard<std::mutex> lock(s.mutex);const auto found=s.transactions.find(id);
     if(found==s.transactions.end()||found->second.state!=0)return 0;
     if(found->second.targets&(1u<<witch))return 0;
@@ -172,7 +232,11 @@ int commit(uint64_t id) {
     auto& transaction=found->second;transaction.observed=transaction.targets&visibleMask();
     uint32_t prepared=0;for(uint32_t mask=transaction.targets;mask;mask>>=1)prepared+=mask&1;
     if(prepared!=transaction.expected||std::atomic_load(&s.active)!=transaction.previous)return 0;
-    if(!transaction.observed){s.status="Keep a selected witch visible before applying her body and outfit combination.";return 0;}
+    if(!transaction.observed){
+        transaction.reason="Saved shapes will apply when the selected witches are visible.";
+        transaction.state=-1;
+        return 0;
+    }
     transaction.queuedAt=GetTickCount();
     transaction.state=1;transaction.reason="Queued for the next body and outfit upload.";
     std::atomic_store(&s.active,std::shared_ptr<const Snapshot>(transaction.next));return 1;
@@ -219,15 +283,42 @@ void acknowledge(uint64_t version,int witch,size_t parts) {
 bool updateActor(void* upload,void* model,void* actor,const ActorIdentity& identity) {
     auto& s=state();std::unique_lock<std::mutex> application(s.applicationMutex);std::vector<PosePart> parts;std::string error;
     const auto snapshot=std::atomic_load(&s.active);
+    const int target=identity.witch;
+    const bool isAddon=target>=firstAddonCharacter;
+    const auto addonPose=isAddon?currentAddonPose(target):nullptr;
+    if(isAddon&&(!checkedAddon(identity)||!addonPose))return false;
+    const auto& profile=isAddon?addonPose->profile:snapshot->profiles[target];
+    const auto& shape=isAddon?addonPose->shape:snapshot->shapes[target];
+    const auto version=isAddon?addonPose->version:snapshot->version;
+    const auto enabled=[&]{
+        return s.allowWrites&&(isAddon?addonPoseReady(target,addonPose):
+            snapshot->enabled[target]&&dependenciesAllow(target,profile));
+    };
+    const auto fail=[&](const std::string& detail,bool stop=false){
+        if(!isAddon||stop)reject(version,detail,stop);
+        if(isAddon){
+            s.rejectedAddonPose[target-firstAddonCharacter]=version;
+            reportAddonShape(target,addonPose->profileRevision,detail);
+            LOG_ERR("Character add-on shaping rejected for %s: %s",identity.name,detail.c_str());
+        }
+    };
+    const auto appliedShape=[&](size_t count){
+        if(!isAddon)acknowledge(version,target,count);
+        else if(s.addonApplied[target-firstAddonCharacter].exchange(version)!=version)
+            reportAddonShape(target,addonPose->profileRevision,"Shape active.");
+    };
     if(!capturePoseParts(upload,model,parts,error)) {
         const auto message=std::string(identity.name)+": "+error;
-        setStatus(message);
+        if(isAddon&&enabled())fail(message);
+        else if(!isAddon)setStatus(message);
         return false;
     }
     s.lastSeen[identity.witch]=GetTickCount();const auto first=s.seen.fetch_or(1u<<identity.witch);
-    size_t changedParts=0;for(const auto& part:parts)changedParts+=part.source!=part.animation;
+    const auto countChangedParts=[&]{
+        return std::count_if(parts.begin(),parts.end(),[](const auto& part){return part.source!=part.animation;});
+    };
     if(!(first&(1u<<identity.witch))) {
-        LOG("Observed %s key=%u actor=%p model=%p; %zu validated body/outfit pose buffers; %zu differ from animation source.",identity.name,identity.recordKey,actor,model,parts.size(),changedParts);
+        LOG("Observed %s key=%u actor=%p model=%p; %zu validated body/outfit pose buffers; %zu differ from animation source.",identity.name,identity.recordKey,actor,model,parts.size(),size_t(countChangedParts()));
         for(size_t i=0;i<parts.size();++i)for(const auto renderPart:parts[i].renderParts)
             LOG("Observed render part witch=%d model=%p part=%p skeleton=%p bones=%zu.",identity.witch,model,reinterpret_cast<void*>(renderPart),reinterpret_cast<void*>(parts[i].skeleton),parts[i].bones.size());
     }
@@ -237,104 +328,139 @@ bool updateActor(void* upload,void* model,void* actor,const ActorIdentity& ident
         else LOG_ERR("Pose observation failed: %s",error.c_str());
     }
     if(s.physicsRoute) {
-        std::vector<uintptr_t> queried;
-        for(const auto& part:parts)for(const auto renderPart:part.renderParts)queried.push_back(renderPart);
         application.unlock();
         const auto nativeLock=reinterpret_cast<PSRWLOCK>(reinterpret_cast<unsigned char*>(s.module)+0x12A730);
         ReleaseSRWLockExclusive(nativeLock);
-        bool applied=!queried.empty();for(const auto renderPart:queried)applied=physicsAppliedGuard(s.physicsApplied,renderPart)&&applied;
+        bool applied=true;
+        size_t renderPartCount=0;
+        for(const auto& part:parts)for(const auto renderPart:part.renderParts){
+            applied=physicsAppliedGuard(s.physicsApplied,renderPart)&&applied;
+            ++renderPartCount;
+        }
+        applied=renderPartCount&&applied;
         AcquireSRWLockExclusive(nativeLock);
         application.lock();
-        if(std::atomic_load(&s.active)!=snapshot)return true;
+        if(isAddon?currentAddonPose(target)!=addonPose:std::atomic_load(&s.active)!=snapshot)return true;
         bool sourcesMatch=true,versionsMatch=true;
         for(const auto& part:parts) {
             const auto receipt=s.receipts.find({reinterpret_cast<uintptr_t>(actor),part.skeleton});
             const bool matching=receipt!=s.receipts.end()&&GetTickCount()-receipt->second.tick<500&&receipt->second.animation==part.animation&&receipt->second.bones.size()==part.bones.size()&&memcmp(receipt->second.bones.data(),part.bones.data(),part.bones.size()*sizeof(ShapeBone))==0;
             sourcesMatch=matching&&sourcesMatch;
-            versionsMatch=matching&&receipt->second.supplied&&receipt->second.version==snapshot->version&&versionsMatch;
+            versionsMatch=matching&&receipt->second.supplied&&receipt->second.version==version&&versionsMatch;
         }
         if(s.receiptChecks[identity.witch]<4) {
             ++s.receiptChecks[identity.witch];
-            LOG("Physics upload check %s: original_sources_match=%d editor_pose_applied=%d selected_version_received=%d buffers=%zu render_parts=%zu.",identity.name,sourcesMatch,applied,versionsMatch,parts.size(),queried.size());
+            LOG("Physics upload check %s: original_sources_match=%d editor_pose_applied=%d selected_version_received=%d buffers=%zu render_parts=%zu.",identity.name,sourcesMatch,applied,versionsMatch,parts.size(),renderPartCount);
         }
-        if(!s.allowWrites||!snapshot->enabled[identity.witch]||!dependenciesAllow(snapshot->profiles[identity.witch])) {
-            setStatus(std::string(witches[identity.witch].name)+": physics route observed; original pose match "+(sourcesMatch?"confirmed.":"pending."));return false;
+        if(!enabled()) {
+            if(!isAddon)setStatus(std::string(identity.name)+": physics route observed; original pose match "+(sourcesMatch?"confirmed.":"pending."));
+            return false;
         }
         if(!sourcesMatch||!versionsMatch||!applied) {
-            setStatus(std::string(witches[identity.witch].name)+": waiting for the selected body and outfit physics uploads.");return true;
+            if(!isAddon)setStatus(std::string(identity.name)+": waiting for the selected body and outfit physics uploads.");
+            return !isAddon||versionsMatch;
         }
         for(const auto& part:parts)if(!poseBytesEqual(part.destination,part.source))return true;
-        acknowledge(snapshot->version,identity.witch,parts.size());return true;
+        appliedShape(parts.size());return true;
     }
     auto& cache=s.actors[reinterpret_cast<uintptr_t>(actor)];
-    if(cache.witch!=identity.witch){cache.parts.clear();cache.witch=identity.witch;}
+    if(cache.witch!=identity.witch){cache={};cache.witch=identity.witch;}
     cache.last=GetTickCount();
-    if(!s.allowWrites||!snapshot->enabled[identity.witch]||!dependenciesAllow(snapshot->profiles[identity.witch])) {
+    if(GetTickCount64()<cache.retryPoseAt)return !isAddon;
+    if(!enabled()) {
         if(s.allowWrites)for(auto& part:parts) {
             const auto previous=cache.parts.find(reinterpret_cast<uintptr_t>(part.destination));
             if(previous!=cache.parts.end()&&previous->second.written==part.source&&previous->second.base==part.animation)
-                if(!writePoseBytes(part.destination,part.animation)){reject(snapshot->version,"Cancelled shape restoration failed. Restart the game.",true);return true;}
+                if(!writePoseBytes(part.destination,part.animation)){
+                    cache.retryPoseAt=GetTickCount64()+500;
+                    setStatus("Waiting to restore the previous pose.");
+                    return true;
+                }
         }
-        setStatus(std::string(witches[identity.witch].name)+": "+std::to_string(parts.size())+" pose buffers checked; "+std::to_string(changedParts)+" differ from the original animation. No shape selected for application.");
+        if(!isAddon)setStatus(std::string(identity.name)+": "+std::to_string(parts.size())+" pose buffers checked; "+std::to_string(countChangedParts())+" differ from the original animation. No shape selected for application.");
         return false;
     }
-    std::vector<std::vector<PoseMatrix>> bases,outputs;
-    for(auto& part:parts) {
-        auto input=part.animation;const auto previous=cache.parts.find(reinterpret_cast<uintptr_t>(part.destination));
+    std::vector<std::vector<PoseMatrix>> outputs;
+    outputs.reserve(parts.size());
+    for(const auto& part:parts) {
+        const auto previous=cache.parts.find(reinterpret_cast<uintptr_t>(part.destination));
         const bool ours=previous!=cache.parts.end()&&previous->second.bones.size()==part.bones.size()&&memcmp(previous->second.bones.data(),part.bones.data(),part.bones.size()*sizeof(ShapeBone))==0&&previous->second.written==part.source&&previous->second.base==part.animation;
-        if(part.source!=part.animation&&!ours) {reject(snapshot->version,"Another modifier changed a body or outfit pose. This selection was rejected before any write.");return true;}
-        std::vector<PoseMatrix> output;
-        if(!s.engine.deform(part.bones,input,snapshot->shapes[identity.witch],output,error,true)){reject(snapshot->version,std::string(identity.name)+": "+error);return true;}
-        std::vector<PoseMatrix> proportioned;
-        if(!applyStature(snapshot->profiles[identity.witch],output,proportioned,error)){reject(snapshot->version,error);return true;}
-        output=std::move(proportioned);
-        bases.push_back(std::move(input));outputs.push_back(std::move(output));
+        if(part.source!=part.animation&&!ours) {
+            setStatus("Waiting for stable pose data. Another mod or the game is still updating it.");
+            return !isAddon;
+        }
+        auto& output=outputs.emplace_back();
+        if(!s.engine.deform(part.bones,part.animation,shape,output,error,true)){fail(std::string(identity.name)+": "+error);return !isAddon;}
+        if(!applyStature(profile,output,output,error)){fail(error);return !isAddon;}
     }
-    for(size_t i=0;i<parts.size();++i)if(!poseBytesEqual(parts[i].destination,parts[i].source)) {reject(snapshot->version,"Pose buffers changed during preparation; this selection was rejected before any write.");return true;}
+    for(size_t i=0;i<parts.size();++i)if(!poseBytesEqual(parts[i].destination,parts[i].source)) {
+        setStatus("Waiting for stable pose data. The buffers changed during preparation.");
+        return !isAddon;
+    }
     for(size_t i=0;i<parts.size();++i)if(!writePoseBytes(parts[i].destination,outputs[i])) {
         bool restored=true;for(size_t j=0;j<=i;++j)restored=writePoseBytes(parts[j].destination,parts[j].source)&&restored;
-        reject(snapshot->version,restored?"Pose write failed; captured buffers restored and shaping stopped.":"Pose restoration failed; shaping stopped. Restart the game.",true);LOG_ERR("NPC body/outfit write failed; restored=%d",restored);return true;
+        LOG_ERR("NPC body/outfit write failed; restored=%d",restored);
+        if(restored){cache.retryPoseAt=GetTickCount64()+500;setStatus("Pose restored. Retrying the shape change.");}
+        else fail("Pose restoration failed; shaping stopped. Restart the game.",true);
+        return true;
     }
-    for(size_t i=0;i<parts.size();++i)cache.parts[reinterpret_cast<uintptr_t>(parts[i].destination)]={parts[i].bones,std::move(bases[i]),std::move(outputs[i])};
-    acknowledge(snapshot->version,identity.witch,parts.size());
+    for(size_t i=0;i<parts.size();++i){
+        auto& part=parts[i];
+        cache.parts[reinterpret_cast<uintptr_t>(part.destination)]={std::move(part.bones),std::move(part.animation),std::move(outputs[i])};
+    }
+    appliedShape(parts.size());
     for(auto it=s.actors.begin();it!=s.actors.end();)if(GetTickCount()-it->second.last>30000)it=s.actors.erase(it);else++it;
     return true;
 }
 void hookedUpdate(void* upload,void* model,void* actor) {
     auto& s=state();ActorIdentity identity;
-    const bool witch=readWitchIdentity(s.module,actor,identity);
-    const bool handled=!s.failed&&witch&&updateActor(upload,model,actor,identity);
+    const bool observed=readWitchIdentity(s.module,actor,identity,addonTargetForRecord);
+    const bool handled=!s.failed&&observed&&updateActor(upload,model,actor,identity);
     if(!handled)originalUpdate(upload,model,actor);
-    if(witch)updateUnderwear(actor,identity);
-    if(witch&&s.wardrobeObservation)observeWardrobeActor(actor,identity);
 }
 int observedPhysicsPose(void* context,void* skeleton,const PoseMatrix* source,PoseMatrix* destination,uint32_t count,uint64_t* stamp) {
     auto& s=state();ActorIdentity identity;
-    const bool witch=readContextWitchIdentity(s.module,context,identity);
+    bool observed=readContextWitchIdentity(s.module,context,identity,addonTargetForRecord);
+    const bool isAddon=observed&&identity.witch>=firstAddonCharacter;
+    const auto addonPose=isAddon?currentAddonPose(identity.witch):nullptr;
+    if(isAddon)observed=addonPoseReady(identity.witch,addonPose)&&checkedAddon(identity);
     const auto snapshot=std::atomic_load(&s.active);
-    PhysicsReceipt receipt;receipt.version=snapshot->version;
-    const bool captured=witch&&capturePhysicsSource(skeleton,source,count,receipt.bones,receipt.animation);
+    PhysicsReceipt receipt;receipt.version=isAddon&&addonPose?addonPose->version:snapshot->version;
+    const bool captured=observed&&capturePhysicsSource(skeleton,source,count,receipt.bones,receipt.animation);
     ProfileOverride choice;
-    if(captured&&s.physicsRoute&&s.allowWrites&&!s.failed&&snapshot->enabled[identity.witch]&&dependenciesAllow(snapshot->profiles[identity.witch])) {
-        choice.actor=identity.actor;choice.shape=&snapshot->shapes[identity.witch];
+    if(captured&&s.physicsRoute&&s.allowWrites&&!s.failed&&(isAddon||
+       (snapshot->enabled[identity.witch]&&dependenciesAllow(identity.witch,snapshot->profiles[identity.witch])))) {
+        choice.actor=identity.actor;choice.shape=isAddon?&addonPose->shape:&snapshot->shapes[identity.witch];
     }
     auto* previous=currentProfileOverride;currentProfileOverride=&choice;
     auto result=originalPhysicsPose(context,skeleton,source,destination,count,stamp);
     currentProfileOverride=previous;
-    if(choice.supplied&&result==1&&linkedStature(snapshot->profiles[identity.witch])!=0.f) {
-        std::vector<PoseMatrix> nativeOutput,proportioned;std::string error;uint64_t nativeStamp=0;
-        if(!readPoseBytes(destination,count,nativeOutput)||!applyStature(snapshot->profiles[identity.witch],nativeOutput,proportioned,error)||!readStampGuard(stamp,&nativeStamp)||!writePoseBytes(destination,proportioned)||!writeStampGuard(stamp,statureStamp(nativeStamp,snapshot->profiles[identity.witch]))) {
+    const auto& profile=isAddon&&addonPose?addonPose->profile:snapshot->profiles[observed?identity.witch:0];
+    if(choice.supplied&&result==1&&linkedStature(profile)!=0.f) {
+        std::vector<PoseMatrix> nativeOutput;std::string error;uint64_t nativeStamp=0;
+        if(!readPoseBytes(destination,count,nativeOutput)||!applyStature(profile,nativeOutput,nativeOutput,error)||!readStampGuard(stamp,&nativeStamp)||!writePoseBytes(destination,nativeOutput)||!writeStampGuard(stamp,statureStamp(nativeStamp,profile))) {
             const bool restored=writePoseBytes(destination,receipt.animation);writeStampGuard(stamp,0);choice.supplied=false;result=0;
-            reject(snapshot->version,error.empty()?"Stature pose could not be prepared":error,!restored);
+            const auto detail=error.empty()?"Stature pose could not be prepared":error;
+            if(isAddon){
+                s.rejectedAddonPose[identity.witch-firstAddonCharacter]=addonPose->version;
+                reportAddonShape(identity.witch,addonPose->profileRevision,detail);
+            }
+            if(!isAddon||!restored)reject(receipt.version,detail,!restored);
         }
     }
     if(captured) {
         receipt.tick=GetTickCount();receipt.supplied=choice.supplied&&result==1&&readStampGuard(stamp,&receipt.stamp);
         std::lock_guard<std::mutex> application(s.applicationMutex);
         s.receipts[{identity.actor,reinterpret_cast<uintptr_t>(skeleton)}]=std::move(receipt);
-        for(auto it=s.receipts.begin();it!=s.receipts.end();)if(GetTickCount()-it->second.tick>5000)it=s.receipts.erase(it);else++it;
+        const auto now=GetTickCount();
+        if(now-s.receiptsPrunedAt>=1000){
+            s.receiptsPrunedAt=now;
+            for(auto it=s.receipts.begin();it!=s.receipts.end();)
+                if(now-it->second.tick>5000)it=s.receipts.erase(it);
+                else ++it;
+        }
     }
-    if(witch) {
+    if(observed) {
         const auto calls=s.physicsCalls[identity.witch].fetch_add(1);
         if(calls<3)LOG("Physics export observed %s: context=%p skeleton=%p bones=%u native_result=%d profile_supplied=%d.",identity.name,context,skeleton,count,result,choice.supplied);
     }
@@ -343,94 +469,144 @@ int observedPhysicsPose(void* context,void* skeleton,const PoseMatrix* source,Po
 DWORD WINAPI worker(void*) {
     auto& r=Runtime::get();auto& s=state();r.providerFactory=&factory;
     s.dependenciesControlled=true;
-    s.allowWrites=GetPrivateProfileIntW(L"Development",L"EnableNpcWrites",0,(r.folder/L"HexAppeal.ini").c_str())!=0;
-    s.wardrobeObservation=GetPrivateProfileIntW(L"Development",L"ObserveWardrobe",0,(r.folder/L"HexAppeal.ini").c_str())!=0;
-    const bool tracePhysics=s.allowWrites||GetPrivateProfileIntW(L"Development",L"TracePhysicsRoute",0,(r.folder/L"HexAppeal.ini").c_str())!=0;
+    const bool allowNpcWrites=GetPrivateProfileIntW(L"Development",L"EnableNpcWrites",0,(r.folder/L"HexAppeal.ini").c_str())!=0;
+    s.allowWrites=allowNpcWrites;
+    const bool tracePhysics=GetPrivateProfileIntW(L"Development",L"TracePhysicsRoute",0,(r.folder/L"HexAppeal.ini").c_str())!=0;
+    const bool checkPhysics=s.allowWrites||tracePhysics;
     if(!r.profiles.empty()&&GetPrivateProfileIntW(L"Development",L"DumpObservedPoses",0,(r.folder/L"HexAppeal.ini").c_str())) {
         s.observations=r.profiles.parent_path()/L"observations"/std::to_wstring(GetCurrentProcessId());
         std::error_code ec;std::filesystem::create_directories(s.observations,ec);
         if(ec)s.observations.clear();
     }
     const auto game=r.folder.parent_path();
-    std::string error,hexError;DependencyStatus dependencies;uint64_t scannedRevision=0;DWORD scannedAt=0;bool engineBound=false;std::filesystem::path loadedPreset;std::string loadedPresetHash;
+    std::string error,hexError,hexWarning;DependencyStatus dependencies;uint64_t scannedRevision=0;DWORD scannedAt=0;bool engineBound=false;std::filesystem::path loadedPreset;std::string loadedPresetHash;
     const auto rescan=[&](bool force=false){
         const auto revision=r.dependencyRevision.load();const auto now=GetTickCount();if(!force&&revision==scannedRevision&&now-scannedAt<15000)return;
         scannedAt=now;scannedRevision=revision;
         try {dependencies=inspectDependencies(game,r.configuredDependencyPaths());}
         catch(...){dependencies={};dependencies.scanned=true;dependencies.bodyDetail="Dependency detection failed. Check the paths in Settings.";}
-        bool hexReady=false;hexError.clear();
+        const bool oldHex=r.hexAvailable.load(),oldShape=r.shapingAvailable.load();
+        bool hexReady=false,presetLoaded=false;hexError.clear();
         {std::lock_guard<std::mutex> engineLock(s.engineMutex);
             if(engineBound&&dependencies.hex.valid){
                 const auto digest=sha256(dependencies.hex.path);
                 if(loadedPreset==dependencies.hex.path&&loadedPresetHash==digest)hexReady=true;
-                else if(s.engine.readHex(dependencies.hex.path,hexError)){loadedPreset=dependencies.hex.path;loadedPresetHash=digest;hexReady=true;LOG("Hex preset uses external installed dependency: %ls.",loadedPreset.c_str());}
+                else if(s.engine.readHex(dependencies.hex.path,hexError,&hexWarning)){loadedPreset=dependencies.hex.path;loadedPresetHash=digest;hexReady=presetLoaded=true;LOG("Using external Instant Surgery preset: %ls.",loadedPreset.c_str());}
             }
-            if(!hexReady){s.engine.forgetHex();loadedPreset.clear();loadedPresetHash.clear();}
+            if(!hexReady){s.engine.forgetHex();loadedPreset.clear();loadedPresetHash.clear();hexWarning.clear();}
         }
+        if(!hexWarning.empty())dependencies.hex.detail+=" "+hexWarning;
         r.hexAvailable=hexReady;
-        const bool dmmLoaded=GetModuleHandleW(L"DmmRuntime.asi")!=nullptr;
-        r.shapingAvailable=s.hooked&&dependencies.bodyVerified&&dmmLoaded&&!s.failed;
-        r.weightAvailable=engineBound&&r.shapingAvailable;
-        if(dependencies.bodyVerified&&!dmmLoaded)dependencies.bodyDetail="Body files found, but DMM's runtime is not loaded. Restart after installing/enabling it.";
-        else if(dependencies.bodyVerified&&!s.hooked)dependencies.bodyDetail=error.empty()?"Waiting for the separately installed Instant Surgery plugin.":error;
+        const bool shapingReady=s.hooked&&engineBound&&dependencies.canShapeBody()&&!s.failed;
+        if(!shapingReady)r.shapingAvailable=false;
         r.publishDependencies(dependencies);
-        const auto shapeIssue=!dependencies.bodyVerified?dependencies.bodyDetail:!dependencies.instant.valid?dependencies.instant.detail:!dmmLoaded?std::string("DMM's runtime is not loaded. Enable it and restart the game."):!error.empty()?error:std::string("Waiting for the installed Instant Surgery plugin to initialize.");
-        if(!s.failed)r.reportCompatibility(Feature::Shaping,r.shapingAvailable?CompatibilityState::Ready:!dependencies.bodyVerified||!dependencies.instant.valid||!dmmLoaded||!error.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,r.shapingAvailable?"Native shaping and active body checks passed.":shapeIssue);
-        r.reportCompatibility(Feature::Hex,hexReady?CompatibilityState::Ready:!dependencies.hex.valid||!hexError.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,hexReady?"The external preset was parsed by the installed shaping adapter.":!hexError.empty()?hexError:!dependencies.hex.valid?dependencies.hex.detail:"Waiting for the native shaping adapter.");
+        r.shapingAvailable=shapingReady;
+        r.weightAvailable=engineBound&&shapingReady;
+        if(force||presetLoaded||oldHex!=hexReady||oldShape!=shapingReady)++s.addonDependencyVersion;
+        const auto shapeIssue=!dependencies.canShapeBody()?dependencies.bodyDetail:!dependencies.instant.valid?dependencies.instant.detail:
+            !error.empty()?error:std::string("Waiting for the installed Instant Surgery plugin to initialize.");
+        if(!s.failed)r.reportCompatibility(Feature::Shaping,r.shapingAvailable?CompatibilityState::Ready:
+            !dependencies.canShapeBody()||!dependencies.instant.valid?CompatibilityState::Blocked:CompatibilityState::Waiting,
+            r.shapingAvailable?(dependencies.bodyVerified?"Native shaping and active body checks passed.":dependencies.bodyDetail):shapeIssue);
+        r.reportCompatibility(Feature::Hex,hexReady?CompatibilityState::Ready:!dependencies.hex.valid||!hexError.empty()||!error.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,hexReady?(hexWarning.empty()?"The external preset was parsed by the installed shaping adapter.":hexWarning):!hexError.empty()?hexError:!dependencies.hex.valid?dependencies.hex.detail:!error.empty()?error:"Waiting for the native shaping adapter.");
         r.reportCompatibility(Feature::Weight,r.weightAvailable?CompatibilityState::Ready:r.featureCompatibility(Feature::Shaping).state,r.weightAvailable?"Native proportion controls are available; no outfit dependency is required.":shapeIssue);
+        if(presetLoaded)r.presetChanged=true;
         if(!s.hooked)setStatus(shapeIssue);
     };
     const auto stopShaping=[&](const std::string& message){error=message;r.shapingAvailable=false;r.weightAvailable=false;r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,message);r.reportCompatibility(Feature::Weight,CompatibilityState::Blocked,message);setStatus(message);};
+    uint64_t nextPhysicsCheck=0;
+    bool reportedPhysicsIssue=false;
+    const auto tryOptionalPhysics=[&](){
+        const auto now=GetTickCount64();
+        if(!engineBound||!checkPhysics||s.physicsRoute||now<nextPhysicsCheck)return;
+        nextPhysicsCheck=now+2000;
+        const auto bodyPhysics=GetModuleHandleW(L"BodyPhysics.asi");
+        if(!bodyPhysics)return;
+        std::string issue;
+        const auto query=pluginExport(bodyPhysics,"TwoReasonsEditorPoseAppliedV1",issue);
+        const auto physics=query?reinterpret_cast<void*>(pluginExport(s.module,"InstantSurgeryDeformPoseV1",issue)):nullptr;
+        const auto resolver=reinterpret_cast<unsigned char*>(s.module)+0x17FB0;
+        HMODULE retained=nullptr;
+        if(physics&&GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,reinterpret_cast<LPCWSTR>(query),&retained)){
+            const bool poseCreated=MH_CreateHook(physics,reinterpret_cast<void*>(&observedPhysicsPose),reinterpret_cast<void**>(&originalPhysicsPose))==MH_OK;
+            const bool resolverCreated=poseCreated&&MH_CreateHook(resolver,reinterpret_cast<void*>(&hookedResolveProfile),reinterpret_cast<void**>(&originalResolveProfile))==MH_OK;
+            if(resolverCreated&&MH_QueueEnableHook(resolver)==MH_OK&&MH_QueueEnableHook(physics)==MH_OK&&MH_ApplyQueued()==MH_OK){
+                s.physicsApplied=reinterpret_cast<int(*)(void*)>(query);
+                s.physicsRoute=true;
+                LOG("Optional Two Reasons Body Physics handoff enabled. Hex Appeal owns both shaping hooks in Instant Surgery.");
+                return;
+            }
+            if(poseCreated)MH_RemoveHook(physics);
+            if(resolverCreated)MH_RemoveHook(resolver);
+            FreeLibrary(retained);
+            issue="The compatibility hooks in Instant Surgery could not start.";
+        }
+        if(!reportedPhysicsIssue){
+            LOG("Optional Two Reasons Body Physics handoff pending. Standard shaping remains available. %s",issue.c_str());
+            reportedPhysicsIssue=true;
+        }
+    };
     const auto startupAt=GetTickCount();
-    for(int attempt=0;;++attempt) {
+    for(;;) {
         rescan();
         const auto module=GetModuleHandleW(L"InstantSurgery.asi");
-        if(module&&dependencies.bodyVerified&&GetModuleHandleW(L"DmmRuntime.asi")&&(engineBound||s.engine.bind(module,error))) {
-            engineBound=true;error.clear();rescan(true);
+        if(module&&probeSurgeryObserver(module,error)) {
+            if(!engineBound){
+                error.clear();
+                engineBound=s.engine.bind(module,error);
+                if(!engineBound&&probeSurgeryShaping(module,hexError)&&GetTickCount()-startupAt<15000){
+                    Sleep(500);continue;
+                }
+            }
             HMODULE retained=nullptr;
             if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,reinterpret_cast<LPCWSTR>(module),&retained)){stopShaping("The loaded Instant Surgery module could not be retained. Restart the game before retrying.");return 0;}
             s.module=retained;
             const auto target=reinterpret_cast<unsigned char*>(module)+0x18D70;
-            const auto resolver=reinterpret_cast<unsigned char*>(module)+0x17FB0;
-            const auto physics=tracePhysics?reinterpret_cast<void*>(pluginExport(module,"InstantSurgeryDeformPoseV1",error)):nullptr;
-            if(tracePhysics&&!physics){stopShaping("Instant Surgery: "+error);return 0;}
-            const auto bodyPhysics=GetModuleHandleW(L"BodyPhysics.asi");
-            if(tracePhysics&&!bodyPhysics&&std::filesystem::exists(r.folder/L"BodyPhysics.asi")){const std::string message="Body Physics is installed but has not loaded. Enable its ASI and restart, or remove the unused plugin file before relaunching.";r.reportCompatibility(Feature::Shaping,GetTickCount()-startupAt<15000?CompatibilityState::Waiting:CompatibilityState::Blocked,message);setStatus(message);Sleep(250);continue;}
-            if(tracePhysics&&bodyPhysics) {
-                wchar_t path[32768]{};GetModuleFileNameW(bodyPhysics,path,32768);
-                const auto query=pluginExport(bodyPhysics,"TwoReasonsEditorPoseAppliedV1",error);
-                if(!query) {
-                    stopShaping("Body Physics: "+error+". Shaping is held to preserve its physics route; install a compatible version and restart.");return 0;
-                }
-                HMODULE pinned=nullptr;if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,reinterpret_cast<LPCWSTR>(query),&pinned)){stopShaping("The loaded Body Physics interface could not be retained. Restart before retrying.");return 0;}
-                s.physicsApplied=reinterpret_cast<int(*)(void*)>(query);s.physicsRoute=true;
+            s.allowWrites=allowNpcWrites&&engineBound;
+            const bool prepared=MH_CreateHook(target,reinterpret_cast<void*>(&hookedUpdate),reinterpret_cast<void**>(&originalUpdate))==MH_OK;
+            const bool installed=prepared&&MH_EnableHook(target)==MH_OK;
+            if(!installed){
+                if(prepared)MH_RemoveHook(target);
+                s.module=nullptr;
+                FreeLibrary(retained);
+                error="The NPC pose observer could not start. Hex Appeal will retry.";
+                r.reportCompatibility(Feature::Shaping,CompatibilityState::Waiting,error);
+                setStatus(error);
+                Sleep(1000);
+                continue;
             }
-            const bool updateCreated=MH_CreateHook(target,reinterpret_cast<void*>(&hookedUpdate),reinterpret_cast<void**>(&originalUpdate))==MH_OK;
-            const bool physicsCreated=!tracePhysics||MH_CreateHook(physics,reinterpret_cast<void*>(&observedPhysicsPose),reinterpret_cast<void**>(&originalPhysicsPose))==MH_OK;
-            const bool resolverCreated=!tracePhysics||MH_CreateHook(resolver,reinterpret_cast<void*>(&hookedResolveProfile),reinterpret_cast<void**>(&originalResolveProfile))==MH_OK;
-            const bool queued=updateCreated&&physicsCreated&&resolverCreated&&MH_QueueEnableHook(target)==MH_OK&&(!tracePhysics||(MH_QueueEnableHook(physics)==MH_OK&&MH_QueueEnableHook(resolver)==MH_OK));
-            if(!queued||MH_ApplyQueued()!=MH_OK) {
-                if(updateCreated){MH_DisableHook(target);MH_RemoveHook(target);}
-                if(tracePhysics&&physicsCreated){MH_DisableHook(physics);MH_RemoveHook(physics);}
-                if(tracePhysics&&resolverCreated){MH_DisableHook(resolver);MH_RemoveHook(resolver);}
-                stopShaping("The required NPC hooks could not be installed. Another hook may own these functions; restart before retrying.");return 0;
-            }
-            std::string visibilityError;
-            if(!initializeUnderwear(module,visibilityError))LOG_ERR("Underwear controls unavailable: %s",visibilityError.c_str());
-            if(s.wardrobeObservation){std::string wardrobeError;if(!initializeWardrobeObservation(wardrobeError)){reportWardrobeUnavailable(wardrobeError);LOG_ERR("Wardrobe observation unavailable: %s",wardrobeError.c_str());}}
-            s.hooked=true;setStatus("NPC route ready. Saved shapes restore when a selected witch becomes visible.");
+            tryOptionalPhysics();
+            if(!engineBound)LOG("Native actor observation is ready without the shaping interface: %s",error.c_str());
+            s.hooked=true;setStatus(!error.empty()?error:"NPC route ready. Saved shapes restore when a selected witch becomes visible.");
             rescan(true);
             LOG("Instant Surgery NPC adapter installed. Body/outfit writes require a validated transaction and witch identity; version verification is reported separately.");
-            if(tracePhysics)LOG("Native profile resolver and physics route installed; selected profile supplied only after an explicit Apply. Physics upload receipts enabled=%d.",s.physicsRoute);
             break;
         }
-        if(!error.empty()){r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,error);setStatus(error);}
+        if(!error.empty()){
+            r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,error);
+            setStatus(error);
+        }
         else if(!module&&dependencies.instant.valid&&GetTickCount()-startupAt>=15000){const std::string message="Instant Surgery is installed but is not loaded. Enable its ASI and restart Crimson Desert.";r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,message);setStatus(message);}
         Sleep(500);
     }
-    uint64_t persisted=0;
+    uint64_t persisted=0,nextBind=0;
     while(true) {
+        const auto now=GetTickCount64();
+        if(!engineBound&&now>=nextBind){
+            nextBind=now+2000;
+            {
+                std::lock_guard<std::mutex> engineLock(s.engineMutex);
+                engineBound=s.engine.bind(s.module,error);
+            }
+            if(engineBound){
+                s.allowWrites=allowNpcWrites;
+                LOG("Instant Surgery's shaping interface became ready after observer startup.");
+                rescan(true);
+            }
+        }
         rescan();
+        tryOptionalPhysics();
+        prepareAddonPoses();
         {
             std::lock_guard<std::mutex> application(s.applicationMutex);
             std::vector<uint64_t> expired;
@@ -447,7 +623,7 @@ DWORD WINAPI worker(void*) {
     }
 }
 }
-void startNpcRuntime(){const auto& r=Runtime::get();if(!GetPrivateProfileIntW(L"Development",L"ObserveNpcUploads",0,(r.folder/L"HexAppeal.ini").c_str()))return;const auto thread=CreateThread(nullptr,0,worker,nullptr,0,nullptr);if(thread)CloseHandle(thread);}
+void startNpcRuntime(){const auto& r=Runtime::get();if(!GetPrivateProfileIntW(L"Development",L"ObserveNpcUploads",0,(r.folder/L"HexAppeal.ini").c_str()))return;const auto thread=CreateThread(nullptr,0,worker,nullptr,0,nullptr);if(thread)CloseHandle(thread);else LOG_ERR("Windows could not start the shaping worker.");}
 #ifdef HEX_NPC_RUNTIME_TESTS
 namespace {
 void* fixtureContextActor(void* context){return context;}
@@ -543,10 +719,15 @@ bool runNpcTransactionTests(HMODULE surgery,const std::filesystem::path& preset,
     if(!check(second[0].source!=first[0].source,"reselection produces a different shape"))return false;
     second[0].source[0][0]+=.001f;
     if(!writePoseBytes(second[0].destination,second[0].source))return false;
-    if(!check(apply(1,1,id)&&updateActor(upload,model,actor,lyselia)&&poll(id,message,sizeof(message))<0,"conflicting modifier rejects pending application"))return false;
-    if(!check(poseBytesEqual(second[0].destination,second[0].source),"rejected transaction cannot overwrite a conflicting modifier"))return false;
+    if(!check(apply(1,1,id)&&updateActor(upload,model,actor,lyselia)&&poll(id,message,sizeof(message))==0,
+              "conflicting modifier keeps a pending application queued for retry"))return false;
+    if(!check(poseBytesEqual(second[0].destination,second[0].source),"pending transaction cannot overwrite a conflicting modifier"))return false;
     s.allowWrites=false;
     if(!check(!updateActor(upload,model,actor,lyselia)&&poseBytesEqual(second[0].destination,second[0].source),"observation gate also blocks an already published selection"))return false;
+    s.allowWrites=true;
+    for(const auto& p:initial)if(!writePoseBytes(p.destination,p.animation))return false;
+    if(!check(updateActor(upload,model,actor,lyselia)&&poll(id,message,sizeof(message))==1,
+              "pending shape resumes after the pose buffers become stable"))return false;
     for(const auto& p:initial)if(!writePoseBytes(p.destination,p.source))return false;
     s.transactions.clear();s.actors.clear();s.sequence=0;s.active=std::make_shared<Snapshot>();s.persistVersion=0;s.hooked=false;s.seen=0;s.lastSeen[0]=0;
     return true;

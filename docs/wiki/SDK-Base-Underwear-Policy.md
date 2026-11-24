@@ -43,6 +43,8 @@ The suppression is per live instance, after Wardrobe confirms ownership of the s
 
 Both custom pieces follow the combined **Hide base bra & panties** override. Your individual bra/briefs controls remain separate saved choices. **Hide outfit** never hides these linked underwear controls.
 
+The global **Allow external control (all witches)** setting lets detected external mods and outfit rules control their affected witches. The SDK reports Hex Appeal's override as inactive for each delegated witch. Turning the setting off restores the saved per-witch choices. A selected outfit's own `replace_base_underwear` policy still applies while that outfit is active.
+
 ## Direct C or C++ registration
 
 The optional export is `HexAppeal_GetOutfitPolicyAPI(1)`. Its `HA_OutfitPolicyAPI` table has `SetPolicy(token, flags)`. The only current flag is `HA_REPLACE_BASE_UNDERWEAR`; zero leaves normal base handling unchanged. Existing Wardrobe, Native Wardrobe and Base underwear v1 layouts are unchanged.

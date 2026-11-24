@@ -2,12 +2,14 @@ from pathlib import Path
 import subprocess,os,json,concurrent.futures,hashlib,shutil
 
 root=Path(__file__).resolve().parents[1]
-import argparse,re
+import argparse,sys
+sys.path.insert(0,str(root.parent/'tools'))
+from release_version import check_version_metadata,release_version,validate_version
 parser=argparse.ArgumentParser(description='Build Hex Appeal and its offline checks. Version files are never incremented.')
 parser.add_argument('--release',action='store_true',help='Use the public VERSION. Default: DEV_VERSION with a development suffix.')
 args=parser.parse_args()
-version=(root.parent/('VERSION' if args.release else 'DEV_VERSION')).read_text(encoding='utf-8-sig').strip()
-if not re.fullmatch(r'\d+\.\d+\.\d+',version):raise SystemExit('Expected a three-part version.')
+version=release_version(root.parent) if args.release else validate_version((root.parent/'DEV_VERSION').read_text(encoding='utf-8-sig').strip())
+if args.release:check_version_metadata(root.parent,version)
 build_version=version if args.release else version+'-development'
 
 build=root/'build';build.mkdir(exist_ok=True)
@@ -60,7 +62,7 @@ if not assembler:raise SystemExit('MSVC x64 assembler was not found.')
 frame_object=build/'frame_dispatch.asm.obj'
 subprocess.run([assembler,'/nologo','/c','/Fo'+str(frame_object),str(root/'src/hooks/frame_dispatch.asm')],env=env,check=True,capture_output=True)
 objects['src/hooks/frame_dispatch.asm']=frame_object
-libs=['d3d12.lib','dxgi.lib','dwmapi.lib','imm32.lib','dxguid.lib','user32.lib','gdi32.lib','psapi.lib','bcrypt.lib','shell32.lib']
+libs=['d3d12.lib','dxgi.lib','dwmapi.lib','imm32.lib','dxguid.lib','user32.lib','gdi32.lib','psapi.lib','bcrypt.lib','shell32.lib','xmllite.lib','shlwapi.lib','windowsapp.lib','runtimeobject.lib','windowscodecs.lib','ole32.lib','version.lib']
 def link(name,objs,dll=False):
     command=[linker,'/nologo','/INCREMENTAL:NO','/OUT:'+str(name),*['/DLL']*dll,*map(str,objs),*libs]
     run=subprocess.run(command,env=env,capture_output=True,text=True)
@@ -108,14 +110,17 @@ def extra(source,tag='',definitions=()):
     if run.returncode:print(run.stdout+run.stderr);raise SystemExit(run.returncode)
     return obj
 model=objects['src/model.cpp'];runtime=objects['src/runtime.cpp']
-dependency_objects=[objects['src/mounted_dependencies.cpp'],objects['src/dependency_paths.cpp']]
+dependency_objects=[objects['src/mounted_dependencies.cpp'],objects['src/dependency_paths.cpp'],objects['src/skin_tone.cpp'],objects['src/game_archive.cpp'],objects['src/skin_dds.cpp'],objects['src/graphics_diagnostics.cpp']]
+minhook=[obj for src,obj in objects.items() if src.startswith('vendor/minhook/')]
 link(build/'model_tests.exe',[model,extra(root/'tests'/'model_tests.cpp')])
-link(build/'frame_dispatch_tests.exe',[frame_object,extra(root/'tests'/'frame_dispatch_tests.cpp')])
-link(build/'auto_apply_tests.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'auto_apply_tests.cpp')])
-link(build/'native_menu_test.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'native_menu_test.cpp')])
+link(build/'frame_dispatch_tests.exe',[frame_object,extra(root/'tests'/'frame_dispatch_tests.cpp'),*minhook])
+link(build/'auto_apply_tests.exe',[model,runtime,*dependency_objects,
+    extra(root/'tests'/'auto_apply_tests.cpp'),extra(root/'tests'/'interface_preferences.cpp')])
+link(build/'native_menu_test.exe',[model,runtime,*dependency_objects,objects['src/shaping.cpp'],extra(root/'tests'/'native_menu_test.cpp')])
 link(build/'dependency_routes.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'dependency_routes.cpp')])
+link(build/'skin_routes.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'skin_routes.cpp')])
 link(build/'dependency_discovery.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'dependency_discovery.cpp')])
-link(build/'wardrobe_api_tests.exe',[objects['src/wardrobe_api.cpp'],extra(root/'tests/wardrobe_api.cpp')])
+link(build/'wardrobe_api_tests.exe',[objects['src/wardrobe_api.cpp'],objects['src/wardrobe_slots.cpp'],extra(root/'tests/wardrobe_api.cpp')])
 link(build/'outfit_visibility_tests.exe',[objects['src/outfit_visibility.cpp'],extra(root/'tests/outfit_visibility.cpp')])
 extra(root/'tests/wardrobe_c_abi.c')
 extra(root/'sdk/examples/WardrobeProvider.cpp')
@@ -123,14 +128,14 @@ subprocess.run([__import__('sys').executable,str(root/'sdk/tools/generate_provid
 extra(root/'sdk/examples/NativeOutfitProvider.cpp')
 subprocess.run([__import__('sys').executable,str(root/'sdk/tools/generate_provider.py'),str(root/'sdk/examples/parts-outfit.json'),'--output',str(build/'PartsDefinition.hpp'),'--force'],check=True,capture_output=True)
 extra(root/'sdk/examples/PartsOutfitProvider.cpp')
-for definition,header,source in [('advanced-outfit.json','AdvancedDefinition.hpp','AdvancedOutfitProvider.cpp'),('renderer-outfit.json','RendererDefinition.hpp','CustomRendererProvider.cpp')]:
+for definition,header,source in [('advanced-outfit.json','AdvancedDefinition.hpp','AdvancedOutfitProvider.cpp'),('renderer-outfit.json','RendererDefinition.hpp','CustomRendererProvider.cpp'),('equipped-cloak.json','EquippedDefinition.hpp','EquippedItemProvider.cpp')]:
     subprocess.run([__import__('sys').executable,str(root/'sdk/tools/generate_provider.py'),str(root/'sdk/examples'/definition),'--output',str(build/header),'--force'],check=True,capture_output=True)
     extra(root/'sdk/examples'/source)
-minhook=[obj for src,obj in objects.items() if src.startswith('vendor/minhook/')]
-link(build/'underwear_tests.exe',[model,runtime,*dependency_objects,objects['src/pose_access.cpp'],objects['src/outfit_visibility.cpp'],extra(root/'src/underwear.cpp','.visibility',['HEX_UNDERWEAR_TESTS']),extra(root/'tests/underwear_tests.cpp','',['HEX_UNDERWEAR_TESTS']),*minhook])
+link(build/'underwear_tests.exe',[model,runtime,*dependency_objects,objects['src/pose_access.cpp'],objects['src/outfit_visibility.cpp'],objects['src/character_addons.cpp'],objects['src/wardrobe_snapshot.cpp'],objects['src/wardrobe_slots.cpp'],extra(root/'src/underwear.cpp','.visibility',['HEX_UNDERWEAR_TESTS']),extra(root/'tests/underwear_tests.cpp','',['HEX_UNDERWEAR_TESTS']),*minhook])
 preview_objs=[objects['vendor/imgui/'+n] for n in ['imgui.cpp','imgui_draw.cpp','imgui_widgets.cpp','imgui_tables.cpp']]
 preview_objs += [model,runtime,*dependency_objects,extra(root/'src'/'menu.cpp','.preview',['HEX_MENU_TESTS']),extra(root/'tests'/'preview.cpp','',['HEX_MENU_TESTS'])]
 preview_objs += [objects['src/outfit_visibility.cpp'],objects['src/underwear.cpp'],objects['src/pose_access.cpp'],objects['src/wardrobe.cpp'],objects['src/wardrobe_snapshot.cpp'],objects['src/wardrobe_transport.cpp'],objects['src/wardrobe_selection.cpp'],objects['src/wardrobe_native.cpp'],objects['src/wardrobe_api.cpp'],objects['src/hooks/frame_dispatch.cpp'],frame_object]
+preview_objs += [objects['src/barber_catalog.cpp'],objects['src/wardrobe_slots.cpp'],objects['src/wardrobe_items.cpp'],objects['src/wardrobe_mounted_items.cpp'],objects['src/wardrobe_stock_items.cpp'],objects['src/spouse_wardrobe.cpp'],objects['src/spouse_interaction.cpp'],objects['src/character_addons.cpp']]
 preview_objs += [obj for src,obj in objects.items() if src.startswith('vendor/minhook/')]
 link(build/'preview.exe',preview_objs)
 input_objs=[objects['vendor/imgui/'+n] for n in ['imgui.cpp','imgui_draw.cpp','imgui_widgets.cpp','imgui_tables.cpp','backends/imgui_impl_win32.cpp']]
@@ -138,12 +143,15 @@ input_objs+=[obj for src,obj in objects.items() if src.startswith('vendor/minhoo
 input_objs+=[model,runtime,*dependency_objects,extra(root/'src'/'hooks'/'input.cpp','.test',['MODACTIVATOR_TESTS']),extra(root/'tests'/'input_lifecycle.cpp')]
 input_objs+=[extra(root/'src'/'hooks'/'xinput_hook.cpp','.test',['MODACTIVATOR_TESTS'])]
 link(build/'input_lifecycle.exe',input_objs)
-link(build/'interface_preferences.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'interface_preferences.cpp')])
 link(build/'creation_chain_tests.exe',[extra(root/'tests'/'creation_chain.cpp')])
 link(build/'appearance_hook_tests.exe',[extra(root/'tests'/'appearance_hooks.cpp')])
 link(build/'compatibility_tests.exe',[model,runtime,*dependency_objects,extra(root/'tests'/'compatibility.cpp')])
 link(build/'wardrobe_snapshot_tests.exe',[objects['src/wardrobe_snapshot.cpp'],extra(root/'tests'/'wardrobe_snapshot.cpp')])
+link(build/'character_addon_tests.exe',[model,runtime,*dependency_objects,objects['src/character_addons.cpp'],objects['src/wardrobe_snapshot.cpp'],objects['src/wardrobe_slots.cpp'],extra(root/'tests'/'character_addons.cpp')])
 link(build/'wardrobe_selection_tests.exe',[objects['src/wardrobe_selection.cpp'],extra(root/'tests'/'wardrobe_selection.cpp')])
+link(build/'wardrobe_slots_tests.exe',[objects['src/wardrobe_slots.cpp'],extra(root/'tests'/'wardrobe_slots.cpp')])
 link(build/'wardrobe_transport_tests.exe',[objects['src/wardrobe_transport.cpp'],extra(root/'tests'/'wardrobe_transport.cpp')])
+link(build/'barber_catalog_tests.exe',[model,runtime,*dependency_objects,objects['src/barber_catalog.cpp'],objects['src/wardrobe_slots.cpp'],objects['src/wardrobe_snapshot.cpp'],objects['src/wardrobe_items.cpp'],objects['src/wardrobe_mounted_items.cpp'],objects['src/spouse_wardrobe.cpp'],extra(root/'tests'/'barber_catalog.cpp')])
+link(build/'wardrobe_stock_tests.exe',[model,runtime,*dependency_objects,objects['src/wardrobe_items.cpp'],objects['src/wardrobe_slots.cpp'],objects['src/wardrobe_stock_items.cpp'],objects['src/wardrobe_mounted_items.cpp'],extra(root/'tests'/'wardrobe_stock.cpp')])
 link(build/'render_preview.exe',[extra(root/'tools'/'render_preview.cpp')])
 print(json.dumps({'status':'built','asi':str(out/'HexAppeal.asi'),'bytes':(out/'HexAppeal.asi').stat().st_size,'sha256':hashlib.sha256((out/'HexAppeal.asi').read_bytes()).hexdigest(),'compiler':compiler},indent=2))

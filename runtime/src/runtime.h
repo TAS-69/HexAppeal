@@ -4,11 +4,15 @@
 #include <string>
 #include <atomic>
 #include <mutex>
+#include <memory>
 #include "model.h"
 #include "mounted_dependencies.h"
 #include "compatibility.h"
+#include "wardrobe_range.h"
 
 namespace hex {
+inline constexpr int minimumUiScalePercent=80,maximumUiScalePercent=130;
+
 enum QuickPin : uint32_t {
     PinTop=1u<<0,PinBottom=1u<<1,PinPad=1u<<2,PinHeight=1u<<3,PinWeight=1u<<4,
     PinUnderwear=1u<<5,PinOutfit=1u<<6,PinCopy=1u<<7,PinPaste=1u<<8,PinReset=1u<<9,
@@ -33,26 +37,35 @@ struct Runtime {
     bool control=false,alt=false,shift=false;
     bool compact=false,livePreview=false;
     bool blockGameInput=true;
+    bool skinToneEnabled=false,skinToneAtStartup=false;
+    std::atomic<unsigned> skinTonePrepared{0},skinToneApplied{0};
+    std::atomic<bool> skinToneFailed{false};
     uint32_t quickPins=PinUnderwear|PinOutfit;
     int uiScalePercent=100;
     Profile copied{};
     bool hasCopied=false;
     std::atomic<uint32_t> underwearHiddenMask{0};
+    std::atomic<bool> allowExternalUnderwear{true};
+    std::atomic<uint32_t> underwearObservedExternalMask{0},underwearMountedExternalMask{0},underwearMissingMeshMask{0};
     std::atomic<uint64_t> underwearVersion{1};
     std::atomic<uint32_t> outfitHiddenMask{0};
     std::atomic<uint64_t> outfitHiddenVersion{1};
+    std::atomic<int> outfitRangeMeters{defaultOutfitRange};
     std::atomic<bool> weightAvailable{false};
     std::atomic<bool> shapingAvailable{false},hexAvailable{false};
+    std::atomic<uint32_t> unavailableBodyWitches{0};
     std::atomic<bool> dependencyScanned{false};
     std::atomic<uint64_t> dependencyRevision{1};
     std::mutex dependencyMutex;
     DependencyPaths dependencyPaths;
-    DependencyStatus dependencies;
+    std::shared_ptr<const DependencyStatus> dependencies=std::make_shared<const DependencyStatus>();
     std::mutex compatibilityMutex;
     CompatibilitySnapshot compatibility;
+    std::string skinToneError;
     bool preview=false;
     uint32_t queuedMask=0;
     std::atomic<uint32_t> requestedRefitMask{0};
+    std::atomic<bool> presetChanged{false};
     bool savePending=false,autoError=false;
     uint64_t nextSaveAt=0,nextApplyAt=0;
     static Runtime& get();
@@ -66,16 +79,21 @@ struct Runtime {
     bool saveVisibilityPreference(const char* key,uint32_t mask,std::string& error);
     void loadInterface(const std::filesystem::path& file);
     DependencyPaths configuredDependencyPaths();
-    DependencyStatus dependencyStatus();
+    std::shared_ptr<const DependencyStatus> dependencyStatus();
     bool setDependencyPaths(const DependencyPaths& paths,std::string& error);
     void publishDependencies(const DependencyStatus& status);
     FeatureCompatibility featureCompatibility(Feature feature);
     CompatibilitySnapshot compatibilityStatus();
     void reportCompatibility(Feature feature,CompatibilityState state,const std::string& detail);
+    void reportSkinToneFailure(const std::string& detail);
+    std::string skinToneFailure();
+    std::string diagnosticReport();
+    std::string recentLog();
+    bool saveDiagnosticReport(std::filesystem::path& path,std::string& error);
     void selectionChanged();
     void requestShapeReapply(int witch);
     void tickAuto(uint64_t now=GetTickCount64(),bool flush=false);
 };
-std::string sha256(const std::filesystem::path& file);
+std::string sha256(const std::filesystem::path& file,bool reuseUnchanged=false);
 int callMenu(void* fn,unsigned command,unsigned key);
 }

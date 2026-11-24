@@ -5,10 +5,13 @@
 
 #include <Windows.h>
 #include <d3d12.h>
-#include <dxgi1_5.h>
+#include <dxgi1_6.h>
 #include <psapi.h>
+#include <wrl/client.h>
 #include <algorithm>
 #include <atomic>
+#include <new>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -24,10 +27,11 @@
 #include "../core/log.h"
 #include "../core/settings.h"
 #include "../core/state.h"
+#include "../graphics_diagnostics.h"
 #include "../gui/menu.h"
 #include "farhook.h"
 #include "dx12/creation_chain.h"
-#include "dx12/creation_settle.h"
+#include "dx12/factory_imports.h"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -51,6 +55,9 @@ namespace ml::hooks
 #include "dx12/swapchain_wrapper.h"
 
 #include "dx12/install.h"
+#include "dx12/streamline_factory.h"
+
+#include "dx12/factory_wrapper.h"
 
 #include "dx12/creation_patch.h"
 
@@ -89,6 +96,110 @@ namespace ml::hooks
         return nullptr;
     }
 
+    static bool RegisterReShadeEvents(HMODULE self)
+    {
+        const auto reshade = FindReShade();
+        if (!reshade) return false;
+        const auto registerAddon = reinterpret_cast<reshade_api::RegisterAddon>(
+            GetProcAddress(reshade, "ReShadeRegisterAddon"));
+        const auto registerEvent = reinterpret_cast<reshade_api::RegisterEvent>(
+            GetProcAddress(reshade, "ReShadeRegisterEventForAddon"));
+        if (!registerAddon || !registerEvent || !registerAddon(self, reshade_api::version))
+            return false;
+        registerEvent(self, reshade_api::destroySwapchain, reinterpret_cast<void*>(&OnReShadeDestroySwapChain));
+        registerEvent(self, reshade_api::present, reinterpret_cast<void*>(&OnReShadePresent));
+        registerEvent(self, reshade_api::reshadePresent, reinterpret_cast<void*>(&OnReShadeEffectsPresent));
+        LOG("Optional ReShade presentation registered.");
+        return true;
+    }
+
+    static bool ProbeSystemPresentation()
+    {
+        using Microsoft::WRL::ComPtr;
+        const auto dxgi = GetModuleHandleW(L"dxgi.dll");
+        const auto entry = dxgi ? GetProcAddress(dxgi, "CreateDXGIFactory1") : nullptr;
+        if (!entry || !ModuleInSystemDir(reinterpret_cast<void*>(entry))) return false;
+        const auto create = reinterpret_cast<CreateFactory>(entry);
+        ComPtr<IDXGIFactory2> factory;
+        ComPtr<ID3D12Device> device;
+        ComPtr<ID3D12CommandQueue> queue;
+        D3D12_COMMAND_QUEUE_DESC queueDesc{};
+        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        if (FAILED(create(IID_PPV_ARGS(factory.GetAddressOf())))) return false;
+        ObserveStreamlineFactory(factory.Get());
+        if (FAILED(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf()))) ||
+            FAILED(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(queue.GetAddressOf()))))
+            return false;
+        const auto window = CreateWindowExW(0, L"STATIC", L"", WS_POPUP, 0, 0, 32, 32,
+                                           nullptr, nullptr, nullptr, nullptr);
+        if (!window) return false;
+        DXGI_SWAP_CHAIN_DESC1 desc{};
+        desc.Width = desc.Height = 32;
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count = 1;
+        desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        desc.BufferCount = 2;
+        desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        ComPtr<IDXGISwapChain1> chain;
+        bool ready = false;
+        if (SUCCEEDED(factory->CreateSwapChainForHwnd(queue.Get(), window, &desc, nullptr, nullptr, chain.GetAddressOf())))
+        {
+            if (const auto base = StreamlineBaseInterface(chain.Get()))
+            {
+                ComPtr<IDXGISwapChain1> native;
+                if (SUCCEEDED(base.As(&native))) ready = InstallDetoursFrom(native.Get(), queue.Get(), false);
+            }
+            if (!ready) ready = InstallDetoursFrom(chain.Get(), queue.Get(), false);
+        }
+        chain.Reset();
+        DestroyWindow(window);
+        return ready;
+    }
+
+    static HMODULE g_overlayModule = nullptr;
+    static bool g_reShadeRequested = false;
+    static bool g_reShadeRegistered = false;
+
+    static DWORD WINAPI WatchPresentation(LPVOID)
+    {
+        const auto started = GetTickCount64();
+        uint64_t nextProbe = started + hex::creation::firstProbeDelayMs;
+        bool reported = false;
+        bool probed = false;
+        bool saidSkipped = false;
+        for (;;)
+        {
+            Sleep(2000);
+            const auto now = GetTickCount64();
+            const bool seen = g_gameSwapChainSeen.load();
+            // Graphics diagnostics wait for the game's own swapchain, so nothing
+            // extra runs on this thread while the game and other mods start up.
+            if (seen || now - started >= 60000)
+                Log::RefreshGraphics();
+            if (g_reShadeRequested && !g_reShadeRegistered)
+                g_reShadeRegistered = RegisterReShadeEvents(g_overlayModule);
+            if (State::Get().HasRecentPresentation(now)) continue;
+            InstallFactoryImports();
+            if (hex::creation::PresentationProbeDue(now, nextProbe, probed, seen))
+            {
+                probed = ProbeSystemPresentation();
+                nextProbe = now + hex::creation::probeRetryMs;
+                if (probed) LOG("[overlay] Watching system presentation for a game swapchain.");
+            }
+            else if (seen && !probed && !saidSkipped && now >= nextProbe)
+            {
+                saidSkipped = true;
+                LOG("[overlay] The game's swapchain was seen at creation, so no probe swapchain is created.");
+            }
+            if (!reported && now - started >= 60000)
+            {
+                reported = true;
+                LOG_ERR("[overlay] No recent game-window frame. Continuing to look for a presentation route.");
+                LogSwapChainCreationPath();
+            }
+        }
+    }
+
     bool InstallDX12Hooks(HMODULE self, bool useReShadeEvents)
     {
 
@@ -111,58 +222,15 @@ namespace ml::hooks
         InitializeCriticalSection(&g_queueLock);
         g_queueLockReady = true;
 
-        if (HMODULE reshade = useReShadeEvents ? FindReShade() : nullptr)
-        {
-            const auto registerAddon = reinterpret_cast<reshade_api::RegisterAddon>(
-                GetProcAddress(reshade, "ReShadeRegisterAddon"));
-            const auto registerEvent = reinterpret_cast<reshade_api::RegisterEvent>(
-                GetProcAddress(reshade, "ReShadeRegisterEventForAddon"));
-            if (registerAddon && registerEvent && registerAddon(self, reshade_api::version))
-            {
-                registerEvent(self, reshade_api::destroySwapchain,
-                              reinterpret_cast<void*>(&OnReShadeDestroySwapChain));
-                registerEvent(self, reshade_api::present, reinterpret_cast<void*>(&OnReShadePresent));
-                registerEvent(self, reshade_api::reshadePresent,
-                              reinterpret_cast<void*>(&OnReShadeEffectsPresent));
-                LOG("Using ReShade presentation callbacks. No DXGI hooks installed.");
-                return true;
-            }
-
-
-
-
-            LOG_ERR("ReShade add-on API v%u registration failed (ReShade 6.8.0 or newer is needed for it). "
-                    "Using the legacy DirectX path instead. Set UseReShadeEvents=0 to skip this attempt.",
-                    reshade_api::version);
-        }
-
-
-
-
-
-        InstallSwapChainCreationPatch();
-
-
-
-
-        if (HANDLE watch = CreateThread(nullptr, 0, [](LPVOID) -> DWORD {
-                for (int i = 0; i < 300 && g_presentSeen.load(std::memory_order_relaxed) == 0; ++i)
-                    Sleep(200);
-                if (g_presentSeen.load(std::memory_order_relaxed) != 0)
-                    return 0;
-                LOG_ERR("[overlay] a minute after start no frame has reached this mod (creation detour ran %ld time(s)), so the menu cannot open. "
-                        "The [creation] lines below show where the game's swapchain creation goes instead.",
-                        g_factoryCalls.load(std::memory_order_relaxed));
-                LogSwapChainCreationPath();
-                return 0;
-            }, nullptr, 0, nullptr))
-            CloseHandle(watch);
-
-        char exePath[MAX_PATH]{};
-        GetModuleFileNameA(nullptr, exePath, MAX_PATH);
-        const char* exeName = strrchr(exePath, '\\');
-        exeName = exeName ? exeName + 1 : exePath;
-        LOG("DX12 hooks installed (%s, pid %lu).", exeName, GetCurrentProcessId());
-        return true;
+        const bool native = InstallFactoryImports();
+        g_overlayModule = self;
+        g_reShadeRequested = useReShadeEvents;
+        const bool optional = useReShadeEvents && RegisterReShadeEvents(self);
+        g_reShadeRegistered = optional;
+        const auto watch = CreateThread(nullptr, 0, WatchPresentation, nullptr, 0, nullptr);
+        if (watch) CloseHandle(watch);
+        LOG("DX12 route discovery started (game imports=%d, ReShade=%d, retry worker=%d).",
+            int(native), int(optional), int(watch != nullptr));
+        return native || optional || watch != nullptr;
     }
 }

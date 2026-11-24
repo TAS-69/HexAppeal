@@ -21,9 +21,15 @@ int wmain(int argc,wchar_t** argv){try{
     runtime.reportCompatibility(Feature::Hex,CompatibilityState::Ready,"Updated external preset parsed.");
     check(runtime.featureCompatibility(Feature::Hex).allows(true),"fixed dependency recovers after a passing probe");
     runtime.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,"Native interface missing.");
-    check(runtime.featureCompatibility(Feature::Wardrobe).state==CompatibilityState::Blocked&&runtime.featureCompatibility(Feature::Underwear).detail.find("Native interface missing")!=std::string::npos,"uninitialized dependent features explain their upstream block");
+    check(runtime.featureCompatibility(Feature::Wardrobe).state==CompatibilityState::Waiting&&runtime.featureCompatibility(Feature::Underwear).state==CompatibilityState::Waiting,
+          "outfit and visibility probes stay independent when the shaping interface is missing");
     check(runtime.featureCompatibility(Feature::Weight).state==CompatibilityState::Blocked&&runtime.featureCompatibility(Feature::Weight).detail.find("Native interface missing")!=std::string::npos,"Weight depends on native shaping rather than an outfit file");
+    runtime.reportCompatibility(Feature::Hex,CompatibilityState::Waiting,"Waiting for the native shaping adapter.");
+    const auto pendingHex=runtime.compatibilityStatus()[size_t(Feature::Hex)];
+    check(pendingHex.state==CompatibilityState::Blocked&&pendingHex.detail.find("Native interface missing")!=std::string::npos,
+          "a pending HEX preset explains the failed shaping prerequisite in the report");
     runtime.reportCompatibility(Feature::Shaping,CompatibilityState::Ready,"Native checks passed.");
+    check(runtime.featureCompatibility(Feature::Hex).state==CompatibilityState::Waiting,"HEX resumes its own check when shaping recovers");
     check(runtime.featureCompatibility(Feature::Wardrobe).state==CompatibilityState::Waiting,"upstream recovery resumes pending feature checks");
     runtime.reportCompatibility(Feature::Count,CompatibilityState::Ready,"invalid");
     check(runtime.featureCompatibility(Feature::Count).state==CompatibilityState::Blocked,"invalid feature cannot grant capability");

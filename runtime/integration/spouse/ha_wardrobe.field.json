@@ -1,0 +1,27 @@
+{
+  "format": 3,
+  "modinfo": {
+    "title": "Hex Appeal - Spouse Wardrobe Interaction",
+    "version": "0.5.42",
+    "author": "TASx69",
+    "description": "Adds the optional [HA] Wardrobe interaction record for the Hex Appeal development build."
+  },
+  "targets": [
+    {
+      "file": "interactioninfo.pabgb",
+      "intents": [
+        {
+          "op": "clone_record",
+          "source_key": 1000370,
+          "new_key": 1969427,
+          "patches": [
+            { "path": "string_key", "new": "HA_WitchSpouseWardrobe" },
+            { "path": "interaction_type", "new": 19 },
+            { "path": "interaction_name.index", "new": 8458624556859488 },
+            { "path": "interaction_name.default", "new": "[HA] Wardrobe" }
+          ]
+        }
+      ]
+    }
+  ]
+}

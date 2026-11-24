@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+#include <cstdint>
 #include <Windows.h>
 
 namespace ml
@@ -7,6 +8,7 @@ namespace ml
 
 
     inline constexpr ULONG_PTR shortcutInputTag = 0x4D414354;
+    inline constexpr uint64_t nativeWardrobeDrawGraceMs = 5000;
 
 
 
@@ -27,6 +29,21 @@ namespace ml
 
 
         std::atomic<DWORD> lastDrawAt{0};
+        std::atomic<uint64_t> lastPresentAt{0};
+        std::atomic<uint64_t> lastNativeWardrobeDrawAt{0};
+
+        bool HasRecentPresentation(uint64_t now) const
+        {
+            const auto latest = lastPresentAt.load();
+            return latest && (latest > now || now - latest < nativeWardrobeDrawGraceMs);
+        }
+
+        bool NativeWardrobeDrawExpired(uint64_t startedAt, uint64_t now) const
+        {
+            const auto drawnAt = lastNativeWardrobeDrawAt.load();
+            const auto latest = drawnAt > startedAt ? drawnAt : startedAt;
+            return latest <= now && now - latest >= nativeWardrobeDrawGraceMs;
+        }
 
 
 

@@ -2,24 +2,24 @@
 
 ## Checked references
 
-Last reviewed **18 November 2026**. These are locally checked versions, rather than a claim to cover the newest download on every mod page.
+Last reviewed **19 November 2026**. These versions were used for local checks.
 
 | Component | Checked version | Scope |
 | --- | --- | --- |
-| Crimson Desert | **2.05.00 / Steam 26636972** | Native functions, actor ownership, shaping and sampled outfit operations |
+| Crimson Desert | **2.05.01 / Steam 26776744** | Native layouts, actor ownership, shaping and sampled outfit operations |
 | Desert Mod Manager | **5.0.1** | Two body choices, ordered labels, merged appearance/registry routes and private resource mounting |
 | VENUS | **2.6 Human / Elf Body** | Body format and matching skinning; Elf core session and earlier Human comparison |
 | Instant Surgery | **0.9.6** | Checked native shaping interface and live coordinated deformation |
 | Hex's Hentai Preset | **1.3**, with **1.2** retained | External preset parsing and regional shaping; 1.3 is preferred |
 | Two Reasons Body Physics | **1.0.7** | Optional pose interface and coordinated update acknowledgement |
-| Character Creator | **9.1.41** | Optional hook coexistence, startup, shaping, default Wardrobe and base visibility |
-| Spouse Overhaul | **0.5.0** | Optional hook coexistence and custom outfit ownership boundary |
+| Character Creator | **9.1.41**, **9.1.42** | Optional hook coexistence, startup, shaping, Wardrobe and base visibility |
+| Spouse Overhaul | **0.5.0**, **0.6.0** | Optional hook coexistence. Live checks on 0.6.0 covered saved Barber changes, save reloads and Combat Gear with Lyselia. |
 
 These are checked versions, not a promise that every past or future release works. Unknown readable versions receive a soft warning and remain usable. Native layouts, function signatures, ownership and transaction checks must still pass. The static default-outfit refits were built against VENUS 2.6 and need a new fit review if its geometry changes.
 
-The **1.0.2** update includes separate **Feature checks** under Dependencies & paths, specific errors for actual interface failures, named-export validation independent of an export's address, and tolerant preset formatting. See [dependency compatibility](../DEPENDENCY-COMPATIBILITY.md) for recovery and the remaining private-interface limits.
+**Settings → Dependencies & paths** has separate **Feature checks**, specific errors for actual interface failures, named-export validation independent of an export's address, and tolerant preset formatting. See [dependency compatibility](../DEPENDENCY-COMPATIBILITY.md) for recovery and the remaining private-interface limits.
 
-The runtime also warns when an unverified Spouse Overhaul or Character Creator is loaded. Its appearance-hook adapter checks bounded jump chains, executable destinations and recognized module ownership separately. An unreadable, cyclic or unrecognized hook, changed native interface or unowned outfit can still stop an operation. A version warning alone does not disable Wardrobe. Character Creator 9.1.41 is now recognised after the scoped core session and hook checks. This does not certify every feature of Character Creator or Spouse Overhaul.
+The runtime warns when it finds an unverified Spouse Overhaul or Character Creator build. Version warnings leave Wardrobe available. Each operation still checks that the native interface and outfit are safe to use.
 
 Both Human Body and Elf Body are recognized. Their body/hand skinning and physics match, so the existing default refits use the same baseline. Live Human checks on Elowen covered all nine combinations on Dancer, Default ↔ Dancer switching and independent minimum Height / maximum Weight on the default robe. See [VENUS compatibility](../VENUS-COMPATIBILITY.md) for the tested build and limits. A DMM priority rule tied to the Elf variant may need to be chosen again after switching to Human.
 
@@ -30,13 +30,17 @@ Both Human Body and Elf Body are recognized. Their body/hand skinning and physic
 | Another complete body replacement, including NaiK's Original Damiane Body | Let the selected VENUS Human/Elf variant win the body route |
 | Damiane Armor Refit Pack on shared boot routes 0160 / 0161 / 0163 | Witch-only private boots avoid this overlap. The armour pack retains its Damiane routes. |
 | VENUS installed for Damiane with Vanilla witches | Supported. Choose Vanilla in Hex Appeal; keep the separate VENUS/armour entries enabled. |
-| Both Hex Appeal body options enabled | Disable one before mounting. The runtime rejects inconsistent body routes; do not rely on conflict priority as a body selector. |
-| Spouse Overhaul / barber custom outfits | Wardrobe avoids custom outfit ownership; return to a recognized default before replacing it |
+| Older Hex Appeal package still enabled | Disable the older package to avoid conflicts between its body routes and the current selection. |
+| Spouse Overhaul / barber custom outfits | Use **Follow game** to leave appearance changes to Spouse Overhaul. Switch to **[SO] Barbers** once its current look is available. |
 | Another modifier writing the same pose buffers | A checked transaction may reject the shape rather than overwrite foreign work |
 | Another F9 binding | Change Hex Appeal's key in Settings |
 
 ## Known limits
 
+- Hair can flicker briefly when opening Spouse Overhaul's Combat Gear preview or enabling **Always Wear Gear**. Equipped combat gear remains usable.
+- A brief flicker can still appear during a switch to **[SO] Barbers**.
+- Changing Maegu’s Height in photo mode can shift her hood over her eyes. The fit recovered when movement resumed in the tested scene.
+- Maegu and Woosa follow the selected body mode when their original PHW body and the expected mount are available. Choose outfit versions fitted for the body in use. The Black Widow VENUS pieces were checked on both characters with VENUS geometry.
 - Extreme proportions may clip. Coordinated pose shaping is not arbitrary mesh regeneration, cloth/collider authoring or a universal outfit-fit guarantee.
 - Default garment refits use the VENUS 2.6 baseline; changed geometry needs a fit review.
 - Controller input, every detail level, long sessions and every witch in motion have not received exhaustive live acceptance.
@@ -48,13 +52,19 @@ Both Human Body and Elf Body are recognized. Their body/hand skinning and physic
 
 ## What was checked
 
-The current source passed 21 offline runtime checks, 36 SDK definition cases and 37 helper tests. Native checks cover all nine combinations, 44 weighted cases and eleven unchanged reference poses. Both body choices were checked near idle Elowen with the armour pack enabled. The Vanilla pass covered all four visibility states and the corrected original underwear; the VENUS pass covered nine robe combinations and independent proportion extremes.
+The 1.1.2 build passes 29 offline runtime checks and 58 helper tests. They cover dependency variants, Wardrobe slots and the stock equipment catalogue, Barber looks, outfit providers, skin routes and character add-ons. The native fixture covers all nine blends, 44 weighted cases and eleven reference poses. Earlier live tests near Elowen checked both body choices with the armour pack enabled.
 
-The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See [release verification](../VERIFICATION-1.0.2.md) for binary hashes and limits.
+The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See the [1.1.2 verification](../VERIFICATION-1.1.2.md) for its hashes and live checks, and the [1.0.2 record](../VERIFICATION-1.0.2.md) for the earlier body and packaging checks.
 
 ## Troubleshooting
 
 **F9 does nothing:** confirm the ASI loader and only one HexAppeal.asi, then check the log and key binding. A plugin update requires a full game restart.
+
+**Game closes during startup:** the Steam overlay can crash in its own swapchain code when several mods start at the same moment, most often on the first launch after a restart. Turn off "Enable the Steam Overlay while in-game" for Crimson Desert in Steam. Since 1.1.2, Hex Appeal no longer creates a test swapchain during startup.
+
+**Panel shimmers with NVIDIA DLSS Frame Generation:** DLSS interpolates the Hex Appeal panel along with the game. FSR Frame Generation avoids it.
+
+**Reporting a problem:** send **F9 → Log → Save report**, or `%LOCALAPPDATA%\HexAppeal\HexAppeal.log`. Since 1.1.2 its first line names the exact build, for example "Hex Appeal 1.1.2 session (build 03923439)".
 
 **Preset not detected:** automatic discovery checks DMM's configured storage, mounted source paths, portable locations and Instant Surgery preset folders. Nested and renamed supported presets are accepted. In Settings, select an extracted `.ini` or its folder; clear the override to resume automatic detection. An invalid manual path is reported directly.
 
@@ -62,7 +72,15 @@ The optional SDK base-underwear replacement policy is covered by native ownershi
 
 **Outfit stays default:** confirm its resources are mounted and the actor is wearing a recognized default, rather than custom spouse/barber equipment. Let the world and assembly finish loading.
 
-**Outfit unavailable:** hover the status for the initialization error. In the current adapter, an unverified appearance-mod version only warns; a changed or unrecognized native hook can still prevent switching. Saved choices are retained.
+**Outfit waiting:** check the message below the profile selector. You can choose a profile while the game loads the character or recovers its outfit functions. An unverified mod version is informational. Hex Appeal checks the game hook and the character's live outfit before applying the change.
+
+Hover a blocked control or its status to see the reason. For mounted files, Hex Appeal shows the active source and game file when DMM identifies them. For a native hook, it shows the failed check and the plugin the entry routes into when that destination can be identified. **Log → Save report** includes the same dependency details.
+
+Wardrobe displays the exact startup blocker in the panel. Its outfit controls use their own checks. Optional appearance tracing can be skipped when another mod owns that hook. If an outfit change is unconfirmed, that instance waits for the new outfit to appear while other witches remain available. **Custom outfit retained** means the witch is wearing equipment assigned by another mod. Base underwear can still operate on the game's separate underwear part. Underwear built into a custom mesh follows that outfit's own visibility support.
+
+**Underwear removers** follow their own visibility rules in **Base underwear**. If the remover only hides a mesh, Hex Appeal can show it again when you take back control. If the remover drops the mesh reference, Wardrobe disables **Hide base bra & panties** for that witch and explains why.
+
+Shape checks the mounted body independently. If a remover redirects a witch to a compatible replacement, the midpoint follows that body and the Log lists the affected witch. The other witches keep their selected bodies. If a replacement is missing or uses an unsupported rig, only its assigned witch is skipped.
 
 **Provider colour or materials look wrong:** check resource conflicts, test a fresh save load and full restart, and report whether it happens with original resources and neutral shaping. Include the selected colour/shape, witch, game/dependency versions and a screenshot. Do not assume every material issue comes from shaping.
 

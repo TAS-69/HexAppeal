@@ -3,6 +3,7 @@ import sys, unittest, xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from body_options import BODY_MODELS, UNDERWEAR_MODELS, body_registration, body_lookup, private_body, vanilla_patch,validate_body_resources,isolate_underwear
+from body_options import UNDERWEAR_TEXTURES, isolate_underwear_material
 from part_registry import write_registry
 
 
@@ -55,6 +56,16 @@ class BodyOptions(unittest.TestCase):
                 body_lookup({'secondary':[]},name)
             with self.assertRaises(ValueError):
                 body_lookup({'secondary':[(name,'wrong/path')]},name)
+
+    def test_vanilla_underwear_keeps_its_stock_texture_bindings(self):
+        material = ''.join(f'<Texture _path="{path}"/>' for path in UNDERWEAR_TEXTURES)
+        material += '<Texture _path="character/texture/phw_00_uw_00_0001_disp.dds"/>'
+        expected = material
+        for source, target in UNDERWEAR_TEXTURES.items():
+            expected = expected.replace(source, target)
+        self.assertEqual(isolate_underwear_material(material.encode()), expected.encode())
+        with self.assertRaises(ValueError):
+            isolate_underwear_material(b'<Texture/>')
 
     def test_each_body_definition_and_resource_is_required_before_packaging(self):
         rows=[];lookups=[];files={}

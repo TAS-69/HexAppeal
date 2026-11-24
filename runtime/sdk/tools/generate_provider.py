@@ -24,13 +24,19 @@ def prefab(value,label):
 def validate(data):
     if not isinstance(data,dict) or type(data.get('schema')) is not int or data.get('schema')!=1:
         raise ValueError('schema must be 1')
-    allowed={'schema','id','label','prefab','credit','requirements','controls','native_controls','states','part_visibility','replace_base_underwear'}
+    allowed={'schema','id','label','prefab','credit','requirements','controls','native_controls','states','part_visibility','replace_base_underwear','equip_item','item_visibility'}
     if set(data)-allowed:raise ValueError('Unknown outfit fields: '+', '.join(sorted(set(data)-allowed)))
     out={key:text(data.get(key,''),size,key,empty=key in {'credit','requirements'}) for key,size in [('id',96),('label',64),('credit',128),('requirements',256)]}
     identifier(out['id'],96,'id',True);out['prefab']=prefab(data.get('prefab'),'prefab')
     replace=data.get('replace_base_underwear',False)
     if type(replace) is not bool:raise ValueError('replace_base_underwear must be a boolean')
     out['replace_base_underwear']=replace
+    item=data.get('equip_item',False)
+    visibility=data.get('item_visibility','')
+    if type(item) is not bool or not isinstance(visibility,str) or (visibility and not item):
+        raise ValueError('item_visibility requires equip_item')
+    if visibility:identifier(visibility,32,'item visibility control')
+    out.update(equip_item=item,item_visibility=visibility)
     raw=data.get('controls',[])
     if not isinstance(raw,list) or len(raw)>8:raise ValueError('Declare at most eight controls')
     controls=[];ids=set();variant_count=0
@@ -120,6 +126,19 @@ def validate(data):
         if not re.fullmatch(r'[A-Za-z0-9_]+',part) or part.lower() in {'underwear','nude','body','head','face'}:raise ValueError('Use an outfit-owned visibility part; base body parts are reserved')
         if part in part_names:raise ValueError('Duplicate visibility part')
         part_names.add(part);parts.append({'control':control['id'],'part':part})
+    if out['equip_item']:
+        if replace or parts or not controls or (visibility and visibility not in ids):
+            raise ValueError('Equipable items need controls and use item_visibility instead of full-outfit policy or part_visibility')
+        for control in controls:
+            is_visibility=control['id']==visibility
+            is_variant=bool(control['flags']&1)
+            is_native=control['id'] in native
+            if control['scope']!='per_witch' or not (is_visibility or is_variant or is_native):
+                raise ValueError('Every equipped item control must drive a per-witch visibility toggle or variant')
+            if is_visibility and (control['type']!='toggle' or is_native):
+                raise ValueError('item_visibility must name a separate toggle')
+            if is_variant and control['options'][control['default']]['prefab']!=out['prefab']:
+                raise ValueError('The item prefab must match the default variant')
     out.update(controls=controls,native_mask=mask,states=states,parts=parts)
     return out
 
@@ -128,6 +147,7 @@ def render(out):
     symbol='Register_'+re.sub(r'[^A-Za-z0-9_]','_',out['id'])
     lines=['#pragma once','#include "HexAppealWardrobeClient.hpp"','',f'inline int {symbol}(hexappeal::WardrobeClient& client,uint64_t& token){{',f'    std::array<HA_Control,{len(out["controls"])}> controls{{}};']
     if out['replace_base_underwear']:lines.append('    if(!client.HasOutfitPolicy())return HA_UNAVAILABLE;')
+    if out['equip_item']:lines.append('    if(!client.HasItemControls())return HA_UNAVAILABLE;')
     for i,c in enumerate(out['controls']):
         lines += [f'    controls[{i}]=hexappeal::Sized<HA_Control>();',f'    controls[{i}].type={"HA_TOGGLE" if c["type"]=="toggle" else "HA_CHOICE"};',f'    controls[{i}].scope={"HA_GLOBAL" if c["scope"]=="global" else "HA_PER_WITCH"};',f'    controls[{i}].flags={c["flags"]}; controls[{i}].defaultValue={c["default"]};']
         for name in ['id','label','help']:lines.append(f'    hexappeal::Text(controls[{i}].{name},{literal(c[name])});')
@@ -160,6 +180,10 @@ def render(out):
         lines += [f'    const auto result={call};','    if(result!=HA_OK)return result;',
                   '    const auto policy=client.Policy(token,HA_REPLACE_BASE_UNDERWEAR);',
                   '    if(policy!=HA_OK){client.Unregister(token);return policy;}','    return HA_OK;']
+    elif out['equip_item']:
+        lines += [f'    const auto result={call};','    if(result!=HA_OK)return result;',
+                  f'    const auto bound=client.BindItem(token,{literal(out["item_visibility"])});',
+                  '    if(bound!=HA_OK){client.Unregister(token);return bound;}','    return HA_OK;']
     else:lines.append(f'    return {call};')
     lines += ['}','']
     return '\n'.join(lines)

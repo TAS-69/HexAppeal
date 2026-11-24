@@ -42,8 +42,8 @@ These are code/tool credits with explicit upstream licences. Their terms and req
 | [CrimsonDesertTools / Quang Trinh (tkhquang)](https://github.com/tkhquang/CrimsonDesertTools/tree/db82c301af48cbe6d1595fc76a8139b85f85d788/CrimsonDesertLiveTransmog) | Native assembly/material/frame research adapted into checked Wardrobe switching and refresh | MIT; retained relevant LiveTransmog notice |
 | [Dear ImGui](https://github.com/ocornut/imgui), 1.91.5 | Vendored menu sources and DX12 backend adaptation | MIT; retained notice |
 | [MinHook / Tsuda Kageyu](https://github.com/TsudaKageyu/minhook), including HDE | Vendored hook/prologue handling | BSD 2-Clause and bundled HDE terms; retained notices |
-| [CrimsonForge / hzeem](https://github.com/hzeem/CrimsonForge), `09f821638da4e1f04b26be43af408b4d59337ad3` | External development model/archive tools used to create/validate the default garment refits | MIT; not bundled or a gameplay requirement |
-| [CDUMM / faisalkindi](https://github.com/faisalkindi/CDUMM), `4d5a0f8cc6ea841d246509d7b9f8c80954c2fe0d` | External development archive reader | MIT; not bundled or a gameplay requirement |
+| [CrimsonForge / hzeem](https://github.com/hzeem/CrimsonForge), `09f821638da4e1f04b26be43af408b4d59337ad3` | Development tools for the default garment refits and a reference for decoding the original head assets | MIT, retained notice |
+| [CDUMM / faisalkindi](https://github.com/faisalkindi/CDUMM), `4d5a0f8cc6ea841d246509d7b9f8c80954c2fe0d` | Development archive reader and a reference for the character archive index | MIT, retained notice |
 
 Full distributed code notices are in [runtime/licenses](runtime/licenses/UPSTREAM-NOTICES.md). My original code, SDK, helper and examples use [0BSD](LICENSE), copyright **TAS-69**. Licence notices are preserved verbatim.
 

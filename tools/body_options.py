@@ -11,6 +11,19 @@ BODY_MODELS = {
     'phw_00_nude_00_0301': 'phw_00_nude_00_0002',
 }
 UNDERWEAR_MODELS = {name:'phw_00_uw_00_0002' if name.endswith('_0301') else 'phw_00_uw_00_0001' for name in BODY_MODELS}
+UNDERWEAR_TEXTURES = {
+    f'character/texture/phw_00_uw_00_0001_{map_name}.dds': f'character/texture/hvw_00_uw_00_0001_{map_name}.dds'
+    for map_name in ('ma', 'mg', 'n')
+}
+
+
+def isolate_underwear_material(data):
+    for source, target in UNDERWEAR_TEXTURES.items():
+        if source.encode() not in data:
+            raise ValueError('Original underwear texture binding is missing: ' + source)
+        data = data.replace(source.encode(), target.encode())
+    ET.fromstring('<Root>' + data.decode('utf-8-sig') + '</Root>')
+    return data
 
 
 def isolate_underwear(prefab,name):
@@ -152,8 +165,16 @@ def build_options(root, sources, native, registry_path, output):
             original='character/'+kind+'/1_pc/2_phw/armor/38_underwear/'+model+extension
             target=original.replace('/1_pc/','/ha_p/').replace('/phw_','/hvw_')
             data=(native/'0009'/original).read_bytes()
+            if extension == '.pac_xml':
+                data = isolate_underwear_material(data)
             versions['Vanilla']['files/0009/'+target]=data
-            provenance[target]={'source':original,'sha256':sha(data),'bytes_unchanged':True}
+            provenance[target]={'source':original,'sha256':sha(data),'bytes_unchanged':extension != '.pac_xml'}
+    for source, target in UNDERWEAR_TEXTURES.items():
+        data = (native / '0009' / source).read_bytes()
+        if not data.startswith(b'DDS '):
+            raise ValueError('Expected a decoded stock game texture: ' + source)
+        versions['Vanilla']['files/0009/' + target] = data
+        provenance[target] = {'source': source, 'sha256': sha(data), 'bytes_unchanged': True}
     assets = json.loads((root / 'build-data/witch-assets.json').read_text(encoding='utf-8'))
     appearance_checks = {}
     for path in sorted({witch['appearance'] for witch in assets}):

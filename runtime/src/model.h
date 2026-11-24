@@ -50,14 +50,14 @@ struct Model {
     bool lastApplyFailed=false;
     void selectTarget(int value);
     bool selectCombination(int top,int bottom);
-    void saveDraft();
+    void saveDraft(uint32_t mask=63u);
     bool save(const std::filesystem::path& path,std::string& error) const;
     bool load(const std::filesystem::path& path,std::string& error);
     bool apply(const HexAppealBackendV1* backend,std::string& error);
     bool applySaved(const HexAppealBackendV1* backend,uint32_t mask,std::string& error);
     void poll(const HexAppealBackendV1* backend);
     bool draftIsSaved() const;
-    bool draftIsApplied() const;
+    bool draftIsApplied(uint32_t mask=63u) const;
     void restoreSaved();
 };
 uint64_t requiredCapabilities(const Profile& profile);

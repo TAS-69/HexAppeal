@@ -19,3 +19,6 @@ preview/
 selection.json
 public-release-checkpoint.json
 development-checkpoint.json
+
+# Local crash-test harness: dumps, logs and binaries
+runtime/tools/race_test/

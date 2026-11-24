@@ -24,6 +24,8 @@ struct ShapeBone {uint32_t nameHash;int32_t parent;};
 using PoseMatrix=std::array<float,16>;
 bool applyStature(const Profile& profile,const std::vector<PoseMatrix>& input,std::vector<PoseMatrix>& output,std::string& error);
 uint64_t statureStamp(uint64_t nativeStamp,const Profile& profile);
+bool probeSurgeryObserver(HMODULE module,std::string& error);
+bool probeSurgeryShaping(HMODULE module,std::string& error);
 struct ResolvedShape {
     SurgeryProfile native{};
     std::array<float,64> percent{};
@@ -34,12 +36,13 @@ class NativeShapeEngine {
     std::array<std::string,16> macroNames{};
     size_t macroCount=0;
     SurgeryProfile originalHex{};
+    std::vector<unsigned char> deformationScratch;
     bool hasHex=false;
     bool initialiseMetadata();
     bool initialiseMetadataGuard();
 public:
     bool bind(HMODULE module,std::string& error);
-    bool readHex(const std::filesystem::path& path,std::string& error);
+    bool readHex(const std::filesystem::path& path,std::string& error,std::string* warning=nullptr);
     void forgetHex(){originalHex={};hasHex=false;}
     bool compose(const Profile& choice,ResolvedShape& result,std::string& error);
     bool deform(const std::vector<ShapeBone>& bones,const std::vector<PoseMatrix>& input,

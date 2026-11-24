@@ -42,18 +42,26 @@ bool Model::draftIsSaved() const {
     for(size_t i=0;i<saved.size();++i)if((target<0||target==int(i))&&!(draft==saved[i]))return false;
     return true;
 }
-bool Model::draftIsApplied() const {
-    for(size_t i=0;i<saved.size();++i)if((target<0||target==int(i))&&(!hasApplied[i]||!(draft==lastApplied[i])))return false;
-    return true;
+bool Model::draftIsApplied(uint32_t mask) const {
+    bool targeted=false;
+    for(size_t i=0;i<saved.size();++i)if((mask&(1u<<i))&&(target<0||target==int(i))){
+        targeted=true;
+        if(!hasApplied[i]||!(draft==lastApplied[i]))return false;
+    }
+    return targeted;
 }
 void Model::restoreSaved(){draft=saved[target<0?0:target];applied=draftIsApplied();message="Saved selection restored to the controls.";}
 bool Model::selectCombination(int top,int bottom) {
     if(top<0||top>2||bottom<0||bottom>2) return false;
     draft.top=Preset(top);draft.bottom=Preset(bottom);applied=false;return true;
 }
-void Model::saveDraft() {
+void Model::saveDraft(uint32_t mask) {
     if(!draft.valid()||target < -1||target >= int(witches.size())) return;
-    if(target<0){saved.fill(draft);drafts.fill(draft);}else {saved[target]=draft;drafts[target+1]=draft;}
+    if(target<0)drafts[0]=draft;
+    for(size_t i=0;i<saved.size();++i)if((mask&(1u<<i))&&(target<0||target==int(i))){
+        saved[i]=draft;
+        drafts[i+1]=draft;
+    }
     applied=false;
 }
 bool Model::save(const std::filesystem::path& path,std::string& error) const {
@@ -158,7 +166,14 @@ bool Model::applySaved(const HexAppealBackendV1* backend,uint32_t mask,std::stri
         const auto p=saved[i].wire();
         if(!backend->prepare(transaction,&witches[i].target,&p)){backend->abort(transaction);error="Body/outfit preparation failed. No selection was applied.";return false;}
     }
-    if(!backend->commit(transaction)){backend->abort(transaction);error="Body/outfit commit failed. The adapter must restore its prior state.";return false;}
+    if(!backend->commit(transaction)){
+        reason[0]=0;
+        const auto rejected=backend->poll(transaction,reason,sizeof(reason))<0;
+        reason[255]=0;
+        backend->abort(transaction);
+        error=rejected&&reason[0]?reason:"The body and outfit update could not start. The previous shape is still active.";
+        return false;
+    }
     pendingTransaction=transaction;pendingProfile=draft;pendingTarget=target;pendingMask=mask;pendingProfiles=saved;lastApplyFailed=false;message="Updating";poll(backend);return true;
 }
 void Model::poll(const HexAppealBackendV1* backend) {

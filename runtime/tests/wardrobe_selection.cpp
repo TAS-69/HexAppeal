@@ -9,21 +9,19 @@ int wmain(int argc,wchar_t** argv){try{
     std::filesystem::create_directories(path.parent_path());
     {std::ofstream reset(path);reset<<"[Wardrobe]\nVersion=1\n";}
     hex::WardrobeSelection choices;std::string error;check(choices.load(path,error),"load defaults");
-    const hex::WardrobeCapabilities ready{true},none{};
-    auto baseline=choices.snapshot();check(!choices.change(3,hex::WardrobeField::Outfit,0,none,error)&&choices.snapshot().choices==baseline.choices,"missing native route preserves every choice");
-    check(!choices.change(3,hex::WardrobeField::Outfit,1,ready,error),"removed built-in replacement cannot be selected");
+    check(!choices.change(3,hex::WardrobeField::Outfit,1,error),"removed built-in replacement cannot be selected");
     check(choices.providerOutfit(3,"example/dress",error),"select registered outfit after provider validation");
     auto state=choices.snapshot();hex::WardrobeSelection restored;
     check(restored.load(path,error)&&restored.snapshot().choices==state.choices,"provider choices reload");
     check(choices.providerOutfit(-1,"example/alternate",error),"All witches selects one provider");
     for(const auto& choice:choices.snapshot().choices)check(hex::wardrobeOutfitId(choice)=="example/alternate","all provider IDs updated");
-    check(choices.change(3,hex::WardrobeField::Outfit,0,ready,error)&&choices.snapshot().choices[3].provider.empty(),"Default clears only that provider choice");
+    check(choices.change(3,hex::WardrobeField::Outfit,0,error)&&choices.snapshot().choices[3].provider.empty()&&restored.load(path,error)&&restored.snapshot().choices==choices.snapshot().choices,"Default can be queued, clearing only that provider choice without any native route");
     {std::ofstream legacy(path);legacy<<"[Wardrobe]\nVersion=2\n[Witch3]\nOutfit=1\nUnderwearColour=2\nDancerColour=3\n";}
     check(choices.load(path,error)&&choices.snapshot().choices[3].outfit==hex::WitchOutfit::Legacy,"legacy selection loads without activating a built-in outfit");
     check(choices.providerOutfit(0,"example/dress",error)&&restored.load(path,error),"editing another witch preserves old preferences");
     const auto oldChoice=restored.snapshot().choices[3];
     check(oldChoice.outfit==hex::WitchOutfit::Legacy&&oldChoice.legacyColour==hex::WitchColour::Crimson&&oldChoice.underwear==hex::WitchColour::Black,"legacy outfit and colour values survive an unrelated save");
-    check(choices.change(3,hex::WardrobeField::Outfit,0,ready,error),"Default restores an unavailable legacy selection");
+    check(choices.change(3,hex::WardrobeField::Outfit,0,error),"Default restores an unavailable legacy selection");
     const auto before=choices.snapshot();
     {std::ofstream corrupt(path);corrupt<<"[Wardrobe]\nVersion=1\n[Witch3]\nOutfit=1\nUnderwearColour=99\n";}
     check(!choices.load(path,error)&&choices.snapshot().choices==before.choices,"late malformed row cannot partially load");
@@ -31,7 +29,7 @@ int wmain(int argc,wchar_t** argv){try{
     hex::WardrobeSelection failed;check(failed.load(blocked/L"wardrobe.ini",error),"nonexistent child path loads defaults");
     {std::ofstream file(blocked);file<<"file, not a folder";}
     const auto old=failed.snapshot();check(!failed.providerOutfit(2,"example/dress",error)&&failed.snapshot().choices==old.choices&&failed.snapshot().generations==old.generations,"failed save cannot activate or advance a choice");
-    check(!choices.change(6,hex::WardrobeField::Outfit,0,ready,error),"unknown witch rejected");
+    check(!choices.change(6,hex::WardrobeField::Outfit,0,error),"unknown witch rejected");
     hex::WardrobeRefreshCycle refresh;refresh.request(10);check(!refresh.begin(false)&&refresh.requested,"external or absent outfits cannot start a refresh");
     check(refresh.begin(true)&&refresh.phase==hex::WardrobeRefreshCycle::Original,"refresh removes the owned replacement first");
     check(!refresh.acknowledged(true)&&refresh.phase==hex::WardrobeRefreshCycle::Original,"no second leg before native original acknowledgement");

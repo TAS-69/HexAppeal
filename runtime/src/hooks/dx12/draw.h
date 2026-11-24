@@ -31,17 +31,14 @@
         LeaveCriticalSection(&g_queueLock);
     }
 
-    static void WINAPI hkExecuteCommandLists(
-        ID3D12CommandQueue* queue, UINT numLists, ID3D12CommandList* const* lists)
+    static void ObservePresentQueue(ID3D12CommandQueue* queue)
     {
-
-
-
-        if (!g_presentQueuePinned && g_queueLockReady && g_device && queue &&
-            queue->GetDesc().Type == D3D12_COMMAND_LIST_TYPE_DIRECT)
+        const std::unique_lock<std::recursive_mutex> render(g_renderMutex,std::try_to_lock);
+        if (render && g_queueLockReady && g_device && queue)
         {
             EnterCriticalSection(&g_queueLock);
-            if (queue != g_presentQueue)
+            if (!g_presentQueuePinned && queue != g_presentQueue &&
+                queue->GetDesc().Type == D3D12_COMMAND_LIST_TYPE_DIRECT)
             {
                 ID3D12Device* d = nullptr;
                 if (SUCCEEDED(queue->GetDevice(IID_PPV_ARGS(&d))))
@@ -68,6 +65,12 @@
             LeaveCriticalSection(&g_queueLock);
         }
 
+    }
+
+    static void WINAPI hkExecuteCommandLists(
+        ID3D12CommandQueue* queue, UINT numLists, ID3D12CommandList* const* lists)
+    {
+        ObservePresentQueue(queue);
         oExecuteCommandLists(queue, numLists, lists);
     }
 
@@ -106,6 +109,15 @@
         LeaveCriticalSection(&g_queueLock);
         if (!submitQueue)
             return false;
+        ID3D12Device* queueDevice = nullptr;
+        const bool sameDevice = SUCCEEDED(submitQueue->GetDevice(IID_PPV_ARGS(&queueDevice))) &&
+            queueDevice == g_device;
+        if (queueDevice) queueDevice->Release();
+        if (!sameDevice)
+        {
+            submitQueue->Release();
+            return false;
+        }
 
 
 
@@ -114,12 +126,6 @@
 
 
         gui::SetDisplayHeight(static_cast<float>(g_scHeight));
-        if (gui::FontsNeedRebuild())
-        {
-            WaitForOverlayIdle();
-            ImGui_ImplDX12_InvalidateDeviceObjects();
-            gui::RebuildFonts();
-        }
 
 
 
@@ -127,7 +133,6 @@
 
         ImGui_ImplDX12_NewFrame();
         ImGui_ImplWin32_NewFrame();
-
 
 
 
@@ -173,6 +178,7 @@
             return false;
         }
         FrameContext& frame = g_frames[idx];
+
 
 
 
@@ -262,6 +268,7 @@
         }
 
         ID3D12CommandList* toExec[] = { g_commandList };
+        g_unfencedSubmit = true;
         submitQueue->ExecuteCommandLists(1, toExec);
         const auto signal = submitQueue->Signal(g_fence, g_fenceValue + 1);
         submitQueue->Release();
@@ -270,9 +277,13 @@
 
             LOG_ERR("Overlay fence signal failed (0x%08X) - overlay disabled.", signal);
             g_renderDisabled = true;
+            State::Get().lastPresentAt.store(0);
+            State::Get().lastDrawAt.store(0);
+            gui::OverlayInterrupted();
             return false;
         }
         frame.fenceValue = ++g_fenceValue;
+        g_unfencedSubmit = false;
         return true;
     }
 
@@ -290,25 +301,6 @@
 
     static void CountNotGameWindow() { g_frameStats.notGameWindow.fetch_add(1, std::memory_order_relaxed); }
 
-    static void LogFrameGenerationModules()
-    {
-        static const char* const kModules[] = {
-            "sl.interposer.dll", "sl.dlss_g.dll", "nvngx_dlssg.dll",
-            "amd_fidelityfx_loader_dx12.dll", "amd_fidelityfx_framegeneration_dx12.dll",
-            "libxess_fg.dll" };
-        std::string loaded;
-        for (const char* m : kModules)
-            if (GetModuleHandleA(m))
-                loaded += (loaded.empty() ? "" : ", ") + std::string(m);
-        static std::string s_last = "?";
-        if (loaded == s_last)
-            return;
-        s_last = loaded;
-        LOG("[frames] frame generation libraries loaded: %s.",
-            loaded.empty() ? "none" : loaded.c_str());
-    }
-
-
     static void FrameReport(bool open)
     {
         static bool s_wasOpen = false;
@@ -319,7 +311,6 @@
         const auto take = [](std::atomic<unsigned>& n) { return n.exchange(0, std::memory_order_relaxed); };
         if (open && !s_wasOpen)
         {
-            LogFrameGenerationModules();
             if (!s_until)
             {
 
@@ -357,13 +348,31 @@
 
 
 
+    static bool PrepareOverlayQueue(IDXGISwapChain3* swapChain, reshade_api::CommandQueue* effectsQueue,
+                                    bool querySwapchainQueue)
+    {
+        if (effectsQueue)
+        {
+            auto* queue = reinterpret_cast<ID3D12CommandQueue*>(effectsQueue->get_native());
+            if (!queue) return false;
+            effectsQueue->flush_immediate_command_list();
+            PublishPresentQueue(queue, true);
+        }
+        else if (querySwapchainQueue)
+        {
+            Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue;
+            if (SUCCEEDED(swapChain->GetDevice(IID_PPV_ARGS(queue.GetAddressOf()))))
+                PublishPresentQueue(queue.Get(), true);
+        }
+        return true;
+    }
+
     static bool RenderOverlayFrame(IDXGISwapChain3* swapChain, bool isGameFacing, UINT flags,
-                              ID3D12CommandQueue* presentQueue = nullptr)
+                                   reshade_api::CommandQueue* effectsQueue, bool querySwapchainQueue)
     {
 
 
 
-        g_presentSeen.fetch_add(1, std::memory_order_relaxed);
 
 
 
@@ -386,8 +395,8 @@
             return false;
         }
 
-        if (g_initFailed || g_renderDisabled)
-            return false;
+        if (!g_renderDisabled)
+            State::Get().lastPresentAt.store(GetTickCount64());
 
 
 
@@ -398,16 +407,40 @@
         if (!open)
         {
             g_frameStats.closed.fetch_add(1, std::memory_order_relaxed);
-            if (g_imguiReady)
-                gui::FeedInput();
             return false;
         }
 
         bool drew = false;
         __try
         {
+            if (g_renderDisabled && GetTickCount64() < g_overlayInitRetryAt)
+                return false;
+            if (g_renderDisabled || (g_device && swapChain != g_swapChain))
+            {
+                DXGI_SWAP_CHAIN_DESC desc{};
+                if (FAILED(swapChain->GetDesc(&desc)) || !desc.OutputWindow) return false;
+                ID3D12Device* device = nullptr;
+                if (FAILED(swapChain->GetDevice(IID_PPV_ARGS(&device))) || !device) return false;
+                const bool changed = device != g_device || desc.OutputWindow != g_hwnd;
+                device->Release();
+                if (changed || g_renderDisabled)
+                {
+                    const bool removed = g_device && g_device->GetDeviceRemovedReason() != S_OK;
+                    if (removed && !changed) return false;
+                    if (!removed && (g_unfencedSubmit || (g_fence && g_fence->GetCompletedValue() < g_fenceValue)))
+                        return false;
+                    ResetOverlayInitialization();
+                    g_renderDisabled = false;
+                    g_unfencedSubmit = false;
+                    g_overlayInitRetryAt = 0;
+                    LOG("[overlay] Rebuilding Hex Appeal's renderer after a presentation change or interruption.");
+                }
+            }
+            if (g_renderDisabled) return false;
             if (!g_imguiReady)
             {
+                if (GetTickCount64() < g_overlayInitRetryAt)
+                    return false;
                 DXGI_SWAP_CHAIN_DESC desc = {};
                 if (FAILED(swapChain->GetDesc(&desc)) || !desc.OutputWindow ||
                     !desc.BufferCount ||
@@ -417,45 +450,51 @@
                 LOG("[overlay] Menu requested; initialising the renderer.");
                 if (!InitImGui(swapChain))
                 {
-                    g_initFailed = true;
-                    State::Get().menuOpen = false;
-                    CleanupRenderTargets();
-                    ReleaseOffscreenTarget();
-                    LOG_ERR("ModActivator overlay initialization failed.");
+                    ResetOverlayInitialization();
+                    g_overlayInitRetryAt = GetTickCount64() + 2000;
+                    LOG_ERR("Hex Appeal overlay could not start. Retrying on a later frame.");
                     return false;
                 }
                 g_imguiReady = true;
+                g_gameHwnd.store(desc.OutputWindow);
             }
 
-            if (presentQueue)
-                PublishPresentQueue(presentQueue, true);
-
             hooks::EnsureXInputHooks();
+            if (!PrepareOverlayQueue(swapChain, effectsQueue, querySwapchainQueue))
+                return false;
             drew = DrawOverlay(swapChain);
             (drew ? g_frameStats.drawn : g_frameStats.notDrawn).fetch_add(1, std::memory_order_relaxed);
 
 
 
             if (drew)
-                State::Get().lastDrawAt = GetTickCount();
+            {
+                if (State::Get().lastDrawAt.exchange(GetTickCount()) == 0)
+                    LOG("[overlay] First Hex Appeal frame submitted.");
+                gui::NoteNativeWardrobeDrawn();
+            }
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
             LOG_ERR("Overlay crashed (exception 0x%08X) - overlay disabled, game continues.",
                     GetExceptionCode());
             g_renderDisabled = true;
-            State::Get().menuOpen = false;
+            g_overlayInitRetryAt = GetTickCount64() + 2000;
+            State::Get().lastPresentAt.store(0);
+            State::Get().lastDrawAt.store(0);
+            gui::OverlayInterrupted();
         }
         return drew;
     }
 
     static bool RenderOverlay(IDXGISwapChain3* swapChain, bool isGameFacing, UINT flags,
-                              ID3D12CommandQueue* presentQueue = nullptr)
+                              reshade_api::CommandQueue* effectsQueue = nullptr, bool querySwapchainQueue = false)
     {
 
 
+        const std::unique_lock<std::recursive_mutex> render(g_renderMutex,std::try_to_lock);
         static std::atomic_flag busy = ATOMIC_FLAG_INIT;
-        if (busy.test_and_set(std::memory_order_acquire))
+        if (!render || busy.test_and_set(std::memory_order_acquire))
         {
             g_frameStats.busy.fetch_add(1, std::memory_order_relaxed);
             return false;
@@ -465,5 +504,5 @@
             std::atomic_flag& flag;
             ~UnlockOnReturn() { flag.clear(std::memory_order_release); }
         } unlock{busy};
-        return RenderOverlayFrame(swapChain, isGameFacing, flags, presentQueue);
+        return RenderOverlayFrame(swapChain, isGameFacing, flags, effectsQueue, querySwapchainQueue);
     }

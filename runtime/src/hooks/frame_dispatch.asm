@@ -1,11 +1,21 @@
 OPTION CASEMAP:NONE
 EXTERN HexFrameOriginal:QWORD
+EXTERN HexFrameCallOriginalA:QWORD
+EXTERN HexFrameCallOriginalB:QWORD
 EXTERN HexFrameCallback:PROC
+EXTERN HexWardrobeHudOriginal:QWORD
+EXTERN HexWardrobeHideHud:DWORD
+EXTERN HexWardrobeApplyContinuation:QWORD
 PUBLIC HexFrameEntry
+PUBLIC HexFrameCallA
+PUBLIC HexFrameCallB
+PUBLIC HexWardrobeHudEntry
+PUBLIC HexWardrobeApplyStock
 .code
-HexFrameEntry PROC FRAME
-    sub rsp,0D8h
-    .allocstack 0D8h
+FrameEntry MACRO entry, original, frameSize
+entry PROC FRAME
+    sub rsp,frameSize
+    .allocstack frameSize
     .endprolog
     mov [rsp+20h],rax
     mov [rsp+28h],rcx
@@ -43,7 +53,30 @@ HexFrameEntry PROC FRAME
     push QWORD PTR [rsp+58h]
     popfq
     mov rax,[rsp+20h]
-    lea rsp,[rsp+0D8h]
-    jmp QWORD PTR [HexFrameOriginal]
-HexFrameEntry ENDP
+    lea rsp,[rsp+frameSize]
+    jmp QWORD PTR [original]
+entry ENDP
+ENDM
+
+FrameEntry HexFrameEntry, HexFrameOriginal, 0D8h
+; The native frame call has returned, so RSP is aligned in the caller.
+FrameEntry HexFrameCallA, HexFrameCallOriginalA, 0E0h
+FrameEntry HexFrameCallB, HexFrameCallOriginalB, 0E0h
+
+HexWardrobeHudEntry PROC
+    pushfq
+    cmp DWORD PTR [HexWardrobeHideHud],0
+    je hudRangeReady
+    mov r9d,r8d
+hudRangeReady:
+    popfq
+    jmp QWORD PTR [HexWardrobeHudOriginal]
+HexWardrobeHudEntry ENDP
+
+HexWardrobeApplyStock PROC
+    mov [rsp+10h],rbx
+    mov [rsp+20h],r9b
+    mov [rsp+18h],r8
+    jmp QWORD PTR [HexWardrobeApplyContinuation]
+HexWardrobeApplyStock ENDP
 END

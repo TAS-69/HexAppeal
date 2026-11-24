@@ -226,6 +226,16 @@
 
 
 
+    static Microsoft::WRL::ComPtr<IUnknown> StreamlineBaseInterface(IUnknown* object)
+    {
+        // Streamline's published COM query for the native interface behind a proxy.
+        constexpr GUID nativeInterface{0xadec44e2, 0x61f0, 0x45c3, {0xad, 0x9f, 0x1b, 0x37, 0x37, 0x92, 0x84, 0xff}};
+        Microsoft::WRL::ComPtr<IUnknown> base;
+        if (object && GetModuleHandleW(L"sl.interposer.dll"))
+            object->QueryInterface(nativeInterface, reinterpret_cast<void**>(base.GetAddressOf()));
+        return base;
+    }
+
     static bool WrapWanted()
     {
         static int s_decided = -1;
@@ -273,98 +283,27 @@
         return nullptr;
     }
 
-    static bool LogHookTarget(const char* what, void* addr, bool stack = false, bool allowProxy = false)
+    static bool LogHookTarget(const char* what, void* addr, bool stack = false)
     {
-        char mod[64];
-        OwningModule(addr, mod, sizeof mod);
-
-
-
-        uint8_t b[16] = {};
-        char bytes[64] = "";
-        const char* detour = nullptr;
-        if (addr && !IsBadReadPtr(addr, sizeof b))
+        char owner[64];
+        OwningModule(addr, owner, sizeof owner);
+        if (!hex::creation::ExecutableAddress(addr)) return false;
+        if (!IsSystemOwner(owner) ||
+            (!ModuleInSystemDir(addr) && _stricmp(owner, "d3d12core.dll") != 0))
         {
-            memcpy(b, addr, sizeof b);
-            int w = 0;
-            for (int i = 0; i < 8; ++i) w += snprintf(bytes + w, sizeof bytes - w, "%02X ", b[i]);
-            detour = ExistingDetour(b);
+            LOG("[hook] %s @ %p belongs to %s. Hex Appeal only detours DirectX implementation entries.", what, addr, owner);
+            return false;
         }
 
-        if (detour)
+        uint8_t bytes[16]{};
+        if (!hex::creation::Read(addr, bytes, sizeof bytes)) return false;
+        if (const auto* detour = ExistingDetour(bytes))
         {
-            char into[96];
-            DescribeDetour(b, addr, into, sizeof into);
-            if (stack)
-            {
-
-
-
-                LOG("[hook] %s @ %p in %s starts with %s (%s)%s: another mod detoured it first; stacking this mod's detour on top, so ours runs and then theirs",
-                    what, addr, mod, detour, bytes, into);
-            }
-            else
-            {
-                LOG("[hook] %s @ %p in %s starts with %s (%s)%s: another mod detoured it first, so this one is left alone",
-                    what, addr, mod, detour, bytes, into);
-                return false;
-            }
+            char destination[96]{};
+            DescribeDetour(bytes, addr, destination, sizeof destination);
+            LOG("[hook] %s in %s starts with %s%s. %s", what, owner, detour, destination,
+                stack ? "Using Hex Appeal's detour at the DirectX entry." : "Using another presentation path.");
+            if (!stack) return false;
         }
-        if (!IsSystemOwner(mod))
-        {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            if (!allowProxy)
-            {
-                LOG("[hook] %s @ %p in %s (%s), which is not a system DLL: another mod owns it, so this one is left alone", what, addr, mod, bytes);
-                return false;
-            }
-            LOG("[hook] %s @ %p in %s (%s) belongs to another mod outright, and it owns every present call there is: "
-                "stacking on it, because the alternative is a menu that never draws", what, addr, mod, bytes);
-            return true;
-        }
-
-
-
-
-
-
-
-        if (!ModuleInSystemDir(addr) && _stricmp(mod, "d3d12core.dll") != 0)
-        {
-
-
-
-
-
-
-
-
-
-
-
-            if (!allowProxy)
-            {
-                LOG("[hook] %s @ %p in %s (%s), a module named like a system DLL but living in the game folder, "
-                    "so it is another mod's proxy: left alone", what, addr, mod, bytes);
-                return false;
-            }
-            LOG("[hook] %s @ %p in %s (%s) is another mod's proxy in the game folder, and it owns every present "
-                "call there is: stacking on it, because the alternative is a menu that never draws", what, addr, mod, bytes);
-            return true;
-        }
-        LOG("[hook] %s @ %p in %s (%s)", what, addr, mod, bytes);
         return true;
     }

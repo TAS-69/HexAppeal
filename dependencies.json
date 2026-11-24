@@ -79,9 +79,9 @@
       "name": "Character Creator",
       "creator": "Khione95",
       "url": "https://www.nexusmods.com/crimsondesert/mods/837",
-      "version": "9.1.41",
-      "sha256": "9d78133641350e0776667efba765538c72cf37620a69f58cd8d9f8c44843f42b",
-      "purpose": "Optional external hook coexistence. Verified for Hex Appeal startup, shaping, default Wardrobe and base visibility integration on the checked game; this is not certification of every Character Creator feature. Native operation checks still apply.",
+      "version": "9.1.42",
+      "sha256": "331b0e06c89b347bfd08f83e88e83c2f8ba02c7c358dee36199410dd91cffe71",
+      "purpose": "Optional external hook coexistence. Versions 9.1.41 and 9.1.42 passed Hex Appeal startup, shaping, Wardrobe and base visibility checks. Native operation checks still apply.",
       "redistributed": false
     }
   ],

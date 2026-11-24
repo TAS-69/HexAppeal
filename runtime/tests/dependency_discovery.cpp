@@ -1,6 +1,7 @@
 #include "mounted_dependencies.h"
 #include "runtime.h"
 #include "dependency_fixture.h"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -14,6 +15,8 @@ int wmain(int argc,wchar_t** argv){try{
     require(argc==3,"game and external fixture path required");const fs::path game=argv[1],temp=argv[2];
     auto actual=hex::inspectDependencies(game,{});
     require(actual.bodyVerified&&actual.hex.valid,"installed external fixtures must be valid");
+    if(!actual.bodyWarning.empty())std::cout<<"Mounted body warning: "<<actual.bodyWarning<<'\n';
+    if(!actual.bodyNote.empty())std::cout<<"Mounted body note: "<<actual.bodyNote<<'\n';
     hex::DependencyPaths referencePaths;referencePaths.manifest=hex::test::venusManifestFixture(actual.manifest.path,temp/L"venus-reference");actual=hex::inspectDependencies(game,referencePaths);
     const auto storage=temp/L"custom staging \u00e9\u6f22",preset=storage/L"renamed resource"/actual.hex.path.filename();
     fs::create_directories(preset.parent_path());fs::copy_file(actual.hex.path,preset,fs::copy_options::overwrite_existing);
@@ -39,14 +42,65 @@ int wmain(int argc,wchar_t** argv){try{
     const auto isolatedManifest=isolated/L"bin64/dmm/manifest.tsv";
     std::ifstream sourceManifest(actual.manifest.path);std::string manifestLine,manifestText="dmm-runtime\t1\n";
     while(std::getline(sourceManifest,manifestLine)){if(!manifestLine.empty()&&manifestLine.back()=='\r')manifestLine.pop_back();
-        if(manifestLine.rfind("file\tcharacter/appearance/",0)==0)manifestText+=manifestLine+'\n';}
+        if(manifestLine.rfind("file\tcharacter/appearance/",0)==0||manifestLine.find("/phw_00_nude_00_0001_damian_lnw.")!=std::string::npos)
+            manifestText+=manifestLine+'\n';}
     manifestText+="file\tcharacter/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac\t"+isolatedBody.u8string()+"\nfile\tfixture.pac\t"+(library/L"Mounted resource/files/0009/fixture.pac").u8string()+"\n";
     write(isolatedManifest,manifestText);hex::DependencyPaths isolatedPaths;isolatedPaths.manifest=isolatedManifest;
     auto inferred=hex::inspectDependencies(isolated,isolatedPaths);
     require(inferred.manager.valid&&inferred.hex.valid&&fs::equivalent(inferred.hex.path,libraryPreset),"DMM active-file paths locate custom storage with the manager closed and no configured mods path");
+    if(manifestText.find("/phw_00_nude_00_0001_damian_lnw.prefabdata_xml\t")!=std::string::npos){
+        require(inferred.bodyVerified&&inferred.missingUnderwearMeshMask==actual.missingUnderwearMeshMask,"a verified removal prefab preserves its mounted VENUS body mode and targeted underwear status");
+        const std::string metadataRoute="file\tcharacter/prefab/1_pc/02_phw/nude/phw_00_nude_00_0001_damian_lnw.prefabdata_xml\t";
+        const auto metadataStart=manifestText.find(metadataRoute);
+        require(metadataStart!=std::string::npos,"the active removal prefab metadata is represented in the fixture");
+        const auto valueStart=metadataStart+metadataRoute.size();
+        const auto valueEnd=manifestText.find('\n',valueStart);
+        auto metadataPath=fs::u8path(manifestText.substr(valueStart,valueEnd-valueStart));
+        if(metadataPath.is_relative())metadataPath=actual.manifest.path.parent_path()/metadataPath;
+        std::ifstream metadata(metadataPath,std::ios::binary);
+        const std::string originalMetadata((std::istreambuf_iterator<char>(metadata)),{});
+        require(!originalMetadata.empty(),"read the existing prefab metadata");
+        const auto changedMetadata=temp/L"changed-underwear-metadata.prefabdata_xml";
+        write(changedMetadata,originalMetadata+"\n");
+        auto changedManifest=manifestText;
+        changedManifest.replace(valueStart,valueEnd-valueStart,changedMetadata.u8string());
+        write(isolatedManifest,changedManifest);
+        inferred=hex::inspectDependencies(isolated,isolatedPaths);
+        require(inferred.bodyVerified&&inferred.bodyWarning.find("No Underwear")!=std::string::npos,
+            "changed removal mod metadata warns without blocking a valid mounted body");
+        std::istringstream input(manifestText);std::string row,withoutAlias;
+        while(std::getline(input,row))if(row.find("/phw_00_nude_00_0001_damian_lnw.")==std::string::npos)withoutAlias+=row+'\n';
+        write(isolatedManifest,withoutAlias);
+        inferred=hex::inspectDependencies(isolated,isolatedPaths);
+        require(!inferred.missingUnderwearMeshMask&&inferred.unavailableBodyWitches,
+            "an unmounted replacement cannot prove ownership or shaping eligibility for its targets");
+        write(isolatedManifest,manifestText);inferred=hex::inspectDependencies(isolated,isolatedPaths);
+    }
+    const auto underwear=library/L"No_Underwear_-_NPCs-123"/L"files/phw_00_uw_00_0001.pac";
+    write(underwear,"mounted fixture");
+    require(inferred.underwearSources[0].empty(),"disabled downloads do not control the live base underwear");
+    write(isolatedManifest,manifestText+"file\tcharacter/model/1_pc/2_phw/armor/38_underwear/phw_00_uw_00_0001.pac\t"+underwear.u8string()+"\n");
+    inferred=hex::inspectDependencies(isolated,isolatedPaths);
+    require(!inferred.underwearSources[0].empty()&&inferred.underwearSources[0]==inferred.underwearSources[5],"an active shared underwear replacement is identified by its mounted path");
+    const auto sharedUnderwear="file\tcharacter/model/1_pc/2_phw/armor/38_underwear/phw_00_uw_00_0001.pac\t";
+    write(isolatedManifest,manifestText+sharedUnderwear+underwear.u8string()+"\n"+sharedUnderwear+"unrelated.pac\n");
+    inferred=hex::inspectDependencies(isolated,isolatedPaths);
+    require(inferred.bodyVerified&&inferred.underwearSources[0].empty(),"an ambiguous shared file cannot take over underwear or block shaping");
+    write(isolatedManifest,manifestText+"file\tfixture_armor.pac\t"+underwear.u8string()+"\n");
+    require(hex::inspectDependencies(isolated,isolatedPaths).underwearSources[0].empty(),"an unrelated mounted armor path does not establish underwear ownership");
+    write(isolatedManifest,manifestText);
     const auto libraryConfig=library.parent_path()/L"config.json";write(libraryConfig,"{\"gamePath\":"+quoted(isolated)+",\"modsPath\":"+quoted(library)+"}");
+    write(library.parent_path()/L"mount_log.txt","[XML PATCH] Example Outfit :: cd_nhw_south_20168.app_xml.patch: 1 applied, 0 failed\n[INJECT] unrelated noise\n");
     inferred=hex::inspectDependencies(isolated,isolatedPaths);
     require(inferred.manager.valid&&fs::equivalent(inferred.manager.path,libraryConfig)&&inferred.hex.valid,"active file roots locate and read the manager configuration");
+    require(inferred.managerFindings.size()==1&&inferred.managerFindings[0].find("Example Outfit")!=std::string::npos,
+        "the mount log identifies the mod contributing a witch's merged appearance");
+    write(library/L"No_Underwear_-_NPCs-123/modinfo.json","{\"title\":\"NPC Underwear Example\"}");
+    write(isolatedManifest,manifestText+"file\tcharacter/model/1_pc/2_phw/armor/38_underwear/phw_00_uw_00_0001.pac\t"+underwear.u8string()+"\n");
+    inferred=hex::inspectDependencies(isolated,isolatedPaths);
+    require(inferred.mountedMods.count("NPC Underwear Example")&&std::any_of(inferred.relevantRoutes.begin(),inferred.relevantRoutes.end(),
+        [&](const auto& route){return route.sourceName=="NPC Underwear Example"&&fs::equivalent(route.sourceFile,underwear);}),
+        "compatibility logs attribute an active underwear route to its DMM metadata name");
     const auto nativePreset=library/L"Original body preset/renamed-export.INI";
     {std::ifstream source(actual.hex.path,std::ios::binary);std::ostringstream contents;contents<<source.rdbuf();auto text=contents.str();const auto start=text.find("InstantSurgeryOutfit="),end=text.find('\n',start);text.replace(start,end-start,"InstantSurgeryOutfit=1:preset-f-HentaiBodyVanilla");write(nativePreset,text);}
     {std::istringstream rows(manifestText);std::ostringstream changed;std::string line;unsigned count=0;while(std::getline(rows,line)){
@@ -61,12 +115,19 @@ int wmain(int argc,wchar_t** argv){try{
     struct LocalEnvironment {std::wstring value;bool present=false;LocalEnvironment(){wchar_t text[32768]{};const auto size=GetEnvironmentVariableW(L"LOCALAPPDATA",text,32768);present=size&&size<32768;if(present)value=text;}~LocalEnvironment(){SetEnvironmentVariableW(L"LOCALAPPDATA",present?value.c_str():nullptr);}} localEnvironment;
     const auto localRoot=temp/L"fake local app data",savedPreset=localRoot/L"InstantSurgery/Outfits"/actual.hex.path.filename();
     fs::create_directories(savedPreset.parent_path());fs::copy_file(actual.hex.path,savedPreset,fs::copy_options::overwrite_existing);SetEnvironmentVariableW(L"LOCALAPPDATA",localRoot.c_str());
+    const auto custom=localRoot/L"InstantSurgery/Preset.ini";
+    write(custom,"[General]\nSchema=8\nSymmetry=1\n[Shape]\nBreastSize=1.05\n");
     inferred=hex::inspectDependencies(isolated,isolatedPaths);
     require(inferred.hex.valid&&fs::equivalent(inferred.hex.path,savedPreset),"Instant Surgery's external local preset library is detected automatically");
+    require(!inferred.customPreset&&std::find(inferred.surgeryPresets.begin(),inferred.surgeryPresets.end(),custom)!=inferred.surgeryPresets.end(),"a saved body is offered without replacing automatically detected Hex");
+    isolatedPaths.hexPreset=custom;inferred=hex::inspectDependencies(isolated,isolatedPaths);
+    require(inferred.hex.valid&&inferred.customPreset&&fs::equivalent(inferred.hex.path,custom),"explicit preset source accepts the native saved-body format");
     SetEnvironmentVariableW(L"LOCALAPPDATA",localEnvironment.present?localEnvironment.value.c_str():nullptr);
     paths.hexPreset=temp/L"not installed.ini";found=hex::inspectDependencies(game,paths);require(!found.hex.valid&&found.bodyVerified,"bad explicit preset cannot fall back silently");
     paths.hexPreset=actual.hex.path;paths.venusBody=actual.venus.path;paths.manifest=temp/L"no mounted file list.tsv";
-    found=hex::inspectDependencies(game,paths);require(found.venus.valid&&!found.bodyVerified,"installed source alone cannot prove active body");
+    found=hex::inspectDependencies(game,paths);
+    require(found.venus.valid&&!found.bodyVerified&&found.bodyMode==hex::BodyMode::Live&&found.canShapeBody(),
+        "missing mount data leaves the live pose route available without treating the body as verified");
     paths.manifest=actual.manifest.path;paths.hexPreset=temp/L"wrong preset.ini";write(paths.hexPreset,"unsupported preset");
     require(!hex::inspectDependencies(game,paths).hex.valid,"malformed preset file rejected");
     paths.hexPreset=temp/L"unverified preset.ini";{std::ifstream source(actual.hex.path,std::ios::binary);std::ostringstream contents;contents<<source.rdbuf();auto text=contents.str();const auto start=text.find("InstantSurgeryOutfit="),end=text.find('\n',start);require(start!=std::string::npos,"source preset marker");text.replace(start,end-start,"InstantSurgeryOutfit=1:synthetic-unverified-preset");write(paths.hexPreset,text);}

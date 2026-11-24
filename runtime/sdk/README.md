@@ -27,6 +27,9 @@ The generator validates definitions and emits ordinary C++. It does not run a mo
 | [Polling provider](examples/WardrobeProvider.cpp) | Your checked renderer integration applies saved/effective values. |
 | [Eight-state outfit](examples/advanced-outfit.json), [provider](examples/AdvancedOutfitProvider.cpp) | Wardrobe combines colour/garment prefabs with an independent belt part. |
 | [Custom renderer definition](examples/renderer-outfit.json), [provider](examples/CustomRendererProvider.cpp) | Your renderer handles effective visibility, rebuilt instances and shared colour refresh. |
+| [Equipped cloak definition](examples/equipped-cloak.json), [provider](examples/EquippedItemProvider.cpp) | The development SDK attaches colour and visibility controls to a regular equipment item. |
+
+See [Equipped item controls](EQUIPPED-ITEMS.md) for the optional extension and its supported combinations.
 
 All example prefab/part names are placeholders. No outfit asset accompanies them. [Advanced integrations](ADVANCED-EXAMPLES.md) provides complete definitions, code and acceptance steps.
 

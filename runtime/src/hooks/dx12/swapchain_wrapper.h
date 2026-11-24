@@ -16,17 +16,22 @@
         }
 
 
-        HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override
+        static bool Supports(REFIID riid)
         {
-            if (!ppv) return E_POINTER;
-            if (riid == __uuidof(IUnknown)               ||
+            return riid == __uuidof(IUnknown)            ||
                 riid == __uuidof(IDXGIObject)            ||
                 riid == __uuidof(IDXGIDeviceSubObject)   ||
                 riid == __uuidof(IDXGISwapChain)         ||
                 riid == __uuidof(IDXGISwapChain1)        ||
                 riid == __uuidof(IDXGISwapChain2)        ||
                 riid == __uuidof(IDXGISwapChain3)        ||
-                riid == __uuidof(IDXGISwapChain4))
+                riid == __uuidof(IDXGISwapChain4);
+        }
+
+        HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override
+        {
+            if (!ppv) return E_POINTER;
+            if (Supports(riid))
             {
                 AddRef();
                 *ppv = static_cast<IDXGISwapChain4*>(this);
@@ -40,6 +45,7 @@
             const ULONG r = InterlockedDecrement(&m_ref);
             if (r == 0)
             {
+                const std::lock_guard<std::recursive_mutex> render(g_renderMutex);
                 IDXGISwapChain4* inner = m_inner;
                 const bool ours = (g_swapChain == static_cast<IDXGISwapChain3*>(inner));
 
@@ -69,6 +75,7 @@
 
 
                 }
+                g_wrappedChains.fetch_sub(1);
                 delete this;
                 inner->Release();
             }
@@ -87,7 +94,8 @@
 
         HRESULT STDMETHODCALLTYPE Present(UINT syncInterval, UINT flags) override
         {
-            const bool drew = RenderOverlay(m_inner, true, flags);
+            const bool drew = RenderNativeOverlay(m_inner, true, flags);
+            const NativePresentDraw draw(drew);
             const HRESULT hr = m_inner->Present(syncInterval, flags);
             PostPresentDeviceCheck(drew);
             return hr;
@@ -98,9 +106,14 @@
         HRESULT STDMETHODCALLTYPE GetDesc(DXGI_SWAP_CHAIN_DESC* d) override { return m_inner->GetDesc(d); }
         HRESULT STDMETHODCALLTYPE ResizeBuffers(UINT bc, UINT w, UINT h, DXGI_FORMAT f, UINT fl) override
         {
-            PreResizeCleanup();
+            const std::lock_guard<std::recursive_mutex> render(g_renderMutex);
+            const bool active = static_cast<IDXGISwapChain3*>(m_inner) == g_swapChain;
+            if (active) PreResizeCleanup();
+            const bool previous = t_wrappedResize;
+            t_wrappedResize = true;
             const HRESULT hr = m_inner->ResizeBuffers(bc, w, h, f, fl);
-            PostResizeRebuild(m_inner);
+            t_wrappedResize = previous;
+            if (active) PostResizeRebuild(m_inner);
             return hr;
         }
         HRESULT STDMETHODCALLTYPE ResizeTarget(const DXGI_MODE_DESC* p) override { return m_inner->ResizeTarget(p); }
@@ -115,7 +128,8 @@
         HRESULT STDMETHODCALLTYPE GetCoreWindow(REFIID riid, void** pp) override { return m_inner->GetCoreWindow(riid, pp); }
         HRESULT STDMETHODCALLTYPE Present1(UINT syncInterval, UINT flags, const DXGI_PRESENT_PARAMETERS* pp) override
         {
-            const bool drew = RenderOverlay(m_inner, true, flags);
+            const bool drew = RenderNativeOverlay(m_inner, true, flags);
+            const NativePresentDraw draw(drew);
             const HRESULT hr = m_inner->Present1(syncInterval, flags, pp);
             PostPresentDeviceCheck(drew);
             return hr;
@@ -147,9 +161,14 @@
         }
         HRESULT STDMETHODCALLTYPE ResizeBuffers1(UINT bc, UINT w, UINT h, DXGI_FORMAT f, UINT fl, const UINT* nodeMask, IUnknown* const* pQueues) override
         {
-            PreResizeCleanup();
+            const std::lock_guard<std::recursive_mutex> render(g_renderMutex);
+            const bool active = static_cast<IDXGISwapChain3*>(m_inner) == g_swapChain;
+            if (active) PreResizeCleanup();
+            const bool previous = t_wrappedResize;
+            t_wrappedResize = true;
             const HRESULT hr = m_inner->ResizeBuffers1(bc, w, h, f, fl, nodeMask, pQueues);
-            PostResizeRebuild(m_inner);
+            t_wrappedResize = previous;
+            if (active) PostResizeRebuild(m_inner);
             return hr;
         }
 
@@ -192,8 +211,7 @@
 
 
 
-        if (g_wrappedHwnd && hwnd && hwnd != g_wrappedHwnd)
-            return;
+
 
         IDXGISwapChain4* inner = nullptr;
         if (FAILED((*pp)->QueryInterface(IID_PPV_ARGS(&inner))) || !inner)
@@ -201,11 +219,16 @@
 
 
 
+        auto* wrapper = new (std::nothrow) WrappedIDXGISwapChain(inner);
+        if (!wrapper)
+        {
+            inner->Release();
+            return;
+        }
         (*pp)->Release();
-        auto* wrapper = new WrappedIDXGISwapChain(inner);
         *pp = static_cast<IDXGISwapChain1*>(wrapper);
 
-        if (hwnd) g_wrappedHwnd = hwnd;
+        const auto previousCount = g_wrappedChains.fetch_add(1);
 
 
 
@@ -214,9 +237,8 @@
         void** innerVt = *reinterpret_cast<void***>(inner);
         LogHookedModule("Wrapped swapchain Present", innerVt[8]);
 
-        if (!g_wrapperActive)
+        if (previousCount == 0)
         {
-            g_wrapperActive = true;
             LOG_OK("Swapchain wrapped - overlay composites before Frame Generation (%ux%u, %u buffers, flags 0x%X).",
                    d1.Width, d1.Height, d1.BufferCount, d1.Flags);
         }

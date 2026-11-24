@@ -1,0 +1,8 @@
+HexAppealCharacters	1
+character	ha_maegu	Maegu	3452	NHW_Unique_Maegu_3452	character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20113.app_xml
+default	ha_maegu	Maegu's robes	cd_phw_00_ub_00_0158
+default	ha_maegu	Maegu's footwear	cd_phw_00_foot_00_0158
+default	ha_maegu	Maegu's headwear	cd_phw_00_hel_0103
+character	ha_woosa	Woosa	3453	NHW_Unique_Woosa_3453	character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20114.app_xml
+default	ha_woosa	Woosa's robes	cd_phw_00_ub_00_0159
+default	ha_woosa	Woosa's footwear	cd_phw_00_foot_00_0159

@@ -49,11 +49,10 @@ bool WardrobeSelection::load(const std::filesystem::path& path,std::string& erro
     file=path;state=next;return true;
 }
 WardrobeSelectionSnapshot WardrobeSelection::snapshot()const{std::lock_guard<std::mutex> lock(mutex);return state;}
-bool WardrobeSelection::change(int target,WardrobeField field,int value,const WardrobeCapabilities& available,std::string& error){
+bool WardrobeSelection::change(int target,WardrobeField field,int value,std::string& error){
     std::lock_guard<std::mutex> lock(mutex);
     if(target< -1||target>5){error="Choose a supported witch.";return false;}
     if(field!=WardrobeField::Outfit||value!=0){error="Choose Default or a registered provider outfit.";return false;}
-    if(!available.switchReady){error="The native outfit switch is unavailable.";return false;}
     auto next=state;bool changed=false;
     for(size_t i=0;i<next.choices.size();++i){if(target>=0&&size_t(target)!=i)continue;auto& choice=next.choices[i];const auto before=choice;
         choice.outfit=WitchOutfit::Default;choice.provider.clear();

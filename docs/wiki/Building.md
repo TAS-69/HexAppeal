@@ -18,6 +18,8 @@ python tools/verify_helpers.py
 python tools/package_release.py --native "D:/HexAppealInputs/original-resources" --registry "D:/HexAppealInputs/partprefabtable.pappt"
 ```
 
+The original-resources tree also needs the decoded stock `phw_00_uw_00_0001_ma.dds`, `phw_00_uw_00_0001_mg.dds` and `phw_00_uw_00_0001_n.dds` under `0009/character/texture`. Export them from the game archive with no mods applied to the export. Hex Appeal assigns copies to the Vanilla witch underwear paths.
+
 The optional paths enable the checked installed-dependency fixture tests. They read original files and use isolated copies for the native export check. The native export fixture accepts the inspected Instant Surgery 0.9.6 binary only; runtime unknown-version policy remains separate. Tests do not launch or mount the game. Outputs and reports are ignored by Git.
 
 For the Human Body compatibility regression, also pass `--venus-human "path/to/the/original/Human Body/phw_00_nude_00_0001_damian.pac"`. It must remain outside this checkout; the test serves it through an isolated manifest and never changes your real selection.
