@@ -19,7 +19,7 @@ The exact public build reached the loaded world and open F9 panel near Elowen. A
 
 ## Both body choices
 
-The development runtime `7dc53d2906582d1c047ea71d51f1b72eb627f54c4bda560e0d736ef1f0e49578` was tested near idle Elowen with the separately installed VENUS body and Damiane Armor Refit Pack enabled. These results are retained under that binary, rather than relabelled as public-build tests.
+The development runtime `7dc53d2906582d1c047ea71d51f1b72eb627f54c4bda560e0d736ef1f0e49578` was tested near idle Elowen with the separately installed Venus Body for Damiane and Damiane Armor Refit Pack enabled. These results are retained under that binary, rather than relabelled as public-build tests.
 
 Vanilla loaded visible original witch bodies after adding the complete primary/secondary prefab lookup and original definition resources. Its midpoint preserved the original appearance values. Nine regional combinations and both independent proportion extremes were sampled. All four Hide outfit/Base underwear combinations worked. A follow-up pass served the isolated original underwear and showed clean front/side waist and hip edges, restored underwear and the default robe. Centred labels, warning marks and slider/visibility padding were checked live.
 
@@ -43,7 +43,7 @@ Duplicate old HexAppeal ASIs were then backed up and removed from the test libra
 
 ## Native shaping and SDK
 
-The isolated native probe exercises the actual external Instant Surgery calculations with copied plugin/rig buffers: all nine regional combinations, 36 weighted Height/Weight extreme cases and eight weighted baseline/FLAT cases without the Hex preset. Eleven previous pose outputs match exactly; baseline identity and HEX/HEX equivalence errors are zero. This is native calculation evidence, not another game session. The current report identifies its tested binary separately.
+The isolated native probe exercises the actual external Instant Surgery calculations with copied plugin/rig buffers: all nine regional combinations, 36 weighted Height/Weight extreme cases and eight weighted baseline/FLAT cases without Hex's Hentai Preset. Eleven previous pose outputs match exactly; baseline identity and HEX/HEX equivalence errors are zero. This is native calculation evidence, not another game session. The current report identifies its tested binary separately.
 
 The optional OutfitPolicy v1 keeps the original ABI tables unchanged. Tests cover token/flag validation, unavailable older runtimes, generator rollback, proven native ownership, scoped base-underwear suppression, saved-preference separation and restoration on provider removal. An outfit's own bra/briefs can follow Base underwear while remaining visible under Hide outfit. **The separately authored custom outfit still needs rendered acceptance with its own assets.**
 

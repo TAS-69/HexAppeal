@@ -5,7 +5,7 @@ Hex Appeal shapes witches through Instant Surgery's pose deformation. The shapin
 `tools/shape_follow.py` gives garment vertices near the body the body's own skinning, so garments follow the live shaped proportions. It works for both body options:
 
 - **Vanilla:** original garments against the original witch body.
-- **VENUS:** VENUS-baseline garments, such as Hex Appeal - Outfit Refits, against the installed VENUS body.
+- **VENUS:** garments fitted to Venus Body for Damiane, such as Hex Appeal - Outfit Refits, against the installed Venus Body for Damiane.
 
 It is an offline, local step. The game, Hex Appeal's runtime and Instant Surgery are not changed.
 
@@ -50,5 +50,5 @@ Outputs and reports are never overwritten; choose new names. With `--dmm-title`,
 ## Limits
 
 - **Measurement.** Fit is measured offline with the native shaping poses and the body's LOD0 surface. In-game appearance has not been checked.
-- **Garment design.** Rigid pieces such as plates and buckles bend with the body where they sit within 6 cm of it. Garments made for the VENUS shape need the VENUS geometry refit first; this tool fits skinning, not shape.
+- **Garment design.** Rigid pieces such as plates and buckles bend with the body where they sit within 6 cm of it. Garments made for the Venus Body for Damiane shape need a geometry refit to it first; this tool fits skinning, not shape.
 - **Content.** Outputs contain Pearl Abyss garment data made on your computer. Do not redistribute them.

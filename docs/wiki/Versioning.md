@@ -18,7 +18,7 @@
 | 1.0.3 | 18 Nov 2026 | Log tab and saved reports, manually selected Instant Surgery presets, reworked outfit hide and restore, local skin setup tools. Source and SDK updated. |
 | 1.0.2 | 18 Nov 2026 | Fixes DMM import grouping for the two body choices. Adds version details to the plugin. |
 | 1.0.1 | 18 Nov 2026 | VENUS and Vanilla body choices in one download. Fixes a world-load crash and invisible witches. Wider preset discovery. |
-| 1.0.0 | 16 Nov 2026 | First release: VENUS bodies for the witches, HEX / baseline / FLAT blending, Height and Weight, Hide outfit, Wardrobe and its SDK. |
+| 1.0.0 | 16 Nov 2026 | First release: the VENUS body option for the witches, HEX / baseline / FLAT blending, Height and Weight, Hide outfit, Wardrobe and its SDK. |
 
 Each release is one player download, `HexAppeal-<version>.zip`, containing the runtime, both body choices and the default outfit refits. The optional **Source** and **Wardrobe SDK** downloads were published with 1.0.0 to 1.0.4 and again with 1.1.2. The 1.1.2 Source includes every change from 1.0.5 to 1.1.1.
 

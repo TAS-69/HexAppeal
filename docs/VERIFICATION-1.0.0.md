@@ -30,7 +30,7 @@ This was a close front/oblique idle Elowen test. It does not certify every witch
 
 ## Native and earlier core checks
 
-The isolated native probe used a test copy of Instant Surgery and rig buffers. It exercised all nine regional combinations, transaction/physics acknowledgement, repeat-upload stability, modifier conflicts, 36 weighted regional/Height extremes and eight weighted VENUS/FLAT cases without a Hex preset. Original dependency inputs were unchanged. All eleven previous pose files matched exactly. See [native results](../build-data/native-visibility-20261117.json).
+The isolated native probe used a test copy of Instant Surgery and rig buffers. It exercised all nine regional combinations, transaction/physics acknowledgement, repeat-upload stability, modifier conflicts, 36 weighted regional/Height extremes and eight weighted VENUS/FLAT cases without Hex's Hentai Preset. Original dependency inputs were unchanged. All eleven previous pose files matched exactly. See [native results](../build-data/native-visibility-20261117.json).
 
 The earlier core session on 17 November sampled all nine combinations on Elowen's default robe, independent Weight/Height extremes, a partial blend with axis preservation, automatic save/application, legacy-choice recovery, Minimise, pins and camera input blocking/passing. That session used runtime `e11bc8df1fe41ea7722f4c55ec51a8e287abc0eddf1190709bf4b6c8ed8784b3`; it is retained as earlier evidence rather than relabelled as a fresh test of this binary. Wider all-witch and moving-cloth fit checks were player-reported. See [earlier core results](../build-data/live-core-20261117.json).
 

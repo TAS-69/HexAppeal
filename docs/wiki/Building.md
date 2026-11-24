@@ -32,11 +32,11 @@ If Windows quarantines the preferences test, leave it quarantined. The verifier 
 
 ## Default body routes and garment refits
 
-The repository includes my seven appearance patches and forty game-derived vanilla garment refits, with the source/validation metadata needed to trace them. No VENUS geometry, Hex preset, Dancer assets or extracted vanilla originals are stored as build inputs.
+The repository includes my seven appearance patches and forty game-derived vanilla garment refits, with the source/validation metadata needed to trace them. No Venus Body for Damiane geometry, Hex's Hentai Preset, Dancer assets or extracted vanilla originals are stored as build inputs.
 
 The Source archive omits the compiled plugin and garment PAC outputs. Obtain the matching player archive for those checked outputs, or rebuild them from your external inputs.
 
-Rebuilding the garment assets additionally requires the separately obtained reference VENUS Human/Elf Body, the matching installed game, NumPy/SciPy from `requirements.txt`, and external tools:
+Rebuilding the garment assets additionally requires the separately obtained Venus Body for Damiane (Human or Elf Body) as a reference, the matching installed game, NumPy/SciPy from `requirements.txt`, and external tools:
 
 - [CrimsonForge](https://github.com/hzeem/CrimsonForge), checked commit `09f821638da4e1f04b26be43af408b4d59337ad3`.
 - [CDUMM](https://github.com/faisalkindi/CDUMM), checked commit `4d5a0f8cc6ea841d246509d7b9f8c80954c2fe0d`.

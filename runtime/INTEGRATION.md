@@ -1,6 +1,6 @@
 # Native integration
 
-The runtime references the installed VENUS Human/Elf body, reads the external Hex preset and calls/hooks Instant Surgery's checked native shaping interfaces. Compatible loaded Two Reasons Body Physics uses its pose acknowledgement interface. No upstream ASI, preset implementation or downloaded body is distributed.
+The runtime references the installed Venus Body for Damiane (Human or Elf Body), reads Hex's Hentai Preset and calls/hooks Instant Surgery's checked native shaping interfaces. Compatible loaded Two Reasons Body Physics uses its pose acknowledgement interface. No upstream ASI, preset implementation or downloaded body is distributed.
 
 Weight uses native shaping directly. Wardrobe is generic: recognized default ownership, game-thread assembly switching, acknowledgements, settling and SDK providers. Providers retain their own assets and register real names, controls, readiness, visibility parts or complete prefab matrices. The optional resource refresh API remains available to them, with a configurable 500 ms settling delay. Hide outfit and Base underwear are independent policies; providers opt in through separate controls. See [Outfit visibility](sdk/OUTFIT-VISIBILITY.md).
 

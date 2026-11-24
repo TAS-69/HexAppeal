@@ -77,7 +77,7 @@ Spouse Overhaul hair or outfit parts can still flicker briefly during transition
 - Saving in Spouse Overhaul’s Barber updates the **[SO] Barbers** outfit in Wardrobe. Loading a game save refreshes the look from that save.
 - Empty Combat Gear slots stay empty during preview and combat wear. The Barber look comes back when the combat gear comes off.
 - Improved detection of external underwear rules. The global preference hands over control for each affected witch, and Hex Appeal retains the other witches’ settings.
-- Added optional **Settings → Skin tone** matching for a custom Damiane VENUS skin. It covers supported witch face, collar and hand routes, starts off and takes effect after restart.
+- Added optional **Settings → Skin tone** matching for a custom skin on Venus Body for Damiane. It covers supported witch face, collar and hand routes, starts off and takes effect after restart.
 - Updated compatibility with Crimson Desert 2.05.01. Unverified dependency versions can still work when their required resources and native interfaces pass the checks.
 - The Shape tab now shows when a saved change is waiting for the witch to appear.
 - Added a bounded recovery attempt when a DXGI factory probe hits an access violation during startup.
@@ -122,11 +122,11 @@ Known issue with Spouse Overhaul: hair can flicker briefly when opening Combat G
 - Corrected the archive import layout so DMM keeps VENUS and Vanilla inside one Hex Appeal group. Runtime and game resources are unchanged by this packaging correction.
 - Clarified the 1.0.0 upgrade cleanup: keep saved settings, remove obsolete package/plugin copies, then select one current body option and mount.
 - Added [01] VENUS and [02] Vanilla in one download, sharing the F9 runtime. Enable one body choice.
-- Vanilla midpoint preserves each witch's original body, scale and customization. VENUS can remain installed separately for Damiane.
+- Vanilla midpoint preserves each witch's original body, scale and customization. Venus Body for Damiane can stay installed for Damiane.
 - Isolated witch boots from Damiane Armor Refit Pack; isolated original Vanilla bodies and underwear from shared body/armour replacements.
 - Added complete body prefab lookup and definition resources, fixing the world-load crash and invisible witches found during private testing.
 - Expanded preset discovery through DMM's configured storage, active source paths, portable locations and Instant Surgery folders. Nested/renamed presets and manual file/folder paths are supported.
-- Kept baseline/FLAT, independent Height/Weight and Wardrobe available when their requirements pass, even without the external Hex preset. Vanilla does not require VENUS.
+- Kept baseline/FLAT, independent Height/Weight and Wardrobe available when their requirements pass, even without Hex's Hentai Preset. Vanilla does not require Venus Body for Damiane.
 - Corrected proportion-slider padding and full track backgrounds, visibility labels, centred witch names and warning glyphs.
 
 ### Wardrobe SDK download
@@ -147,7 +147,7 @@ Known issue with Spouse Overhaul: hair can flicker briefly when opening Combat G
 
 First Nexus release.
 
-- Applies the separately installed VENUS Human or Elf Body to the witches, with independent HEX / baseline / FLAT top and bottom shapes, all nine combinations, continuous blends and automatic saves.
+- Applies the separately installed Venus Body for Damiane (Human or Elf Body) to the witches, with independent HEX / baseline / FLAT top and bottom shapes, all nine combinations, continuous blends and automatic saves.
 - Independent Height and Weight. Weight needs no outfit mod.
 - Seven appearance patches and forty checked default outfit refits.
 - **Hide outfit** removes recognised default clothing, hats and footwear. **Hide base bra & panties** is a separate control.

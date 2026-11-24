@@ -5,7 +5,7 @@ This optional add-on adds Maegu and Woosa to the main **F9** character list. It 
 1. Close Crimson Desert.
 2. Import the ZIP through **DMM → Mods → Import**, enable **Hex Appeal – Maegu and Woosa**, and mount.
 3. Launch Crimson Desert. **F9 → Settings → Character patches** shows the detected patch and its compatibility status. The patch starts enabled, and its characters appear below the witches.
-4. Bring Maegu or Woosa into view and select her in the main list to use **Shape** or **Wardrobe**. **[01] VENUS** uses your separately installed VENUS Body. **[02] Vanilla** uses her original proportions.
+4. Bring Maegu or Woosa into view and select her in the main list to use **Shape** or **Wardrobe**. **[01] VENUS** uses your separately installed Venus Body for Damiane. **[02] Vanilla** uses her original proportions.
 5. Preview gear in **Edit [HA] Wardrobe**. **Apply and save** keeps that character's outfit, **Cancel** returns to the previous outfit, and **[CD] Vanilla** restores her original equipment.
 
 The patch identifies the characters and their stock equipment. The main Hex Appeal runtime handles shaping, equipment, SDK item options and visibility. Wardrobe uses equipment for the current body. A piece still needs to be fitted for that body to sit correctly. Base underwear controls require an existing base mesh.

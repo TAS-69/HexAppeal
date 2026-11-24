@@ -1,6 +1,6 @@
-# VENUS Human Body compatibility
+# Venus Body for Damiane: Human Body compatibility
 
-The refreshed **1.0.0** release recognizes both **VENUS 2.6 Human Body** and **Elf Body**, including the runtime and build/preflight tools. Enable one variant in DMM. This support was introduced in development 0.5.7 and is retained in the 0.5.8 release source.
+The refreshed **1.0.0** release recognizes both the **Venus Body for Damiane 2.6 Human Body** and **Elf Body**, including the runtime and build/preflight tools. Enable one variant in DMM. This support was introduced in development 0.5.7 and is retained in the 0.5.8 release source.
 
 ## What matches
 
@@ -10,7 +10,7 @@ The refitter deliberately ignores target head displacement. Both variants theref
 
 The adapter recognizes both original hashes and names the detected variant. Manual paths accept either. The source/preflight tools allow exactly one selected Human or Elf variant and validate it against the shared refit baseline. Other readable versions retain the existing soft-warning policy; an unknown body's static refit compatibility still needs a geometry review.
 
-The game prefab reads `phw_00_nude_00_0001_damian.pac`. Earlier guards also required a `cd_phw_...` alias, which VENUS itself does not install. The current runtime requires the actual primary route and checks the alias only when present. A clean Human or Elf installation does not need an unrelated mod to supply that filename.
+The game prefab reads `phw_00_nude_00_0001_damian.pac`. Earlier guards also required a `cd_phw_...` alias, which Venus Body for Damiane itself does not install. The current runtime requires the actual primary route and checks the alias only when present. A clean Human or Elf installation does not need an unrelated mod to supply that filename.
 
 ## Checks
 
@@ -31,6 +31,6 @@ After testing, Elf Body, the ear-mod selection and the exact saved Hex Appeal se
 
 ## Installation conflict
 
-**NaiK Elf Ears V3 — Original Damiane Body** replaces a complete body. It can win the served route even while VENUS is enabled. Selecting Human also invalidates a file-priority choice tied specifically to the Elf variant. Check the active file winner after switching, or disable the competing original-body replacement for a Human setup. Merely enabling VENUS is insufficient.
+**NaiK Elf Ears V3 — Original Damiane Body** replaces a complete body. It can win the served route even while Venus Body for Damiane is enabled. Selecting Human also invalidates a file-priority choice tied specifically to the Elf variant. Check the active file winner after switching, or disable the competing original-body replacement for a Human setup. Merely enabling Venus Body for Damiane is insufficient.
 
 Both variants remain separately installed dependencies. Their PAC/HKX files and the Elf cloak patch are not copied into Hex Appeal. Geometry comparison does not change the licence or permission scope described in [dependency use and credits](../DEPENDENCIES-AND-REFERENCES.md).

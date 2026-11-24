@@ -2,7 +2,7 @@
 <p align="center"><b>VENUS. HEX. FLAT. Your questionable little blend of all three.</b></p>
 <p align="center"><img src="https://img.shields.io/badge/VERSION-1.1.2-631d48?style=for-the-badge&amp;labelColor=201525" alt="Version 1.1.2"> <img src="https://img.shields.io/badge/ORIGINAL_CODE-0BSD-dcb782?style=for-the-badge&amp;labelColor=201525" alt="Original code: 0BSD"> <img src="https://img.shields.io/badge/OPEN_PANEL-F9-c35a94?style=for-the-badge&amp;labelColor=201525" alt="Open panel: F9"></p>
 
-Applies the Venus body to every witch in Crimson Desert. Because even dark magic deserves better curves.
+Applies Venus Body for Damiane to every witch in Crimson Desert. Because even dark magic deserves better curves.
 
 Choose **VENUS** for the witches or keep their original **Vanilla** bodies. Press **F9** to mix shapes, adjust Height and Weight, and save a look in Wardrobe.
 
@@ -25,7 +25,7 @@ Supported human forms: **Lyselia, Bari, Areciel, Elowen, Sylvia and White Crow**
 
 ## Get started
 
-1. Install **DMM** and **Instant Surgery**. Add **Hex's Hentai Preset** for HEX; add one **VENUS Human Body or Elf Body** variant if choosing VENUS. DMM includes ASI loader installation.
+1. Install **DMM** and **Instant Surgery**. Add **Hex's Hentai Preset** for HEX; add one **Venus Body for Damiane** variant (Human Body or Elf Body) if choosing VENUS. DMM includes ASI loader installation.
 2. Close the game and import **HexAppeal-1.1.2.zip** into **Definitive Mod Manager**. Enable exactly **[01] VENUS** or **[02] Vanilla**, plus its ASI switch, then mount once. When upgrading, remove the previous Hex Appeal package first to avoid duplicate entries; keep your saved settings. See [upgrading](docs/wiki/Installation.md#update-or-remove).
 3. Load a save near a witch and press **F9**. Check **Settings → Dependencies & paths** if something is unavailable.
 
