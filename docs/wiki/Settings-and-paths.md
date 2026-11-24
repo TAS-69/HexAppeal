@@ -27,12 +27,16 @@ Use a manual file/folder path when detection misses a dependency. Clear that fie
 
 Saved shapes needing a missing resource wait without being silently changed. Weight and Height need no outfit source. The core release has no Dancer dependency path control. Old outfit path fields remain inert settings data for compatibility; they are not inspected or used to enable a feature. Settings remains accessible when a native requirement is missing.
 
+## Character patches
+
+**F9 → Settings → Character patches** lists the mounted add-ons. Tick or untick a pack to control whether its NPCs appear in Hex Appeal. Your choice survives an update if the pack keeps the same manifest filename. Each character keeps her saved Shape and Wardrobe. See [Character add-ons](Character-add-ons.md) for the dropdown and **Combine instances**.
+
 ## Saved files
 
-User preferences and logs live in `%LOCALAPPDATA%/HexAppeal/`. `profiles.ini` stores shape choices, `wardrobe.ini` stores outfit/provider preferences, `interface.ini` stores panel preferences, and `paths.ini` stores overrides. Back up the folder before troubleshooting resets. Do not share it publicly without checking paths and logs first.
+User preferences and logs live in `%LOCALAPPDATA%/HexAppeal/`. `profiles.ini` stores shape choices, `wardrobe.ini` stores outfit/provider preferences, `interface.ini` stores panel preferences, and `paths.ini` stores overrides. `CharacterAddons.ini` stores pack and add-on Shape preferences. `CharacterWardrobe/` stores add-on outfits. Back up the folder before troubleshooting resets. Do not share it publicly without checking paths and logs first.
 
 ## Log
 
 Open **F9 → Log** for feature checks, detected dependency paths and each witch’s body and visibility status. **Checks and mod sources** lists mounted mod names, relevant file routes and conflicts or merged appearances recorded by DMM. **Recent runtime log** shows the latest entries with UTC timestamps.
 
-Use **Save report** to write a text file to `%LOCALAPPDATA%/HexAppeal/` or **Copy report** to copy it. Review the report for local paths before sharing it. If the game closes before you can open F9, check `HexAppeal.log` in the same folder and the last DMM mount log.
+Use **Save report** to collect graphics details and write a text file to `%LOCALAPPDATA%/HexAppeal/`. **Copy report** copies the on-screen checks and recent log. Review the report for local paths before sharing it. If the game closes before you can open F9, check `HexAppeal.log` in the same folder and the last DMM mount log.

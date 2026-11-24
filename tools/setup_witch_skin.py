@@ -338,11 +338,11 @@ def textures_setup(args, routes):
     physics_route = body_route.replace("/model/", "/bin__/meshphysics/").removesuffix(".pac") + ".hkx"
     model = args.venus_model or routes.get(body_route)
     if not model or not model.is_file():
-        raise FileNotFoundError("Mount VENUS Human or Elf Body in DMM, or supply the installed --venus-model.")
+        raise FileNotFoundError("Mount Venus Body for Damiane (Human or Elf Body) in DMM, or supply the installed --venus-model.")
     model_from_mount = routes.get(body_route)
     model_data = model.read_bytes()
     if model_from_mount and model_from_mount.is_file() and model != model_from_mount and model_data != model_from_mount.read_bytes():
-        raise ValueError("The selected VENUS model differs from the model in DMM's active file list.")
+        raise ValueError("The selected Venus Body for Damiane model differs from the model in DMM's active file list.")
     physics = args.venus_physics or routes.get(physics_route)
     physics_data = args.assets.read(physics_route) if physics is None else physics.read_bytes()
     stock = {route: args.assets.read(route) for route in COLOURS}
@@ -394,7 +394,7 @@ def bind_refitted_underwear(files, model, assets):
         raise ValueError("This setup needs the stock underwear slot in the isolated witch prefab.")
     data = model.read_bytes()
     if not data.startswith(b"PAR ") or len(data) < 256:
-        raise ValueError("Expected a complete VENUS-fitted underwear PAC.")
+        raise ValueError("Expected a complete underwear PAC fitted to Venus Body for Damiane.")
     material = original.replace("/model/", "/modelproperty/") + "_xml"
     physics = original.replace("/model/", "/bin__/meshphysics/").removesuffix(".pac") + ".hkx"
     files["0009/" + isolated] = data

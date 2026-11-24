@@ -6,6 +6,7 @@
 #include "wardrobe_snapshot.h"
 #include "appearance_hooks.h"
 #include "character_addons.h"
+#include "record_flags.h"
 #include <MinHook.h>
 #include <array>
 #include <atomic>
@@ -26,9 +27,9 @@ WardrobeActorObserved observeActor=nullptr;
 PartQuery originalQuery=nullptr;SetPart setPart=nullptr;GetPart getPart=nullptr;Intern intern=nullptr;
 std::atomic<bool> ready{false};
 std::atomic<uint32_t> underwearKey{0};
-constexpr auto characterCapacity=firstAddonCharacter+maximumAddonCharacters;
 std::array<std::atomic<uint64_t>,characterCapacity> confirmed{};
 std::array<std::atomic<DWORD>,characterCapacity> seen{};
+RecordFlags<characterCapacity> addonObservedExternalUnderwear;
 std::mutex statusMutex,cacheMutex,preferenceMutex,updateMutex;
 std::array<std::atomic<uint64_t>,6> outfitConfirmed{};
 std::array<std::atomic<DWORD>,6> outfitSeen{};
@@ -48,6 +49,16 @@ std::map<uintptr_t,Applied> applied;
 OutfitVisibility garmentVisibility;
 uint32_t detectedUnderwear(const Runtime& r){return r.underwearMountedExternalMask.load()|r.underwearObservedExternalMask.load();}
 uint32_t externalUnderwear(const Runtime& r){return r.allowExternalUnderwear.load()?detectedUnderwear(r):0;}
+bool observedExternalUnderwear(const Runtime& r,int target){
+    if(target<0)return false;
+    if(target>=firstAddonCharacter)return addonObservedExternalUnderwear.test(size_t(target));
+    return (r.underwearObservedExternalMask.load()&(1u<<target))!=0;
+}
+bool usesExternalUnderwear(const Runtime& r,int target){
+    if(target<0)return false;
+    if(target>=firstAddonCharacter)return r.allowExternalUnderwear.load()&&observedExternalUnderwear(r,target);
+    return (externalUnderwear(r)&(1u<<target))!=0;
+}
 bool connectedAddonUnderwear(int target){return target>=firstAddonCharacter&&addonVenusBodyActive(target);}
 bool missingBaseMesh(const Runtime& r,int target){
     return connectedAddonUnderwear(target)?!addonVenusUnderwearPresent(target):(r.underwearMissingMeshMask.load()&(1u<<target))!=0;
@@ -61,15 +72,20 @@ bool exposed(const Runtime& r,int witch,const Applied& entry,DWORD now){
         (entry.emptyProfile||(connectedAddonUnderwear(witch)?characterAddonEnabled(witch):(r.outfitHiddenMask.load()&(1u<<witch))!=0));
 }
 UnderwearOverride wantedOverride(const Runtime& r,int witch,const Applied& entry,DWORD now){
-    const uint32_t bit=1u<<witch;
     if(entry.providerSuppressed)return UnderwearOverride::Hide;
-    if(externalUnderwear(r)&bit)return UnderwearOverride::Rules;
+    if(usesExternalUnderwear(r,witch))return UnderwearOverride::Rules;
     if(requestedUnderwearHide(r,witch))return UnderwearOverride::Hide;
     if(!r.allowExternalUnderwear.load()&&exposed(r,witch,entry,now)&&(entry.nativeRuleKnown||entry.basePresent))return UnderwearOverride::Show;
     return UnderwearOverride::Rules;
 }
 float shownValue(float baseline){return baseline>0.f?baseline:1.f;}
-void recordExternalUnderwear(Runtime& r,uint32_t bit,bool hidden){
+void recordExternalUnderwear(Runtime& r,int target,bool hidden){
+    if(target<0)return;
+    if(target>=firstAddonCharacter){
+        if(addonObservedExternalUnderwear.exchange(size_t(target),hidden)!=hidden)++r.underwearVersion;
+        return;
+    }
+    const uint32_t bit=1u<<target;
     const auto previous=hidden?r.underwearObservedExternalMask.fetch_or(bit):r.underwearObservedExternalMask.fetch_and(~bit);
     if(bool(previous&bit)!=hidden)++r.underwearVersion;
 }
@@ -148,12 +164,12 @@ float query(void* scene,const uint32_t* part,void* row,uint8_t mode) {
             if(now-entry.tick>=1000)entry.providerSuppressed=false;
             entry.witch=identity.witch;entry.normal=normal;entry.normalKnown=true;entry.nativeRuleKnown=true;
             if(renderer&&exposed(runtime,identity.witch,entry,now)&&!entry.providerSuppressed&&normal==0.f)
-                recordExternalUnderwear(runtime,1u<<identity.witch,true);
+                recordExternalUnderwear(runtime,identity.witch,true);
             const auto policy=wantedOverride(runtime,identity.witch,entry,now);
             if(policy==UnderwearOverride::Hide)return 0.f;
             if(policy==UnderwearOverride::Show)return shownValue(normal);
         }
-        if(requestedUnderwearHide(runtime,identity.witch)&&!(externalUnderwear(runtime)&(1u<<identity.witch)))return 0.f;
+        if(requestedUnderwearHide(runtime,identity.witch)&&!usesExternalUnderwear(runtime,identity.witch))return 0.f;
     }
     uint32_t garmentKey=0;
     if(ready&&readKey(part,&garmentKey)&&garmentVisibility.contains(garmentKey)){
@@ -241,7 +257,7 @@ UnderwearPreference baseUnderwearPreference() {
 UnderwearOwnership underwearOwnership(int target){
     if(connectedAddonUnderwear(target)){
         auto& r=Runtime::get();
-        const bool delegated=(externalUnderwear(r)&(1u<<target))!=0;
+        const bool delegated=usesExternalUnderwear(r,target);
         return {delegated,delegated,missingBaseMesh(r,target),{}};
     }
     if(target< -1||target>5)return {};
@@ -351,7 +367,6 @@ void updateUnderwear(void* actor,const ActorIdentity& identity,uintptr_t checked
 #endif
     if(checkedRenderer&&rendererGuard(actor)!=renderer)return;
     auto& r=Runtime::get();
-    const uint32_t bit=1u<<identity.witch;
     if(missingBaseMesh(r,identity.witch)){
         seen[identity.witch]=GetTickCount();
         confirmed[identity.witch]=r.underwearVersion.load();
@@ -374,15 +389,15 @@ void updateUnderwear(void* actor,const ActorIdentity& identity,uintptr_t checked
         float natural=0.f;
         if(entry.override==UnderwearOverride::Rules&&currentGuard(renderer,key,&natural)){
             if(!entry.nativeRuleKnown){entry.normal=natural;entry.normalKnown=true;}
-            recordExternalUnderwear(r,bit,natural==0.f||(entry.nativeRuleKnown&&entry.normal==0.f));
+            recordExternalUnderwear(r,identity.witch,natural==0.f||(entry.nativeRuleKnown&&entry.normal==0.f));
         }
         desired=wantedOverride(r,identity.witch,entry,now);
         version=r.underwearVersion.load();
     }
     if(desired!=UnderwearOverride::Rules||entry.override!=UnderwearOverride::Rules) {
         entry.normalKnown=entry.normalKnown||(renderer&&currentGuard(renderer,key,&entry.normal));
-        const bool releaseHidden=desired==UnderwearOverride::Rules&&
-            (externalUnderwear(r)&r.underwearObservedExternalMask.load()&bit)&&exposed(r,identity.witch,entry,now);
+        const bool releaseHidden=desired==UnderwearOverride::Rules&&r.allowExternalUnderwear.load()&&
+            observedExternalUnderwear(r,identity.witch)&&exposed(r,identity.witch,entry,now);
         const float value=desired==UnderwearOverride::Hide||releaseHidden?0.f:
             desired==UnderwearOverride::Show?shownValue(entry.normal):entry.normal;
         if(!entry.normalKnown||!changeGuard(renderer,key,value)) {
@@ -557,8 +572,8 @@ bool runUnderwearPolicyTests(const std::filesystem::path& profile,std::string& e
         "waiting for the renderer preserves the requested preference without acknowledging it"))return false;
     if(!check(setUnderwearHidden(3,false,error)&&r.underwearHiddenMask==55,"cancel the queued preference before the route is ready"))return false;
     DependencyStatus vanilla;vanilla.scanned=true;vanilla.bodyMode=BodyMode::Vanilla;vanilla.bodyVerified=true;vanilla.game.valid=true;vanilla.instant.valid=true;r.publishDependencies(vanilla);
-    if(!check(setUnderwearHidden(3,true,error)&&setUnderwearHidden(3,false,error),"Vanilla option retains Base underwear preferences without VENUS"))return false;
-    if(!check(setOutfitHidden(3,true,error)&&setOutfitHidden(3,false,error),"Vanilla option retains outfit visibility without VENUS"))return false;
+    if(!check(setUnderwearHidden(3,true,error)&&setUnderwearHidden(3,false,error),"Vanilla option retains Base underwear preferences without Venus Body for Damiane"))return false;
+    if(!check(setOutfitHidden(3,true,error)&&setOutfitHidden(3,false,error),"Vanilla option retains outfit visibility without Venus Body for Damiane"))return false;
     r.publishDependencies({});
     r.underwearHiddenMask=0;r.outfitHiddenMask=0;r.allowExternalUnderwear=true;r.underwearObservedExternalMask=0;
     applied.clear();fixtureTrackVisibility=true;fixtureVisible=false;fixtureRule=0;ready=true;
@@ -655,6 +670,17 @@ bool runUnderwearPolicyTests(const std::filesystem::path& profile,std::string& e
     if(!check(saveAddonUnderwearHidden(firstAddonCharacter,false,error),"restore the add-on's saved base preference"))return false;
     updateUnderwear(fixtureActor,identity);
     if(!check(fixtureVisible&&r.underwearHiddenMask==0,"shared renderer restores the add-on without changing another character's defaults"))return false;
+    for(size_t target=firstAddonCharacter;target<characterCapacity;++target){
+        recordExternalUnderwear(r,int(target),true);
+        if(!check(observedExternalUnderwear(r,int(target))&&r.underwearObservedExternalMask.load()==0,
+            "a high add-on observation never changes a built-in character's underwear policy"))return false;
+    }
+    r.allowExternalUnderwear=true;
+    const int lastAddon=int(characterCapacity)-1;
+    recordExternalUnderwear(r,firstAddonCharacter,false);
+    if(!check(!usesExternalUnderwear(r,firstAddonCharacter)&&usesExternalUnderwear(r,lastAddon)&&!usesExternalUnderwear(r,0),
+        "delegation on one add-on is independent of every other character"))return false;
+    addonObservedExternalUnderwear.clear();
     fixtureTrackVisibility=false;fixtureRule=.7f;
     fixtureIdentity=nullptr;applied.clear();return true;
 }

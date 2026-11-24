@@ -109,12 +109,23 @@ bool updateWardrobeInRange(uint64_t now,int meters,uintptr_t preview){
     const auto end=actors.begin()+list.size;
     if(std::find(actors.begin(),end,player)==end)return false;
     checkingLoadedActors=true;
+    // Classes Wardrobe skips near the player, logged once each, so a live log shows the class
+    // of a character that Wardrobe can't see.
+    static std::set<uintptr_t> skippedClasses;
     for(auto entry=actors.begin();entry!=end;++entry){
         const auto actor=*entry;
+        if(actor==player||actor==preview)continue;
         WardrobePosition position;
-        if(actor&&actor!=preview&&pointerGuard(actor)==game+layout.actor&&readPosition(actor,game+layout.control,position)&&
-           inOutfitRange(origin,position,meters))
-            updateWardrobeActor(actor,now);
+        if(isWardrobeNpc(actor,game)){
+            if(readPosition(actor,game+layout.control,position)&&inOutfitRange(origin,position,meters))
+                updateWardrobeActor(actor,now);
+            continue;
+        }
+        const auto type=pointerGuard(actor);
+        if(skippedClasses.size()>=8||!type||skippedClasses.count(type)||
+           !readPosition(actor,game+layout.control,position)||!inOutfitRange(origin,position,meters))continue;
+        skippedClasses.insert(type);
+        LOG("Wardrobe skips nearby actors of class rva=0x%llx.",static_cast<unsigned long long>(type-game));
     }
     const auto observed=observedActorRefs();
     for(const auto& [actor,ref]:observed){
@@ -230,6 +241,7 @@ bool initializeWardrobeObservation(std::string& error) {
     const auto ini=Runtime::get().folder/L"HexAppeal.ini";
     if(!GetPrivateProfileIntW(L"Development",L"TraceWardrobeAssembly",0,ini.c_str()))return true;
     const auto skipDiagnostics=[](const char* reason){LOG("Outfit refresh diagnostics skipped: %s. Native Wardrobe remains available.",reason);return true;};
+    if(!gameLayout().appearance)return skipDiagnostics("no checked appearance type");
     static const unsigned char mergeBytes[]={0x48,0x89,0x54,0x24,0x10,0x55,0x53,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57};
     static const unsigned char copyBytes[]={0x48,0x89,0x5c,0x24,0x18,0x48,0x89,0x6c,0x24,0x20,0x48,0x89,0x4c,0x24,0x08};
     auto* mergeTarget=game+gameLayout().mergeAppearance;auto* copyTarget=game+gameLayout().copyPart;
@@ -251,6 +263,7 @@ static void observeWardrobeActor(void* actor) noexcept;
 void startWardrobeRuntime(){
     if(!GetPrivateProfileIntW(L"Development",L"ObserveWardrobe",1,(Runtime::get().folder/L"HexAppeal.ini").c_str()))return;
     const auto worker=[](LPVOID) -> DWORD {
+        waitForGameLayout();  // on a build missing from the table, until signature lookup finishes
         bool wardrobeReady=false,underwearReady=false;
         do{
             std::string issue;

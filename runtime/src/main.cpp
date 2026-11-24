@@ -7,6 +7,7 @@
 #include "skin_runtime.h"
 #include "character_addons.h"
 #include "wardrobe.h"
+#include "game_signatures.h"
 #include <cwchar>
 
 static DWORD WINAPI start(LPVOID self) {
@@ -14,6 +15,9 @@ static DWORD WINAPI start(LPVOID self) {
     const auto name=wcsrchr(path,L'\\');
     if(_wcsicmp(name?name+1:path,L"CrimsonDesert.exe")!=0)return 0;
     auto& r=hex::Runtime::get();r.initialize(static_cast<HMODULE>(self));
+    // Only for a game build missing from the address table: runs on its own
+    // thread, so the DXGI attachment below is never delayed.
+    hex::startGameLayoutResolution(r.folder/L"HexAppeal.ini");
     const auto hooks=MH_Initialize();
     if(hooks!=MH_OK&&hooks!=MH_ERROR_ALREADY_INITIALIZED){
         LOG_ERR("Hook initialization failed (%s). The overlay can still use its swapchain wrapper.",MH_StatusToString(hooks));

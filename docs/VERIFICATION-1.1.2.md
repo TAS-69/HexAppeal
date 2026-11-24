@@ -17,7 +17,7 @@ All **29 offline runtime checks** passed, including Windows FileVersion and Prod
 - The 1.1.2 ZIP was then imported through DMM and the game started without a crash, including alongside Camp Happens Enhanced.
 - A player on an NVIDIA RTX 5070 with DLSS reported that 1.1.2 works.
 
-DLSS Frame Generation was not tested on the development machine. With it on, the Hex Appeal panel can shimmer, because DLSS interpolates it along with the game. FSR Frame Generation avoids this.
+The DLSS result was reported by the player who had previously seen the Hex Appeal UI shimmer. Local live checks used AMD hardware.
 
 ## Limits
 

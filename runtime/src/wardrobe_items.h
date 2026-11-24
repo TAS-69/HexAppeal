@@ -35,4 +35,9 @@ public:
 };
 inline constexpr int wardrobeIconSize=32;
 std::vector<uint32_t> wardrobeIconPixels(IWICBitmapDecoder& decoder, IWICImagingFactory& factory);
+// Display name for mounted equipment that no item record names. 'copyOf' is
+// the named item a Hex Appeal witch copy (ha_ prefix) duplicates; 'wearers'
+// are the witches whose default outfit uses the part.
+std::string unlistedPartName(std::string_view part,std::string_view slot,
+                             const std::vector<std::string>& wearers,const std::string& copyOf={});
 }

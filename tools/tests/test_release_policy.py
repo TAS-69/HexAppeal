@@ -33,10 +33,13 @@ class ReleasePolicy(unittest.TestCase):
                                             "Hex Appeal - Maegu and Woosa",
                                             (addon/"VERSION").read_text(encoding="ascii").strip(),
                                             license_file=root/"LICENSE")
-        self.assertEqual(json.loads(entries["mod.json"])["modinfo"]["version"],"1.0.0")
+        modinfo = json.loads(entries["mod.json"])["modinfo"]
+        self.assertEqual(modinfo["version"], "1.0.1")
+        self.assertEqual(modinfo["title"], "Hex Appeal - Maegu and Woosa")
         self.assertEqual(set(entries),{"mod.json","README.md","LICENSE","files/0009/"+route})
         self.assertEqual(entries["LICENSE"],(root/"LICENSE").read_bytes())
-        self.assertIn(b"#patch\tHex Appeal - Maegu and Woosa\t1.0.0\t1.0.5",entries["files/0009/"+route])
+        self.assertIn(b"#patch\tWoosa & Maegu\t1.0.1\t1.0.5\n#multiCharacter\t1\n",entries["files/0009/"+route])
+        self.assertEqual(entries["files/0009/"+route].count(b"\n#patch\t"), 1)
         self.assertIn(b"NHW_Unique_Maegu_3452",entries["files/0009/"+route])
         self.assertIn(b"NHW_Unique_Woosa_3453",entries["files/0009/"+route])
     def test_removed_integration_is_rejected_in_both_binary_string_encodings(self):

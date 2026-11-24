@@ -75,15 +75,6 @@
     }
 
 
-    struct FrameStats
-    {
-        std::atomic<unsigned> presents{0}, notGameWindow{0}, notGameFacing{0}, busy{0},
-            closed{0}, drawn{0}, notDrawn{0}, chainSwitches{0}, threadSwitches{0}, gpuWaits{0};
-    };
-    static FrameStats g_frameStats;
-
-
-
     static bool DrawOverlay(IDXGISwapChain3* swapChain)
     {
 
@@ -148,23 +139,13 @@
         {
             ImGuiIO& io = ImGui::GetIO();
             const float tw = static_cast<float>(g_scWidth), th = static_cast<float>(g_scHeight);
-            if (io.DisplaySize.x != tw || io.DisplaySize.y != th)
-            {
-                static UINT s_saidW = 0, s_saidH = 0;
-                if (s_saidW != g_scWidth || s_saidH != g_scHeight)
-                {
-                    s_saidW = g_scWidth; s_saidH = g_scHeight;
-                    LOG("[overlay] the window is %.0fx%.0f and the target this mod draws into is %ux%u, so the menu is built at the target's size and stretched with the rest of the frame.",
-                        io.DisplaySize.x, io.DisplaySize.y, g_scWidth, g_scHeight);
-                }
-                io.DisplaySize = ImVec2(tw, th);
-            }
+            io.DisplaySize = ImVec2(tw, th);
             input::SetOverlaySize(tw, th);
         }
         gui::FeedInput();
         ImGui::NewFrame();
 
-        gui::Render();
+        gui::Render({g_scWidth,g_scHeight,g_device});
 
         ImGui::Render();
 
@@ -191,7 +172,6 @@
         if (completed != UINT64_MAX && completed < frame.fenceValue &&
             SUCCEEDED(g_fence->SetEventOnCompletion(frame.fenceValue, g_frameFenceEvent)))
         {
-            g_frameStats.gpuWaits.fetch_add(1, std::memory_order_relaxed);
             WaitForSingleObject(g_frameFenceEvent, 100);
             completed = g_fence->GetCompletedValue();
         }
@@ -299,55 +279,6 @@
 
 
 
-    static void CountNotGameWindow() { g_frameStats.notGameWindow.fetch_add(1, std::memory_order_relaxed); }
-
-    static void FrameReport(bool open)
-    {
-        static bool s_wasOpen = false;
-        static DWORD s_until = 0, s_last = 0;
-        static unsigned s_lines = 0;
-        const DWORD now = GetTickCount();
-        auto& f = g_frameStats;
-        const auto take = [](std::atomic<unsigned>& n) { return n.exchange(0, std::memory_order_relaxed); };
-        if (open && !s_wasOpen)
-        {
-            if (!s_until)
-            {
-
-
-                for (auto* n : { &f.presents, &f.notGameWindow, &f.notGameFacing, &f.busy, &f.closed,
-                                 &f.drawn, &f.notDrawn, &f.chainSwitches, &f.threadSwitches, &f.gpuWaits })
-                    take(*n);
-                s_last = now;
-            }
-            s_until = now + 20000;
-        }
-        s_wasOpen = open;
-        if (!s_until || static_cast<LONG>(now - s_last) < 1000)
-            return;
-        const unsigned presents = take(f.presents), notGameWindow = take(f.notGameWindow),
-                       notGameFacing = take(f.notGameFacing), busy = take(f.busy),
-                       closed = take(f.closed), drawn = take(f.drawn), notDrawn = take(f.notDrawn),
-                       chains = take(f.chainSwitches), threads = take(f.threadSwitches),
-                       waits = take(f.gpuWaits);
-        if (s_lines < 120)
-        {
-            ++s_lines;
-            LOG("[frames] %.1f s: %u presents; menu drawn on %u, draw failed on %u, menu closed on %u, "
-                "skipped: %u another window, %u not the game's frames, %u still drawing the last one; "
-                "%u swapchain switches, %u thread switches; waited for the GPU on %u.%s",
-                (now - s_last) / 1000.0, presents, drawn, notDrawn, closed, notGameWindow, notGameFacing, busy,
-                chains, threads, waits, s_lines == 120 ? " No more of these lines this session." : "");
-        }
-        s_last = now;
-        if (static_cast<LONG>(now - s_until) >= 0)
-            s_until = 0;
-    }
-
-
-
-
-
     static bool PrepareOverlayQueue(IDXGISwapChain3* swapChain, reshade_api::CommandQueue* effectsQueue,
                                     bool querySwapchainQueue)
     {
@@ -376,39 +307,15 @@
 
 
 
-        auto& f = g_frameStats;
-        f.presents.fetch_add(1, std::memory_order_relaxed);
-        static IDXGISwapChain3* s_chain = nullptr;
-        static DWORD s_thread = 0;
-        const DWORD thread = GetCurrentThreadId();
-        if (s_chain && s_chain != swapChain)
-            f.chainSwitches.fetch_add(1, std::memory_order_relaxed);
-        if (s_thread && s_thread != thread)
-            f.threadSwitches.fetch_add(1, std::memory_order_relaxed);
-        s_chain = swapChain;
-        s_thread = thread;
-
         if (!isGameFacing || (flags & DXGI_PRESENT_TEST))
-        {
-            g_frameStats.notGameFacing.fetch_add(1, std::memory_order_relaxed);
-            FrameReport(gui::WantsDraw());
             return false;
-        }
 
         if (!g_renderDisabled)
             State::Get().lastPresentAt.store(GetTickCount64());
 
-
-
-
         gui::PollToggle();
-        const bool open = gui::WantsDraw();
-        FrameReport(open);
-        if (!open)
-        {
-            g_frameStats.closed.fetch_add(1, std::memory_order_relaxed);
+        if (!gui::WantsDraw())
             return false;
-        }
 
         bool drew = false;
         __try
@@ -463,7 +370,6 @@
             if (!PrepareOverlayQueue(swapChain, effectsQueue, querySwapchainQueue))
                 return false;
             drew = DrawOverlay(swapChain);
-            (drew ? g_frameStats.drawn : g_frameStats.notDrawn).fetch_add(1, std::memory_order_relaxed);
 
 
 
@@ -495,10 +401,7 @@
         const std::unique_lock<std::recursive_mutex> render(g_renderMutex,std::try_to_lock);
         static std::atomic_flag busy = ATOMIC_FLAG_INIT;
         if (!render || busy.test_and_set(std::memory_order_acquire))
-        {
-            g_frameStats.busy.fetch_add(1, std::memory_order_relaxed);
             return false;
-        }
         struct UnlockOnReturn
         {
             std::atomic_flag& flag;

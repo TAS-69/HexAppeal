@@ -22,8 +22,10 @@ Hex Appeal/
   VERIFICATION.txt
 ```
 
+Extract the 1.1.3 Release Bundle first. Its inner player ZIP and optional character ZIPs in `packs/` are the files DMM imports.
+
 Shared guides, artwork and notices are flat files so DMM does not mistake documentation folders for extra mod choices. Links in the packaged Markdown are repaired accordingly. Source and SDK archives retain their normal directory structures.
 
 VENUS has seven appearance patches and forty default garment refits. Vanilla preserves the original witch bodies, scale, head/customization, clothing and underwear; its stock body/underwear resources use private paths. Shared boots are isolated in both options. No downloaded body, preset, outfit, third-party ASI or private experimental derivative is bundled.
 
-Packaging builds both choices from external original game inputs, verifies all resource hashes against the live-tested set, requires the public runtime's startup record and runs content allowlists. See the [1.1.2 verification](VERIFICATION-1.1.2.md) and the earlier [1.0.1 record](VERIFICATION-1.0.1.md) for acceptance and limits. Dancer remains excluded pending permission; Weight has no outfit dependency.
+Packaging builds both choices from external original game inputs, verifies all resource hashes against the live-tested set, requires the public runtime's startup record and runs content allowlists. See the [1.1.3 verification](VERIFICATION-1.1.3.md) and the earlier [1.0.1 record](VERIFICATION-1.0.1.md) for acceptance and limits. Dancer remains excluded pending permission; Weight has no outfit dependency.

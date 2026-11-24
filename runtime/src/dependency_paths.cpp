@@ -64,14 +64,14 @@ DependencyFile checked(const fs::path& p,const char* expected,const char* label)
     result.valid=readableDependency(p,"PAR ");result.verified=result.valid&&expected&&sha256(p,true)==expected;result.detail=!result.valid?std::string(label)+" is unreadable or not a PAC file.":result.verified?"Checked external dependency":unverifiedDependency(label);return result;
 }
 DependencyFile checkedVenus(const fs::path& path){
-    auto result=checked(path,nullptr,"VENUS Body");
-    if(result.valid){const auto* body=venusBodyVersion(sha256(path,true));result.verified=body!=nullptr;result.detail=body?std::string("Verified VENUS ")+body->version+" / "+body->variant:unverifiedDependency("VENUS Body");}
+    auto result=checked(path,nullptr,"Venus Body for Damiane");
+    if(result.valid){const auto* body=venusBodyVersion(sha256(path,true));result.verified=body!=nullptr;result.detail=body?std::string("Verified Venus Body for Damiane ")+body->version+" / "+body->variant:unverifiedDependency("Venus Body for Damiane");}
     return result;
 }
 DependencyFile checkedHex(const fs::path& path,bool explicitlySelected=false){
     DependencyFile result;result.path=path;
-    if(path.empty()||!regular(path)){result.detail="Hex preset not found. Set its path in Settings.";return result;}
-    if(isOwnModContent(path)){result.detail="Hex must remain a separate installed dependency.";return result;}
+    if(path.empty()||!regular(path)){result.detail="Hex's Hentai Preset not found. Set its path in Settings.";return result;}
+    if(isOwnModContent(path)){result.detail="Hex's Hentai Preset must remain a separate installed dependency.";return result;}
     const auto extension=lower(path.extension().u8string());
     if(extension==".zip"||extension==".7z"||extension==".rar"){result.detail="Extract the preset archive, then select its .ini file or extracted folder.";return result;}
     const auto text=readText(path);
@@ -80,7 +80,7 @@ DependencyFile checkedHex(const fs::path& path,bool explicitlySelected=false){
     result.valid=exported||saved;
     const auto* version=result.valid?hexPresetVersion(sha256(path)):nullptr;
     result.verified=version!=nullptr;
-    result.detail=!result.valid?"Choose a readable Instant Surgery preset .ini.":version?std::string("Checked external Hex ")+version->version:unverifiedDependency(explicitlySelected?"the selected Instant Surgery preset":"Hex's Hentai Preset");return result;
+    result.detail=!result.valid?"Choose a readable Instant Surgery preset .ini.":version?std::string("Checked Hex's Hentai Preset ")+version->version:unverifiedDependency(explicitlySelected?"the selected Instant Surgery preset":"Hex's Hentai Preset");return result;
 }
 DependencyFile findHexPreset(const std::vector<fs::path>& roots,BodyMode mode){
     DependencyFile best;size_t rank=hexPresetVersions.size()*2+2;
@@ -268,7 +268,7 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
     const auto nativeFile=[&](const fs::path& path,const char* hash,const char* label){DependencyFile file;file.path=path;file.valid=readableDependency(path);const auto digest=file.valid?sha256(path,true):std::string{};const std::string_view name=label;file.verified=file.valid&&((hash&&digest==hash)||(name=="Crimson Desert"&&checkedGameDigest(digest))||(name=="Character Creator"&&verifiedCreatorVersion(digest)));file.detail=!file.valid?std::string(label)+" is not installed or its file is unreadable.":file.verified?"Verified installed version":unverifiedDependency(label);return file;};
     result.game=nativeFile(base/L"bin64/CrimsonDesert.exe",nullptr,"Crimson Desert");
     result.instant=nativeFile(base/L"bin64/InstantSurgery.asi","92d7cab4e244004ea433d1079c42288a985627fce9cb585844030282e591f009","Instant Surgery");
-    result.physics=nativeFile(base/L"bin64/BodyPhysics.asi","6ed64a5136b3fd8a36fc1a3fcd02e62e102e7d0915f1c184daabd31c588db524","Body Physics");
+    result.physics=nativeFile(base/L"bin64/BodyPhysics.asi","6ed64a5136b3fd8a36fc1a3fcd02e62e102e7d0915f1c184daabd31c588db524","Two Reasons Body Physics");
     result.creator=nativeFile(base/L"bin64/CharacterCreator.asi","de9b8b3acf79dce35d219cc9daf2f1daf7f6e482950cab389fc2dd4b8f236b32","Character Creator");
     auto configs=paths.managerConfig.empty()?configCandidates(base):std::vector<fs::path>{absolute(paths.managerConfig,base)};
     for(const auto& config:configs){const auto text=readText(config);if(text.empty())continue;const auto configuredGame=property(text,"gamePath"),mods=property(text,"modsPath");
@@ -378,7 +378,7 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
         const auto selected=absolute(paths.hexPreset,base);
         if(directory(selected)){
             result.hex=findHexPreset({selected},result.bodyMode);
-            if(!result.hex.valid){result.hex.path=selected;result.hex.detail=isOwnModContent(selected)?"Hex must remain a separate installed dependency.":"No supported Hex preset found in this folder. Select the extracted preset .ini file.";}
+            if(!result.hex.valid){result.hex.path=selected;result.hex.detail=isOwnModContent(selected)?"Hex must remain a separate installed dependency.":"No supported version of Hex's Hentai Preset found in this folder. Select the extracted preset .ini file.";}
         }else{
             result.hex=checkedHex(selected,true);
             result.customPreset=result.hex.valid&&!result.hex.verified;
@@ -395,12 +395,12 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
         }
         std::sort(result.surgeryPresets.begin(),result.surgeryPresets.end());
     }
-    if(result.venus.path.empty())result.venus.detail=result.bodyMode==BodyMode::Vanilla?"VENUS is not required by the selected Vanilla body option.":"VENUS active route not found. Mount one Human Body or Elf Body variant through DMM.";
-    if(result.hex.path.empty())result.hex.detail="Hex preset not found. Set its path to enable HEX.";
+    if(result.venus.path.empty())result.venus.detail=result.bodyMode==BodyMode::Vanilla?"Venus Body for Damiane is not required by the selected Vanilla body option.":"No active route for Venus Body for Damiane found. Mount one Human Body or Elf Body variant through DMM.";
+    if(result.hex.path.empty())result.hex.detail="Hex's Hentai Preset not found. Set its path to enable HEX.";
     else if(result.hex.valid&&result.bodyMode==BodyMode::Vanilla)result.hex.detail+=" The preset values are applied relative to each witch's original body.";
     result.bodyVerified=result.bodySourceReady()&&verifyMountedDependencies(base,result.manifest.path,result.bodyDetail,result.bodyWarning,&result.unavailableBodyWitches,&result.bodyNote);
     if(result.bodyMode==BodyMode::Invalid)result.bodyDetail="The mounted witch bodies are missing or mixed. Enable one Hex Appeal body option, remove any stale older entry and remount.";
-    if(result.bodyVerified)result.bodyDetail=result.bodyWarning.empty()?(result.bodyMode==BodyMode::Vanilla?"Vanilla body selected explicitly; all seven witch body routes checked. VENUS is not required.":"VENUS and witch body routes verified in the active file list."):result.bodyWarning;
+    if(result.bodyVerified)result.bodyDetail=result.bodyWarning.empty()?(result.bodyMode==BodyMode::Vanilla?"Vanilla body selected explicitly; all seven witch body routes checked. Venus Body for Damiane is not required.":"Venus Body for Damiane and witch body routes verified in the active file list."):result.bodyWarning;
     else if(result.bodyMode==BodyMode::Live)result.bodyDetail="Shape checks each character's live body and outfit skeletons before applying.";
     else if(result.bodyDetail.empty())result.bodyDetail=result.venus.detail;
     return result;

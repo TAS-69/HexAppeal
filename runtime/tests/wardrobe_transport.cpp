@@ -1,5 +1,6 @@
 #include "wardrobe_transport.h"
 #include "wardrobe_nude.h"
+#include "game_layout.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -73,6 +74,10 @@ static bool guardedPipeline(uintptr_t actor,hex::WardrobeVector*,hex::WardrobeVe
     if(guardMode==2)RaiseException(0xe0123456,0,0,nullptr);return guardMode==0;
 }
 int main(){
+    // This process is not a checked game build: it must get no addresses at all.
+    check(!hex::loadedGameLayout()&&hex::gameLayout().actor==0&&hex::gameLayout().releaseWrapper==0&&
+          hex::gameLayout().copyRecord==0,"an unrecognised game build gets an empty layout");
+    hex::testGameLayout()=&hex::layouts[0];  // the fixtures use this build's addresses
     using namespace hex;WardrobeRecord record;put(record,0,oldWrapper);put(record,0x60,base+0x6f14108);put(record,0x68,0xffffffff);record.bytes[8]=1;record.bytes[9]=255;
     const auto original=record.bytes;const WardrobeTransport ops{retain,release,destroy,pipeline};reset();
     check(isSimpleWardrobeRecord(record,base),"observed plain baseline accepted");

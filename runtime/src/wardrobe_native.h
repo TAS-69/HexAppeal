@@ -48,11 +48,17 @@ struct AddonWardrobeStatus {
 void tickAddonWardrobe(uintptr_t actor,int target,uint64_t observedAt);
 AddonWardrobeStatus addonWardrobeStatus(int target);
 bool selectAddonOutfit(int target,SlotOutfit outfit,std::string& error);
+#ifdef HEX_MENU_TESTS
+bool verifyAddonFollowGame(const std::filesystem::path& folder,std::string& error,bool fullRoster=false);
+#endif
 bool setAddonOutfitHidden(int target,bool hidden,std::string& error);
-bool openAddonWardrobe(int target,std::string& error);
+bool openAddonWardrobe(int target,std::string& error,bool allowSharedFallback=true);
 bool equipAddonItem(int target,const std::string& slot,const OutfitParts& parts,std::string& error);
 bool clearAddonSlot(int target,const std::string& slot,std::string& error);
 bool clearAddonWardrobe(int target,std::string& error);
 bool saveAddonWardrobe(int target,std::string& error);
 void cancelAddonWardrobe(int target);
+// Shares one character's settings across its game records, or gives each record its own.
+// Records without their own saved outfit start from the shared one.
+bool setAddonSettingsShared(int owner,bool shared,std::string& error);
 }

@@ -1,6 +1,7 @@
 #include "graphics_diagnostics.h"
 #include <Shlwapi.h>
 #include <XmlLite.h>
+#include <d3d12.h>
 #include <dxcore.h>
 #include <wrl/client.h>
 #include <algorithm>
@@ -45,27 +46,19 @@ struct GameVideo {
     bool read = false;
 };
 
-struct Swapchain {
-    unsigned width = 0;
-    unsigned height = 0;
-    LUID adapter{};
-    bool hasAdapter = false;
-};
-
 struct LoadedModule {
     HMODULE handle = nullptr;
     std::string version;
 };
 
 struct GraphicsDiagnostics {
-    std::mutex swapchainMutex;
-    Swapchain swapchain;
     std::mutex reportMutex;
     fs::path videoSettings;
     fs::file_time_type videoModified{};
     uintmax_t videoSize = 0;
     GameVideo video;
-    Swapchain adapterObservation;
+    LUID lastAdapter{};
+    bool hasAdapter = false;
     std::string renderingAdapter;
     std::array<LoadedModule, graphicsLibraries.size()> modules;
 };
@@ -290,45 +283,29 @@ void setGraphicsSettingsPath(const std::filesystem::path& path)
     state.video = {};
 }
 
-void observeGraphicsSwapchain(unsigned width, unsigned height, const LUID* adapter)
-{
-    if (width < 256 || height < 256) return;
-    auto& state = diagnostics();
-    const std::lock_guard<std::mutex> lock(state.swapchainMutex);
-    state.swapchain.width = width;
-    state.swapchain.height = height;
-    if (adapter) {
-        state.swapchain.adapter = *adapter;
-        state.swapchain.hasAdapter = true;
-    }
-}
-
-std::string graphicsSummary(bool includeLibraries)
+std::string graphicsSummary(const GraphicsReportSource& source)
 {
     auto& state = diagnostics();
     const std::lock_guard<std::mutex> lock(state.reportMutex);
-    Swapchain observed;
-    {
-        const std::lock_guard<std::mutex> swapchainLock(state.swapchainMutex);
-        observed = state.swapchain;
-    }
-
-    auto& last = state.adapterObservation;
-    if (observed.hasAdapter && (!last.hasAdapter || observed.adapter.HighPart != last.adapter.HighPart ||
-        observed.adapter.LowPart != last.adapter.LowPart)) {
-        state.renderingAdapter = renderingAdapter(observed.adapter);
-        last = observed;
+    if (source.device) {
+        const auto adapter = source.device->GetAdapterLuid();
+        if (!state.hasAdapter || adapter.HighPart != state.lastAdapter.HighPart ||
+            adapter.LowPart != state.lastAdapter.LowPart) {
+            state.renderingAdapter = renderingAdapter(adapter);
+            state.lastAdapter = adapter;
+            state.hasAdapter = true;
+        }
     }
 
     std::ostringstream out;
     out << "Graphics\n";
     appendDisplayInfo(out);
     out << "D3D12 rendering adapter: ";
-    if (!observed.hasAdapter) out << "Not observed yet";
+    if (!source.device) out << "Not observed yet";
     else if (state.renderingAdapter.empty()) out << "Game adapter observed, details unavailable";
     else out << state.renderingAdapter;
     out << "\nGame swapchain size: ";
-    if (observed.width && observed.height) out << observed.width << " x " << observed.height;
+    if (source.width >= 256 && source.height >= 256) out << source.width << " x " << source.height;
     else out << "Not observed yet";
     out << '\n';
 
@@ -340,7 +317,7 @@ std::string graphicsSummary(bool includeLibraries)
         else out << (state.video.read ? "Not recorded (game default may apply)" : "Settings unavailable");
         out << '\n';
     }
-    if (includeLibraries) appendLoadedModules(out, state);
+    appendLoadedModules(out, state);
     return out.str();
 }
 }

@@ -8,6 +8,7 @@
 #include "model.h"
 #include "mounted_dependencies.h"
 #include "compatibility.h"
+#include "graphics_diagnostics.h"
 #include "wardrobe_range.h"
 
 namespace hex {
@@ -87,9 +88,9 @@ struct Runtime {
     void reportCompatibility(Feature feature,CompatibilityState state,const std::string& detail);
     void reportSkinToneFailure(const std::string& detail);
     std::string skinToneFailure();
-    std::string diagnosticReport();
+    std::string diagnosticReport(const std::string& graphics={});
     std::string recentLog();
-    bool saveDiagnosticReport(std::filesystem::path& path,std::string& error);
+    bool saveDiagnosticReport(std::filesystem::path& path,std::string& error,const GraphicsReportSource& graphics={});
     void selectionChanged();
     void requestShapeReapply(int witch);
     void tickAuto(uint64_t now=GetTickCount64(),bool flush=false);

@@ -1,4 +1,5 @@
 #pragma once
+#include "graphics_diagnostics.h"
 
 namespace ml::gui
 {
@@ -18,5 +19,5 @@ namespace ml::gui
 
     void FeedInput();
 
-    void Render();
+    void Render(const hex::GraphicsReportSource& graphics={});
 }

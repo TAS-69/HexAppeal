@@ -1,11 +1,27 @@
 # Changes
 
+## 1.1.3
+
+- The roster supports 250 add-on characters alongside the six witches. Packs of separate NPCs can use one F9 sidebar entry with a dropdown. Each NPC keeps her own saved Shape and Wardrobe.
+- Pack manifests can set the initial Character patches checkbox with `#defaultEnabled`. The player's saved choice takes priority.
+- Woosa & Maegu 1.0.1 appears as **Woosa & Maegu** in F9. Both characters remain selectable in the dropdown.
+- On an unfamiliar Crimson Desert build, Hex Appeal checks the executable for the game functions its native features need. This runs in the background on each launch of that build. The lookup requires unique matches, valid address ranges and matching frame and HUD calls. Native features still require their usual runtime checks.
+
+- Default witch outfit pieces in the equipment picker show whose outfit they come from again, for example "White Crow's default top". Hex Appeal's witch copies take the name of the item they duplicate. 1.1.2 left these labels out.
+- If the previous log ends before Hex Appeal detects game graphics, F9 shows a dismissible Steam Overlay troubleshooting note when that overlay is loaded.
+- On a Crimson Desert build Hex Appeal does not recognise, native features wait for the background checks to pass before using game addresses.
+- The log records when Hex Appeal sees the game's swapchain or frames. GPU, display, resolution, Frame Generation settings and graphics library versions are collected when you click **F9 → Log → Save report**.
+- Character add-ons can use female player-class appearances. Separate packs add Naira, Nevra Yailar, Selvia, Rucchia and Alida. With **[01] VENUS** they get the Venus body, including Nevra Yailar's elf variant of the standard body. With **[02] Vanilla**, Naira keeps Damiane's original body as Sylvia does.
+- Naira and Rucchia each have one F9 entry. Their alternate game records share Shape and Wardrobe settings by default. Untick **Combine instances** beside her name in F9 to choose a record and edit its settings separately. While combined, a **[HA] Wardrobe** preview shows on every loaded copy of her, and Cancel returns each copy to its own previous outfit.
+- Shape and Wardrobe recognise characters the game loads as allies, which use the protagonists' actor class. Naira's records 1004236 and 412 load this way. The character you control is never edited.
+
 ## 1.1.2
 
 - Removed the after-frame-generation drawing for DLSS and XeSS Frame Generation that came with the previous 1.1.1 upload. Some players reported the game not starting after that update. 1.1.2 is the 1.1.1 performance build without that drawing route.
 - Hex Appeal no longer creates a test swapchain during startup. It skips it once it has seen the game create its own swapchain, and otherwise waits at least 30 seconds.
 - The automatic log no longer lists loaded graphics libraries; F9 > Log > Save report still includes them. Graphics details in the log update once the game has created its swapchain.
 - The log and saved reports name the exact build, for example "Hex Appeal 1.1.2 session (build 03923439)".
+- A player who previously reported UI shimmer confirmed that the Nexus 1.1.2 build worked with DLSS enabled. The Steam overlay can still close the game during startup. Turn off "Enable the Steam Overlay while in-game" for Crimson Desert if it keeps happening.
 
 ## 1.1.1
 

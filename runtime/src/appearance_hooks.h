@@ -42,7 +42,7 @@ inline std::string hookOwnerName(void* address){
         {L"FAPS.asi","Framework for Animation and Posing Systems"},
         {L"BodyPhysics.asi","Two Reasons Body Physics"},
         {L"InstantSurgery.asi","Instant Surgery"},
-        {L"DmmRuntime.asi","Desert Mod Manager"}
+        {L"DmmRuntime.asi","Definitive Mod Manager"}
     };
     for(const auto& [asi,title]:names)
         if(_wcsicmp(asi,file)==0)return std::string(title)+" ("+std::string(asi,asi+std::wcslen(asi))+")";

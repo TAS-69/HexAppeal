@@ -84,7 +84,7 @@ def player_choices(version,variants,runtime_files,documents,dependency_hashes,in
                 if name in common and common[name]!=data:
                     raise ValueError('Body options must share one runtime and documentation set')
                 common[name]=data
-        detail='Requires the separately installed VENUS Human Body or Elf Body. Includes matching witch outfit refits.' if mode=='Venus' else 'Preserves each witch\'s original body and proportions. VENUS is not required; HEX uses the separately installed preset.'
+        detail='Requires the separately installed Venus Body for Damiane (Human Body or Elf Body). Includes matching witch outfit refits.' if mode=='Venus' else 'Preserves each witch\'s original body and proportions. Venus Body for Damiane is not required; HEX uses the separately installed Hex\'s Hentai Preset.'
         metadata={'modinfo':{'title':'PICK ONE: '+choice,'version':version,'author':NEXUS_NAME,'description':detail}}
         output['Hex Appeal/'+folder+'/mod.json']=(json.dumps(metadata,indent=2)+'\n').encode('utf-8')
         output['Hex Appeal/'+folder+'/'+WARDROBE_INTERACTION_FILE]=(

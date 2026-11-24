@@ -6,7 +6,7 @@
 
 Start with [Installation](Installation.md), then open the game panel with **F9**. You do not need the SDK to use Hex Appeal.
 
-The current release is **1.1.2** (23 November 2026). See [what changed in each release](Versioning.md).
+The current release is **1.1.3** (24 November 2026). See [what changed in each release](Versioning.md).
 
 | I want to… | Read this |
 | --- | --- |
@@ -14,6 +14,7 @@ The current release is **1.1.2** (23 November 2026). See [what changed in each r
 | Choose VENUS or original witch bodies | [Body options](Body-options.md) |
 | Mix shapes and change proportions | [Shape controls](Shape-controls.md) |
 | Change outfits, colours or underwear | [Wardrobe](Wardrobe.md) |
+| Add Woosa, Maegu or other supported NPCs | [Character add-ons](Character-add-ons.md) |
 | Remove supported clothing and restore it | [Hide outfit](Outfit-Visibility.md) |
 | Change the key, input capture, pins or paths | [Settings](Settings-and-paths.md) |
 | Match the witches' skin to Damiane's | [Skin setup](Skin-setup.md) |

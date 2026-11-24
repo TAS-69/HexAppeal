@@ -1,4 +1,5 @@
 #include "npc_runtime.h"
+#include "game_layout.h"
 #include "runtime.h"
 #include "shaping.h"
 #include "pose_access.h"
@@ -9,6 +10,7 @@
 #include "wardrobe_native.h"
 #include "wardrobe_snapshot.h"
 #include "character_addons.h"
+#include "record_flags.h"
 #include "native_interface.h"
 #include "core/log.h"
 #include <MinHook.h>
@@ -23,7 +25,6 @@
 
 namespace hex {
 namespace {
-constexpr auto characterCapacity=firstAddonCharacter+maximumAddonCharacters;
 constexpr uint64_t addonPoseVersionBit=1ull<<63;
 struct Snapshot {
     uint64_t version=0;
@@ -73,7 +74,7 @@ struct RuntimeState {
     std::atomic<bool> hooked{false};
     std::atomic<bool> failed{false};
     std::atomic<bool> allowWrites{false};
-    std::atomic<uint32_t> seen{0};
+    RecordFlags<characterCapacity> seen;
     std::array<std::atomic<DWORD>,characterCapacity> lastSeen{};
     std::mutex mutex;
     std::mutex applicationMutex;
@@ -313,11 +314,12 @@ bool updateActor(void* upload,void* model,void* actor,const ActorIdentity& ident
         else if(!isAddon)setStatus(message);
         return false;
     }
-    s.lastSeen[identity.witch]=GetTickCount();const auto first=s.seen.fetch_or(1u<<identity.witch);
+    s.lastSeen[identity.witch]=GetTickCount();
+    const bool firstObservation=!s.seen.exchange(size_t(identity.witch),true);
     const auto countChangedParts=[&]{
         return std::count_if(parts.begin(),parts.end(),[](const auto& part){return part.source!=part.animation;});
     };
-    if(!(first&(1u<<identity.witch))) {
+    if(firstObservation) {
         LOG("Observed %s key=%u actor=%p model=%p; %zu validated body/outfit pose buffers; %zu differ from animation source.",identity.name,identity.recordKey,actor,model,parts.size(),size_t(countChangedParts()));
         for(size_t i=0;i<parts.size();++i)for(const auto renderPart:parts[i].renderParts)
             LOG("Observed render part witch=%d model=%p part=%p skeleton=%p bones=%zu.",identity.witch,model,reinterpret_cast<void*>(renderPart),reinterpret_cast<void*>(parts[i].skeleton),parts[i].bones.size());
@@ -467,6 +469,7 @@ int observedPhysicsPose(void* context,void* skeleton,const PoseMatrix* source,Po
     return result;
 }
 DWORD WINAPI worker(void*) {
+    waitForGameLayout();  // on a build missing from the table, until signature lookup finishes
     auto& r=Runtime::get();auto& s=state();r.providerFactory=&factory;
     s.dependenciesControlled=true;
     const bool allowNpcWrites=GetPrivateProfileIntW(L"Development",L"EnableNpcWrites",0,(r.folder/L"HexAppeal.ini").c_str())!=0;
@@ -689,7 +692,7 @@ bool runPhysicsTransactionTests(HMODULE surgery,void* upload,void* model,void* a
     originalResolveProfile=nullptr;originalPhysicsPose=nullptr;
     for(const auto& part:parts)if(!writePoseBytes(part.destination,part.animation))return false;
     s.physicsRoute=false;s.physicsApplied=nullptr;s.receipts.clear();s.receiptChecks.fill(0);
-    s.transactions.clear();s.actors.clear();s.sequence=0;s.active=std::make_shared<Snapshot>();s.persistVersion=0;s.hooked=false;s.seen=0;s.lastSeen[0]=0;
+    s.transactions.clear();s.actors.clear();s.sequence=0;s.active=std::make_shared<Snapshot>();s.persistVersion=0;s.hooked=false;s.seen.clear();s.lastSeen[0]=0;
     return true;
 }
 bool runNpcTransactionTests(HMODULE surgery,const std::filesystem::path& preset,void* upload,void* model,void* actor,std::string& error) {
@@ -729,7 +732,7 @@ bool runNpcTransactionTests(HMODULE surgery,const std::filesystem::path& preset,
     if(!check(updateActor(upload,model,actor,lyselia)&&poll(id,message,sizeof(message))==1,
               "pending shape resumes after the pose buffers become stable"))return false;
     for(const auto& p:initial)if(!writePoseBytes(p.destination,p.source))return false;
-    s.transactions.clear();s.actors.clear();s.sequence=0;s.active=std::make_shared<Snapshot>();s.persistVersion=0;s.hooked=false;s.seen=0;s.lastSeen[0]=0;
+    s.transactions.clear();s.actors.clear();s.sequence=0;s.active=std::make_shared<Snapshot>();s.persistVersion=0;s.hooked=false;s.seen.clear();s.lastSeen[0]=0;
     return true;
 }
 #endif

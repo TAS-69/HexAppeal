@@ -180,7 +180,7 @@ BodyMode classifyBodyRoutes(const std::map<std::string,std::filesystem::path>& r
         }
         else if(body==venusPrefab||(isolatedVenus&&body==isolatedVenusPrefab)){
             venus|=bit;
-            if(issues)stockRoutes.push_back({row.witch,row.path,"VENUS body selected by this appearance.",true});
+            if(issues)stockRoutes.push_back({row.witch,row.path,"Venus Body for Damiane selected by this appearance.",true});
         }
         else if(npcUnderwear&&body==npcUnderwearPrefab)removerBodies|=bit;
         else if(mountedPhwBodyClone(routes,body))clones|=bit;
@@ -287,7 +287,7 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
     const auto routes=readMountedRoutes(manifest,&version,&warning);
     if(!version){
         error=readableDependency(manifest)?"The selected active file list is not a supported DMM runtime manifest.":
-            "Mount one Hex Appeal body option through Desert Mod Manager first.";
+            "Mount one Hex Appeal body option through Definitive Mod Manager first.";
         return false;
     }
     const auto mode=classifyBodyRoutes(routes,nullptr,unavailableWitches);
@@ -309,9 +309,9 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
         const auto found=routes.find(path);
         if(found==routes.end()&&path==bodyPaths[1])continue;
         if(found==routes.end()||isOwnModContent(found->second)||!readableDependency(found->second,"PAR ")) {
-            error="The mounted VENUS body path is missing, unreadable or not a PAC file. Check body priority and remount.";return false;
+            error="The mounted Venus Body for Damiane path is missing, unreadable or not a PAC file. Check body priority and remount.";return false;
         }
-        if(!venusBodyVersion(sha256(found->second,true)))warning=unverifiedDependency("VENUS Body");
+        if(!venusBodyVersion(sha256(found->second,true)))warning=unverifiedDependency("Venus Body for Damiane");
     }
     if(mode==BodyMode::Vanilla){
         const std::pair<const char*,const char*> bodies[]={
@@ -377,7 +377,7 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
         const auto alternate=routes.find(isolatedVenusModelPath);
         const auto current=routes.find(venusModelPath);
         if(alternate!=routes.end()&&current!=routes.end()&&sha256(alternate->second,true)!=sha256(current->second,true))
-            warning="The local witch skin package uses a different VENUS model. Rebuild the local package after updating VENUS.";
+            warning="The local witch skin package uses a different Venus Body for Damiane model. Rebuild the local package after updating Venus Body for Damiane.";
     }
     if(mountedMidpoint&&note){
         *note="Shape uses the mounted replacement body as the midpoint for ";

@@ -5,20 +5,25 @@
 
 namespace hex {
 inline constexpr int firstAddonCharacter=6;
-inline constexpr size_t maximumAddonCharacters=24;
+inline constexpr size_t characterCapacity=256;
+inline constexpr size_t maximumAddonCharacters=characterCapacity-firstAddonCharacter;
 struct CharacterAddonItem {
     std::string label,slot,prefab;
 };
 struct CharacterAddon {
     std::string id,label,record,appearance;
+    std::string appearanceOwner;
     uint32_t recordKey=0;
     size_t pack=0;
+    bool requiresRecord=false;
     OutfitSlots defaults;
     std::vector<CharacterAddonItem> items;
 };
 struct CharacterAddonPack {
     std::string id,label,version,minimumVersion,detail;
     size_t accepted=0,declared=0;
+    bool multiCharacter=false;
+    bool defaultEnabled=true;
 };
 struct CharacterAddonScan {
     std::vector<CharacterAddon> characters;
@@ -50,4 +55,15 @@ bool saveAddonBodyProfile(int target,const Profile& profile,std::string& error);
 void reportAddonShape(int target,uint64_t revision,std::string detail);
 std::string addonShapeDetail(int target);
 int addonTargetForRecord(std::string_view record);
+// A character with #variant records is a group led by its main entry. By default the group
+// shares one set of Shape, Wardrobe and underwear settings; each record still has its own
+// live instance. With sharing off, every record keeps its own settings.
+int addonGroupOwner(int target);
+std::vector<int> addonGroupTargets(int owner);   // main entry first, then its variants
+bool addonGroupShared(int owner);
+bool setAddonGroupShared(int owner,bool shared,std::string& error);
+int addonSettingsTarget(int target);             // the entry whose settings this record uses
+std::vector<int> addonSettingsGroup(int target); // records that use the same settings
+std::vector<int> rosterAddonTargets();           // enabled main entries for the character list
+std::vector<int> enabledAddonSettingsTargets();  // enabled entries that own settings
 }

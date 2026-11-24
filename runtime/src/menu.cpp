@@ -13,10 +13,12 @@
 #include "hooks/input.h"
 #include <imgui.h>
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <cstdio>
 #include <memory>
+#include <string_view>
 #ifdef HEX_MENU_TESTS
 #include "../tests/controls.h"
 static void record(const std::string& name){hex::test::controls[name]={ImGui::GetItemRectMin(),ImGui::GetItemRectMax()};}
@@ -46,7 +48,7 @@ static int pendingAddonTarget=-2;
 static hex::Profile pendingAddonProfile;
 static void savePendingAddonShape(hex::Runtime& runtime){
     if(pendingAddonTarget==-2)return;
-    const auto targets=pendingAddonTarget<0?hex::enabledAddonTargets():std::vector<int>{pendingAddonTarget};
+    const auto targets=pendingAddonTarget<0?hex::enabledAddonSettingsTargets():std::vector<int>{pendingAddonTarget};
     for(int target:targets){
         std::string error;
         if(hex::characterAddonEnabled(target)&&!hex::saveAddonBodyProfile(target,pendingAddonProfile,error))
@@ -174,7 +176,9 @@ static void tryStartWardrobeEdit(hex::Runtime& runtime,int target){
     if(runtime.preview||now<nextWardrobeEditRetryAt)return;
     nextWardrobeEditRetryAt=now+500;
     std::string error;
-    if(hex::openSavedWardrobe(target,error))wardrobeEditorNotice.clear();
+    const bool opened=target>=hex::firstAddonCharacter?
+        hex::openAddonWardrobe(target,error,wardrobeEditorFromTab):hex::openSavedWardrobe(target,error);
+    if(opened)wardrobeEditorNotice.clear();
     else if(wardrobeEditorNotice!=error){
         LOG("Wardrobe is waiting for character %d: %s",target,error.c_str());
         wardrobeEditorNotice=std::move(error);
@@ -293,8 +297,8 @@ static void dependencySettings(hex::Runtime& r){
     fileState("Crimson Desert",status.game);fileState("Instant Surgery",status.instant);
     if(status.bodyMode==hex::BodyMode::Vanilla)state("Vanilla body",status.bodyVerified,status.bodyDetail);
     else if(status.bodyMode==hex::BodyMode::Live)state("Live body",status.canShapeBody(),status.bodyDetail);
-    else fileState("VENUS Body",status.venus);
-    if(status.customPreset)state("Custom preset",r.hexAvailable,r.featureCompatibility(hex::Feature::Hex).detail);else fileState("Hex's Hentai Preset",status.hex);if(status.physics.valid)fileState("Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
+    else fileState("Venus Body for Damiane",status.venus);
+    if(status.customPreset)state("Custom preset",r.hexAvailable,r.featureCompatibility(hex::Feature::Hex).detail);else fileState("Hex's Hentai Preset",status.hex);if(status.physics.valid)fileState("Two Reasons Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
     ImGui::Spacing();ImGui::TextDisabled("Feature checks");const auto capabilities=r.compatibilityStatus();
     for(size_t i=0;i<capabilities.size();++i){const auto& feature=capabilities[i];ImGui::TextColored(feature.state==hex::CompatibilityState::Ready?green:feature.state==hex::CompatibilityState::Blocked?errorColour:muted,"%s / %s%s",hex::featureName(hex::Feature(i)),feature.state==hex::CompatibilityState::Ready?"Ready":feature.state==hex::CompatibilityState::Blocked?"Blocked":"Checking",feature.state==hex::CompatibilityState::Blocked?"  (!)":"");tip(feature.detail.c_str());record("feature"+std::to_string(i));}
     if(!status.bodyWarning.empty()){ImGui::TextColored(gold,"Active body routes / unverified  (!)");tip(status.bodyWarning.c_str());}
@@ -322,7 +326,7 @@ static void dependencySettings(hex::Runtime& r){
         ImGui::EndCombo();
     }
     tip("Choose a saved Instant Surgery preset for the top-left of the shape pad. The selection applies anywhere a profile uses this preset slot.");
-    field(3,"Preset .ini path (or folder for automatic Hex detection)","pathHex",paths.hexPreset);if(status.bodyMode!=hex::BodyMode::Vanilla)field(4,"VENUS body file (optional source override)","pathVenus",paths.venusBody);
+    field(3,"Preset .ini path (or a folder to find Hex's Hentai Preset)","pathHex",paths.hexPreset);if(status.bodyMode!=hex::BodyMode::Vanilla)field(4,"Venus Body for Damiane file (optional source override)","pathVenus",paths.venusBody);
     if(changed){std::string error;if(!r.setDependencyPaths(paths,error))r.model.message=error;}
     if(ImGui::Button("Detect again"))++r.dependencyRevision;record("dependencyRescan");tip("Paths are saved automatically. Empty fields use detection. Active body verification currently requires DMM's loaded runtime and file list; another manager's source folder alone cannot prove which body the game uses. Installing or changing runtime plugins requires a restart.");
 }
@@ -370,7 +374,7 @@ static void underwearControl(hex::Runtime& r){
     const auto ownership=addonFallback?hex::UnderwearOwnership{addonStatus.externalUnderwear,addonStatus.externalUnderwear,
         addonStatus.actorSeen&&!addonStatus.underwearPresent,{}}:hex::underwearOwnership(target);
     const auto compatibility=r.featureCompatibility(hex::Feature::Underwear);
-    const auto addons=target<0?hex::enabledAddonTargets():std::vector<int>{};
+    const auto addons=target<0?hex::enabledAddonSettingsTargets():std::vector<int>{};
     for(int other:addons){
         const bool addonHidden=hex::addonUnderwearHidden(other);
         status.mixed|=status.hidden!=addonHidden;
@@ -421,7 +425,7 @@ static void outfitHiddenControl(hex::Runtime& r){
     const auto addonStatus=addon?hex::addonWardrobeStatus(target):hex::AddonWardrobeStatus{};
     auto status=addon?hex::UnderwearStatus{addonStatus.canSwitch,addonStatus.hidden,false,!addonStatus.actorSeen,addonStatus.detail}:
         hex::outfitHiddenStatus(target);
-    const auto addons=target<0?hex::enabledAddonTargets():std::vector<int>{};
+    const auto addons=target<0?hex::enabledAddonSettingsTargets():std::vector<int>{};
     for(const int other:addons){
         const auto otherStatus=hex::addonWardrobeStatus(other);
         status.mixed|=status.hidden!=otherStatus.hidden;
@@ -461,7 +465,7 @@ static void outfitControl(){
         }
     }
     if(status.spouseCombatActive)label=combatOutfitLabel;
-    const auto addons=single?std::vector<int>{}:hex::enabledAddonTargets();
+    const auto addons=single?std::vector<int>{}:hex::enabledAddonSettingsTargets();
     const bool mixed=status.mixedOutfit||(native&&std::any_of(addons.begin(),addons.end(),[&](int other){
         return hex::addonWardrobeStatus(other).selected!=status.slotSelection;
     }));
@@ -616,7 +620,7 @@ static bool profileActions(hex::Runtime& r,hex::Profile& profile,uint32_t mask,b
     };
     item("Copy",hex::PinCopy);if(mask&hex::PinCopy&&mask&(hex::PinPaste|hex::PinReset))ImGui::SameLine();item("Paste",hex::PinPaste);if(mask&hex::PinPaste&&mask&hex::PinReset)ImGui::SameLine();item("Reset",hex::PinReset);return changed;
 }
-static void logTab(hex::Runtime& r){
+static void logTab(hex::Runtime& r,const hex::GraphicsReportSource& graphics){
     static std::string report,recent,message;
     static uint64_t updated=0;
     const auto now=GetTickCount64();
@@ -627,7 +631,7 @@ static void logTab(hex::Runtime& r){
     ImGui::SameLine();
     if(ImGui::Button("Save report")){
         std::filesystem::path path;
-        if(r.saveDiagnosticReport(path,message))message="Saved to "+path.u8string();
+        if(r.saveDiagnosticReport(path,message,graphics))message="Saved to "+path.u8string();
     }
     record("saveLogReport");
     ImGui::SameLine();
@@ -635,7 +639,7 @@ static void logTab(hex::Runtime& r){
         const auto contents=report+"\nRecent runtime log\n"+recent;
         ImGui::SetClipboardText(contents.c_str());message="Copied report.";
     }
-    ImGui::TextDisabled("Reports include local paths. Review before sharing.");
+    ImGui::TextDisabled("Save report also collects graphics details. Reports include local paths.");
     if(!message.empty())ImGui::TextWrapped("%s",message.c_str());
     if(ImGui::CollapsingHeader("Checks and mod sources",ImGuiTreeNodeFlags_DefaultOpen)){
         ImGui::PushTextWrapPos();ImGui::TextUnformatted(report.c_str());ImGui::PopTextWrapPos();
@@ -984,6 +988,9 @@ static void characterPatchControls(hex::Runtime& runtime){
         if(enabled)for(const int target:hex::enabledAddonTargets()){
             const auto* addon=hex::characterAddon(target);
             if(addon->pack!=i)continue;
+            const int owner=hex::addonGroupOwner(target);
+            // Records that share settings report through their main entry.
+            if(owner!=target&&hex::addonGroupShared(owner))continue;
             const auto state=hex::addonWardrobeStatus(target);
             ImGui::TextDisabled("%s",addon->label.c_str());
             ImGui::SameLine();
@@ -1068,7 +1075,7 @@ static void renderWardrobeEditor(hex::Runtime& runtime,float maxWidth,float maxH
         else setOpen(false);
     }
 }
-void Render(){
+void Render(const hex::GraphicsReportSource& graphics){
     auto& r=hex::Runtime::get();r.tickAuto();auto& model=r.model;auto& state=State::Get();state.lastDrawAt=GetTickCount();state.blockGameInput=r.blockGameInput;
     const auto dependency=r.dependencyStatus();
     const auto& dependencies=*dependency;
@@ -1135,8 +1142,18 @@ void Render(){
     if(ImGui::Checkbox("Block game input",&r.blockGameInput)){state.blockGameInput=r.blockGameInput;input::InputModeChanged();r.saveInterface();}record("blockInput");tip("On: block gameplay input while this panel is visible. Off: allow gameplay outside panel gestures and text entry. Saved automatically.");
     ImGui::SameLine();if(ImGui::SmallButton(r.compact?"Restore":"Minimise")){r.compact=!r.compact;r.saveInterface();}record("compact");ImGui::SameLine();if(ImGui::SmallButton("X"))open=false;record("close");
     ImGui::Separator();bool changed=false,addonChanged=false;
+    // A previous log without game graphics is one clue for startup troubleshooting.
+    static bool startupNoteDismissed=false;
+    if(!startupNoteDismissed&&ml::Log::PreviousStartupIncomplete()&&GetModuleHandleW(L"GameOverlayRenderer64.dll")){
+        ImGui::PushTextWrapPos(0);
+        ImGui::TextColored(gold,"Hex Appeal did not detect game graphics in the previous log. If Crimson Desert keeps closing at startup, try turning off \"Enable the Steam Overlay while in-game\" for this game in Steam.");
+        ImGui::PopTextWrapPos();
+        if(ImGui::SmallButton("Dismiss"))startupNoteDismissed=true;record("startupNote");
+        ImGui::Separator();
+    }
     if(addonCharacterTarget>=0&&!hex::characterAddonEnabled(addonCharacterTarget))selectCharacter(r,-1);
-    const auto addons=hex::enabledAddonTargets();
+    const auto addons=hex::enabledAddonSettingsTargets();
+    const auto roster=hex::rosterAddonTargets();
     const auto addonShaping=[&](bool quick){
         const auto pins=quick?r.quickPins:~uint32_t{};
         const bool ready=nativeShapingReady;
@@ -1151,19 +1168,102 @@ void Render(){
         if(!quick)ImGui::TextWrapped("%s",!ready?"Waiting for the native shaping dependencies.":detail.empty()?"Using the character's original shape.":detail.c_str());
     };
     const auto pickCharacters=[&](bool compact){
-        const int selected=addonCharacterTarget>=0?addonCharacterTarget:model.target;
-        const auto pick=[&](const char* name,int target){
-            ImGui::PushID(target);
+        const int selected=addonCharacterTarget>=0?hex::addonGroupOwner(addonCharacterTarget):model.target;
+        const auto pick=[&](const char* name,int target,int rowId){
+            ImGui::PushID(rowId);
             if(ImGui::Selectable(name,selected==target,0,{0,compact?0.f:33*scale}))selectCharacter(r,target);
-            record("target"+std::to_string(target));
+            record("target"+std::to_string(rowId));
             if(target>=hex::firstAddonCharacter)tip(name);
             ImGui::PopID();
         };
-        pick("ALL CHARACTERS",-1);
+        pick("ALL CHARACTERS",-1,-1);
         ImGui::Separator();
-        for(size_t i=0;i<hex::witches.size();++i)pick(hex::witches[i].name,int(i));
-        if(!addons.empty())ImGui::Separator();
-        for(int target:addons)pick(hex::characterAddon(target)->label.c_str(),target);
+        for(size_t i=0;i<hex::witches.size();++i)pick(hex::witches[i].name,int(i),int(i));
+        if(!roster.empty())ImGui::Separator();
+        const auto& packs=hex::characterAddonPacks();
+        const auto* selectedAddon=hex::characterAddon(selected);
+        std::array<bool,hex::characterCapacity> listedPacks{};
+        for(const int target:roster){
+            const auto& addon=*hex::characterAddon(target);
+            const auto& pack=packs[addon.pack];
+            if(compact||!pack.multiCharacter){
+                pick(addon.label.c_str(),target,target);
+                continue;
+            }
+            if(listedPacks[addon.pack])continue;
+            listedPacks[addon.pack]=true;
+            std::string_view label=pack.label;
+            constexpr std::string_view prefix="Hex Appeal - ";
+            if(label.size()>prefix.size()&&label.substr(0,prefix.size())==prefix)label.remove_prefix(prefix.size());
+            const bool active=selectedAddon&&selectedAddon->pack==addon.pack;
+            pick(label.data(),active?selected:target,target);
+        }
+    };
+    const auto characterHeader=[&]{
+        const int owner=hex::addonGroupOwner(addonCharacterTarget);
+        const auto members=owner>=0?hex::addonGroupTargets(owner):std::vector<int>{};
+        const bool hasVariants=members.size()>1;
+        bool shared=hasVariants&&hex::addonGroupShared(owner);
+        if(shared&&addonCharacterTarget!=owner)selectCharacter(r,owner);
+        const auto* addon=hex::characterAddon(addonCharacterTarget);
+        const auto samePack=[&](int target){return addon&&hex::characterAddon(target)->pack==addon->pack;};
+        const bool packPicker=!r.compact&&addon&&hex::characterAddonPacks()[addon->pack].multiCharacter&&
+            std::any_of(roster.begin(),roster.end(),[&](int target){return target!=owner&&samePack(target);});
+        const char* name=addon?addon->label.c_str():model.target<0?"ALL CHARACTERS":hex::witches[model.target].name;
+        constexpr const char* combineLabel="Combine instances";
+        const auto& style=ImGui::GetStyle();
+        const float combineWidth=ImGui::GetFrameHeight()+style.ItemInnerSpacing.x+ImGui::CalcTextSize(combineLabel).x;
+        const float available=ImGui::GetContentRegionAvail().x;
+        const float pickerWidth=hasVariants?std::max(1.f,available-combineWidth-style.ItemSpacing.x):available;
+        const float combineX=ImGui::GetCursorPosX()+pickerWidth+style.ItemSpacing.x;
+        if(r.compact||packPicker||(hasVariants&&!shared)){
+            ImGui::SetNextItemWidth(pickerWidth);
+            const bool picking=ImGui::BeginCombo("##character",name);
+            record(r.compact?"quickWitch":"addonRecord");
+            if(picking){
+                if(r.compact)pickCharacters(true);
+                if(packPicker){
+                    ImGui::PushID("packCharacters");
+                    for(const int target:roster){
+                        if(!samePack(target))continue;
+                        ImGui::PushID(target);
+                        if(ImGui::Selectable(hex::characterAddon(target)->label.c_str(),target==owner)&&target!=owner)
+                            selectCharacter(r,target);
+                        record("packNpc"+std::to_string(target));
+                        ImGui::PopID();
+                    }
+                    ImGui::PopID();
+                }
+                if(hasVariants&&!shared){
+                    if(r.compact)ImGui::SeparatorText("Instances");
+                    for(const int member:members){
+                        ImGui::PushID(member);
+                        if(ImGui::Selectable(hex::characterAddon(member)->label.c_str(),member==addonCharacterTarget)&&member!=addonCharacterTarget)
+                            selectCharacter(r,member);
+                        record("instance"+std::to_string(member));
+                        ImGui::PopID();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+        }else{
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted(name);
+            record("characterName");
+        }
+#ifdef HEX_MENU_TESTS
+        record("selectedAddon"+std::to_string(addonCharacterTarget));
+#endif
+        if(hasVariants){
+            ImGui::SameLine(combineX);
+            if(ImGui::Checkbox(combineLabel,&shared)){
+                std::string issue;
+                if(hex::setAddonSettingsShared(owner,shared,issue))selectCharacter(r,owner);
+                else model.message=issue;
+            }
+            record("shareVariants."+hex::characterAddon(owner)->id);
+            tip("Share Shape and Wardrobe settings across this character's instances. Untick to choose and edit each instance separately.");
+        }
     };
     ImGui::BeginChild("workspace",{0,-37*scale},ImGuiChildFlags_None);
     if(!r.compact){
@@ -1172,12 +1272,8 @@ void Render(){
         pickCharacters(false);ImGui::PopStyleVar();ImGui::EndChild();ImGui::SameLine();
     }
     ImGui::BeginChild("editor",{0,0},ImGuiChildFlags_None);
+    characterHeader();
     if(r.compact){
-        const auto* addon=hex::characterAddon(addonCharacterTarget);
-        const auto* label=addon?addon->label.c_str():model.target<0?"ALL CHARACTERS":hex::witches[model.target].name;
-        ImGui::SetNextItemWidth(-1);
-        const bool picking=ImGui::BeginCombo("##character",label);record("quickWitch");
-        if(picking){pickCharacters(true);ImGui::EndCombo();}
         if(addonCharacterTarget>=0){addonShaping(true);}
         else {
         const bool shapingReady=updateShapeControls();
@@ -1249,7 +1345,7 @@ void Render(){
             ImGui::EndTabItem();
         }
         const bool log=ImGui::BeginTabItem("Log");record("tabLog");
-        if(log){logTab(r);ImGui::EndTabItem();}
+        if(log){logTab(r,graphics);ImGui::EndTabItem();}
         ImGui::EndTabBar();
     }
     ImGui::EndChild();ImGui::EndChild();

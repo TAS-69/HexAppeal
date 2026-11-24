@@ -52,9 +52,9 @@ Both Human Body and Elf Body are recognized. Their body/hand skinning and physic
 
 ## What was checked
 
-The 1.1.2 build passes 29 offline runtime checks and 58 helper tests. They cover dependency variants, Wardrobe slots and the stock equipment catalogue, Barber looks, outfit providers, skin routes and character add-ons. The native fixture covers all nine blends, 44 weighted cases and eleven reference poses. Earlier live tests near Elowen checked both body choices with the armour pack enabled.
+The 1.1.3 release passed 33 offline runtime checks and 58 helper tests. Live DMM imports covered VENUS and Vanilla, the six character packs, Woosa & Maegu’s saved disabled state through its 1.0.1 update and a full 250-record roster. They cover dependency variants, Wardrobe slots and the stock equipment catalogue, wearer names on default outfit pieces, Barber looks, outfit providers, skin routes, character add-ons and game signature lookup. The native fixture covers all nine blends, 44 weighted cases and eleven reference poses. Earlier live tests near Elowen checked both body choices with the armour pack enabled.
 
-The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See the [1.1.2 verification](../VERIFICATION-1.1.2.md) for its hashes and live checks, and the [1.0.2 record](../VERIFICATION-1.0.2.md) for the earlier body and packaging checks.
+The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See the [1.1.3 verification](../VERIFICATION-1.1.3.md) for the exact builds and test scope, and the [1.0.2 record](../VERIFICATION-1.0.2.md) for the earlier body and packaging checks.
 
 ## Troubleshooting
 
@@ -62,9 +62,9 @@ The optional SDK base-underwear replacement policy is covered by native ownershi
 
 **Game closes during startup:** the Steam overlay can crash in its own swapchain code when several mods start at the same moment, most often on the first launch after a restart. Turn off "Enable the Steam Overlay while in-game" for Crimson Desert in Steam. Since 1.1.2, Hex Appeal no longer creates a test swapchain during startup.
 
-**Panel shimmers with NVIDIA DLSS Frame Generation:** DLSS interpolates the Hex Appeal panel along with the game. FSR Frame Generation avoids it.
+**Graphics compatibility.** A player on an NVIDIA RTX 5070 who saw the UI shimmer confirmed that Hex Appeal 1.1.2 resolved it with DLSS Frame Generation enabled. They also confirmed a 1.1.3 test build whose graphics code is identical to this release.
 
-**Reporting a problem:** send **F9 → Log → Save report**, or `%LOCALAPPDATA%\HexAppeal\HexAppeal.log`. Since 1.1.2 its first line names the exact build, for example "Hex Appeal 1.1.2 session (build 03923439)".
+**To report a problem**, send the file from **F9 → Log → Save report**. Look for `HexAppeal-report-*.txt` in `%LOCALAPPDATA%\HexAppeal`. It includes the exact build, feature and dependency checks, and graphics details such as your GPU and Frame Generation setting. If the game closes before you can open F9, or F9 won’t open, send `%LOCALAPPDATA%\HexAppeal\HexAppeal.log`. Its first line identifies the build.
 
 **Preset not detected:** automatic discovery checks DMM's configured storage, mounted source paths, portable locations and Instant Surgery preset folders. Nested and renamed supported presets are accepted. In Settings, select an extracted `.ini` or its folder; clear the override to resume automatic detection. An invalid manual path is reported directly.
 

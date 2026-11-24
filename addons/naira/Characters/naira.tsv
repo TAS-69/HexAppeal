@@ -1,0 +1,8 @@
+HexAppealCharacters	1
+character	ha_naira	Naira	1004236	Nairah	character/appearance/1_pc/2_phw/cd_phw_nairah/cd_phw_nairah_00000.app_xml
+#variant	ha_naira_412	Naira (412)	412	NHW_Unique_Nairah_DualSword_412	ha_naira
+#variant	ha_naira_444	Naira (444)	444	NHW_Unique_Nairah_DualSword_444	ha_naira
+default	ha_naira	Naira's attire	cd_phw_00_ub_00_0137
+default	ha_naira	Naira's cloak	cd_phw_00_cloak_00_0137_t
+default	ha_naira	Naira's gloves	cd_phw_00_hand_0137
+default	ha_naira	Naira's boots	cd_phw_00_foot_0137

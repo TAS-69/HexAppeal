@@ -37,6 +37,7 @@ WardrobeVisibilityClaim wardrobeVisibilityClaim(const WardrobeSnapshot& snapshot
 bool hasWardrobeVisibilityClaim(const WardrobeSnapshot& snapshot,const WardrobeVisibilityClaim& mask);
 bool rebindAddonVisibilityClaim(const WardrobeSnapshot& snapshot,WardrobeVisibilityClaim& mask);
 int wardrobeWitchForAppearance(const char* path);
+bool isWardrobeNpc(uintptr_t actor,uintptr_t gameBase);
 uintptr_t readWardrobeActorAppearance(uintptr_t actor,uintptr_t gameBase,char (&path)[256]);
 int wardrobeWitchForActorAppearance(uintptr_t actor,uintptr_t gameBase);
 bool readWardrobeCharacterRecord(uintptr_t actor,uintptr_t gameBase,uintptr_t characterInfo,char (&name)[96]);

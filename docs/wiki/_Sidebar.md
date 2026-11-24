@@ -5,6 +5,7 @@
 - [Body options and dependencies](Body-options.md)
 - [Shape controls](Shape-controls.md)
 - [Wardrobe](Wardrobe.md)
+- [Character add-ons](Character-add-ons.md)
 - [Outfit visibility](Outfit-Visibility.md)
 - [Settings & paths](Settings-and-paths.md)
 - [Skin setup](Skin-setup.md)

@@ -20,6 +20,8 @@ python sdk/tools/generate_provider.py sdk/examples/parts-outfit.json --output bu
 
 The generator validates definitions and emits ordinary C++. It does not run a mod, load assets or install anything. Existing output requires `--force`; linked output is refused. Limits: eight controls, sixteen options per choice, sixteen visibility bindings and 256 combined prefab states.
 
+For NPC support, use the [Rucchia and Stranger character add-on example](examples/character-variants/README.md). It uses a TSV manifest and builds into a DMM ZIP without a provider plugin.
+
 | Example | Who applies the options? |
 | --- | --- |
 | [Parts definition](examples/parts-outfit.json), [provider](examples/PartsOutfitProvider.cpp) | Wardrobe handles declared engine visibility parts on its owned replacement. |

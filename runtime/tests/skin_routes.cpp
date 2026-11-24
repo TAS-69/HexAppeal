@@ -4,6 +4,7 @@
 #include "mounted_dependencies.h"
 #include "dependency_fixture.h"
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <regex>
@@ -47,6 +48,36 @@ int wmain(int argc,wchar_t** argv){
         incompatibleAddons[addonLooks[0]]=customLook;
         if(prepareAddonVenus(game,incompatibleAddons,addonLooks).appearances.size()!=1)
             throw std::runtime_error("The VENUS adapter must retain a separately configured add-on body.");
+        // Female player-class add-ons: the standard body (Alida), a character variant of it
+        // (Nevra Yailar) and Damiane's body (Naira). Damiane's own appearance is never included.
+        const std::string alida="character/appearance/1_pc/2_phw/cd_phw_alida/cd_phw_alida_00000.app_xml";
+        const std::string nevra="character/appearance/1_pc/2_phw/cd_phw_nornen/cd_phw_nornen_00000.app_xml";
+        const std::string naira="character/appearance/1_pc/2_phw/cd_phw_nairah/cd_phw_nairah_00000.app_xml";
+        const std::vector<std::string> playerLooks={alida,nevra,naira,damianeRoute};
+        auto playerClass=cleanAddons;
+        for(const auto& route:{alida,nevra,naira})playerClass.erase(route);
+        const auto players=prepareAddonVenus(game,playerClass,playerLooks);
+        if(players.appearances.size()!=3||players.appearances.count(damianeRoute)||!players.venus||
+           !players.withoutBaseUnderwear.empty())
+            throw std::runtime_error("Expected Alida, Nevra Yailar and Naira on the VENUS body, without Damiane's own appearance.");
+        for(const auto& route:{alida,nevra,naira}){
+            const std::regex original("Name=\"phw_00_nude_00_0001(_nornen)?\"",std::regex::icase);
+            if(std::regex_replace(archive.read(route),original,"Name=\"phw_00_nude_00_0001_damian\"")!=players.appearances.at(route))
+                throw std::runtime_error("A player-class add-on body change altered non-body appearance data.");
+        }
+        const auto noUnderwearLook=fixture/L"naira-no-underwear.app_xml";
+        {
+            auto data=archive.read(naira);
+            const auto at=data.find("phw_00_nude_00_0001_damian\"");
+            if(at==data.npos)throw std::runtime_error("Expected Naira on Damiane's body.");
+            data.insert(at+std::strlen("phw_00_nude_00_0001_damian"),"_lnw");
+            std::ofstream(noUnderwearLook,std::ios::binary).write(data.data(),data.size());
+        }
+        auto noUnderwear=playerClass;
+        noUnderwear[naira]=noUnderwearLook;
+        const auto removed=prepareAddonVenus(game,noUnderwear,{naira});
+        if(removed.appearances.size()!=1||!removed.withoutBaseUnderwear.count(naira))
+            throw std::runtime_error("A no-underwear VENUS add-on must keep its body and report no base underwear.");
         auto source=activeDamianeSkin(routes);
         if(!source.custom()){
             const std::string stock="character/texture/phw_00_head_00_0111.dds";
@@ -66,12 +97,12 @@ int wmain(int argc,wchar_t** argv){
             auto humanRoutes=routes;
             humanRoutes[bodyRoute]=argv[3];
             if(prepareSkinTone(game,humanRoutes).files!=plan.files)
-                throw std::runtime_error("VENUS Human Body did not follow the same active face texture.");
+                throw std::runtime_error("Venus Body for Damiane (Human Body) did not follow the same active face texture.");
         }
         auto missingBody=routes;
         missingBody.erase(bodyRoute);
         if(activeVenusDamianeSkin(missingBody).custom()||!prepareSkinTone(game,missingBody).files.empty())
-            throw std::runtime_error("A custom face activated the overlay without VENUS Body for Damiane.");
+            throw std::runtime_error("A custom face activated the overlay without Venus Body for Damiane.");
         auto otherBody=routes;
         const auto alternateAppearance=fixture/L"other-damiane.app_xml";
         std::ofstream(alternateAppearance)<<"<Appearance><Nude><Prefab Name=\"other_body\"/></Nude>"
@@ -126,6 +157,14 @@ int wmain(int argc,wchar_t** argv){
            activeVenusDamianeSkin(vanillaRoutes).custom()||!prepareSkinTone(game,vanillaRoutes).files.empty()||
            !prepareAddonVenus(game,vanillaRoutes,addonLooks).appearances.empty())
             throw std::runtime_error("Vanilla witches accepted the override with VENUS mounted for Damiane.");
+        auto vanillaPlayers=vanillaRoutes;
+        for(const auto& route:{alida,nevra,naira})vanillaPlayers.erase(route);
+        vanillaPlayers[vanillaDamianeBodyModelRoute]=routes.at(bodyRoute);
+        vanillaPlayers["character/bin__/prefab/ha_p/02_phw/nude/hvw_00_nude_00_0001_damian.prefab"]=routes.at(bodyRoute);
+        const auto kept=prepareAddonVenus(game,vanillaPlayers,playerLooks);
+        if(kept.venus||kept.appearances.size()!=1||!kept.appearances.count(naira)||
+           kept.appearances.at(naira).find("Name=\"hvw_00_nude_00_0001_damian\"")==std::string::npos)
+            throw std::runtime_error("Under Vanilla, only Naira should keep Damiane's original body through the private prefab.");
         const auto toneSample=fixture/L"external-damiane.paccd_xml";
         auto toneRoutes=routes;
         toneRoutes.erase(plan.source.route);

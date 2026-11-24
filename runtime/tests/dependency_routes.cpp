@@ -193,7 +193,7 @@ int wmain(int argc,wchar_t** argv) {
             "file\tcharacter/bin__/meshphysics/ha_p/2_phw/nude/hva_00_nude_00_0001_damian.hkx\t"+metadata.u8string()+"\n"+
             "file\t"+bodyColour+"\t"+colours.u8string()+"\n";
         save(selected,skinRoutes+"file\t"+handColour+"\t"+colours.u8string()+"\n");
-        if(!hex::verifyMountedDependencies(game,selected,error,warning)||warning.find("different VENUS model")==std::string::npos){
+        if(!hex::verifyMountedDependencies(game,selected,error,warning)||warning.find("different Venus Body for Damiane model")==std::string::npos){
             std::cerr<<"A readable isolated skin must work with a warning if its source model differs.\n";return 1;
         }
         save(selected,skinRoutes);

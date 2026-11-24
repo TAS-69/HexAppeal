@@ -1,5 +1,6 @@
 #pragma once
 #include <Windows.h>
+#include <atomic>
 #include <cstdint>
 #include <string_view>
 
@@ -34,7 +35,20 @@ constexpr const GameLayout* findGameLayout(uint32_t stamp,uint32_t size,uint32_t
     return nullptr;
 }
 
-inline const GameLayout* loadedGameLayout(){
+// Offline tests run outside the game and select a checked layout here.
+// The game never sets it.
+inline const GameLayout*& testGameLayout(){static const GameLayout* layout=nullptr;return layout;}
+
+// A build missing from the table can still be served by code-signature
+// lookup (game_signatures.cpp). Its layout is published here once found.
+inline std::atomic<const GameLayout*>& signatureGameLayout(){static std::atomic<const GameLayout*> layout{nullptr};return layout;}
+// False while signature lookup runs; background workers wait for it.
+inline std::atomic<bool>& gameLayoutSettled(){static std::atomic<bool> settled{true};return settled;}
+// [Development] ForceSignatureLayout=1: ignore the table to test the lookup on a known build.
+inline std::atomic<bool>& ignoreGameLayoutTable(){static std::atomic<bool> ignore{false};return ignore;}
+inline void waitForGameLayout(){while(!gameLayoutSettled().load(std::memory_order_acquire))Sleep(50);}
+
+inline const GameLayout* tableGameLayout(){
     static const auto* layout=[]() -> const GameLayout* {
         const auto* game=reinterpret_cast<const unsigned char*>(GetModuleHandleW(nullptr));
         if(!game)return nullptr;
@@ -47,9 +61,20 @@ inline const GameLayout* loadedGameLayout(){
     return layout;
 }
 
+inline const GameLayout* loadedGameLayout(){
+    if(const auto* selected=testGameLayout())return selected;
+    if(!ignoreGameLayoutTable().load(std::memory_order_acquire))
+        if(const auto* known=tableGameLayout())return known;
+    return signatureGameLayout().load(std::memory_order_acquire);
+}
+
+// An unrecognised build gets an empty layout, never another build's
+// addresses: every address is 0, so identity checks fail and callers that
+// would call game code check loadedGameLayout() first.
+inline constexpr GameLayout noGameLayout{};
 inline const GameLayout& gameLayout(){
     const auto* layout=loadedGameLayout();
-    return layout?*layout:layouts[0];
+    return layout?*layout:noGameLayout;
 }
 
 inline bool checkedGameDigest(std::string_view digest){

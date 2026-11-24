@@ -1,6 +1,8 @@
 #include "wardrobe_items.h"
 #include "game_archive.h"
+#include "model.h"
 #include "mounted_dependencies.h"
+#include "wardrobe_snapshot.h"
 #include <Windows.h>
 #include <roapi.h>
 #include "winrt_runtime.h"
@@ -510,12 +512,28 @@ size_t WardrobeItemCatalog::addMounted(const fs::path& bin,std::string_view body
             const auto part=fs::path(route).stem().u8string();
             if(!part.empty())registeredParts.insert(part);
         }
+        // Named items by part, by index: items grows below.
+        std::map<std::string,size_t,std::less<>> namedParts;
+        for(size_t i=0;i<items.size();++i)
+            if(items[i].id)for(const auto& part:items[i].parts)namedParts.try_emplace(part,i);
         for(const auto& part:registeredParts){
             if(listed.count(part)||part.find("_index")!=part.npos||part.find("_sub")!=part.npos)continue;
             const auto pack=fitFor(part);
             WardrobeItem item;
             item.slot=outfitSlotForPart(part);
-            item.name=item.slot+" ("+part+")";
+            // Hex Appeal's witch copies duplicate a named game item; witch
+            // default garments have no item record but a known wearer.
+            std::string copyOf;
+            if(part.rfind("ha_",0)==0)
+                if(const auto original=namedParts.find("cd_"+part.substr(3));original!=namedParts.end()&&
+                   items[original->second].slot==item.slot){
+                    copyOf=items[original->second].name;
+                    item.icon=items[original->second].icon;
+                }
+            std::vector<std::string> wearers;
+            for(int witch=0;witch<int(witches.size());++witch)
+                if(defaultOutfitPart(witch,part.c_str()))wearers.emplace_back(witches[witch].name);
+            item.name=unlistedPartName(part,item.slot,wearers,copyOf);
             item.source=pack.title.empty()?"Mounted equipment":pack.title;
             item.parts.insert(part);
             item.fitUnverified=pack.body.empty()||body.empty()||pack.body!=body;

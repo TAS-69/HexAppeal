@@ -20,6 +20,27 @@ std::vector<std::string> words(std::string_view query){
     for(std::string word;stream>>word;)found.push_back(std::move(word));
     return found;
 }
+std::string_view slotNoun(std::string_view slot){
+    constexpr std::pair<std::string_view,std::string_view> nouns[]={
+        {"Upper body","top"},{"Lower body","bottoms"},{"Headwear","headwear"},{"Hands","gloves"},
+        {"Feet","boots"},{"Cloak","cloak"},{"Accessories","accessory"},{"Shoulders","shoulder piece"},
+        {"Waist","belt"},{"Armour","armour"}};
+    for(const auto& [name,noun]:nouns)if(name==slot)return noun;
+    return {};
+}
+}
+std::string unlistedPartName(std::string_view part,std::string_view slot,
+                             const std::vector<std::string>& wearers,const std::string& copyOf){
+    // The part ID stays in the name: it is what search and fit reports use.
+    const std::string suffix=" ("+std::string(part)+")";
+    if(!copyOf.empty())return copyOf+" (witch copy)";
+    const auto noun=slotNoun(slot);
+    if(wearers.empty()||noun.empty())return std::string(slot)+suffix;
+    if(wearers.size()==1)return wearers.front()+"'s default "+std::string(noun)+suffix;
+    std::string names;
+    for(size_t i=0;i<wearers.size();++i)
+        names+=(i==0?"":i+1==wearers.size()?" and ":", ")+wearers[i];
+    return "Default "+std::string(noun)+" of "+names+suffix;
 }
 std::vector<uint32_t> wardrobeIconPixels(IWICBitmapDecoder& decoder,IWICImagingFactory& factory){
     Microsoft::WRL::ComPtr<IWICBitmapFrameDecode> frame;

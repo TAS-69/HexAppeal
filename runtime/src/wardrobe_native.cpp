@@ -99,12 +99,22 @@ struct Owned {
     std::vector<WardrobeVisibilityClaim> hiddenParts;
 };
 std::map<uintptr_t,Owned> owned;
-struct AddonSession {
+// Saved settings live in a store per settings owner. Records that share their main entry's
+// settings use its store, while each record keeps its own live session and editor.
+struct AddonStore {
     WardrobeSlots store;
-    bool loaded=false,checked=false,underwearPresent=false,followKnown=false;
-    uintptr_t actor=0;
-    uint64_t generation=1,seen=0,nextStoreProbe=0;
+    bool loaded=false;
+    int previewTarget=-1;
+    uint64_t nextStoreProbe=0,revision=1;
     std::string storageIssue;
+};
+std::map<int,AddonStore> addonStores;
+struct AddonSession {
+    AddonStore* data=nullptr;
+    uint64_t storeRevision=0;
+    bool checked=false,underwearPresent=false,followKnown=false,previewed=false;
+    uintptr_t actor=0;
+    uint64_t generation=1,seen=0,identified=0;
     OutfitSlots worn,follow;
     SavedWardrobeEdit edit;
     Owned live;
@@ -113,23 +123,78 @@ struct AddonSession {
     std::string status;
 };
 std::map<int,AddonSession> addonSessions;
-AddonSession& addonSession(int target,const CharacterAddon& addon){
-    auto [entry,inserted]=addonSessions.try_emplace(target);
-    auto& session=entry->second;
+AddonStore& addonStore(int owner){
+    auto& data=addonStores[owner];
+    const auto* addon=characterAddon(owner);
     const auto now=GetTickCount64();
-    if(!session.loaded&&now>=session.nextStoreProbe){
-        session.nextStoreProbe=now+2000;
+    if(addon&&!data.loaded&&now>=data.nextStoreProbe){
+        data.nextStoreProbe=now+2000;
         const auto& profiles=Runtime::get().profiles;
-        const auto file=profiles.parent_path()/L"CharacterWardrobe"/("npc_"+addon.id+".txt");
+        const auto file=profiles.parent_path()/L"CharacterWardrobe"/("npc_"+addon->id+".txt");
         std::string issue;
-        session.loaded=!profiles.empty()&&session.store.load(file,issue,true);
+        data.loaded=!profiles.empty()&&data.store.load(file,issue,true);
         if(profiles.empty())issue="The character Wardrobe settings folder is unavailable.";
-        if(!session.loaded&&!profiles.empty())issue+="\nFile: "+file.u8string();
-        if(!issue.empty()&&issue!=session.storageIssue)
-            LOG("Character Wardrobe %s: %s",addon.id.c_str(),issue.c_str());
-        session.storageIssue=std::move(issue);
+        if(!data.loaded&&!profiles.empty())issue+="\nFile: "+file.u8string();
+        if(!issue.empty()&&issue!=data.storageIssue)
+            LOG("Character Wardrobe %s: %s",addon->id.c_str(),issue.c_str());
+        data.storageIssue=std::move(issue);
+        if(data.loaded)++data.revision;
+    }
+    return data;
+}
+AddonSession& addonSession(int target,const CharacterAddon&){
+    auto& session=addonSessions[target];
+    auto& data=addonStore(addonSettingsTarget(target));
+    // Another record that shares these settings may have changed them.
+    if(session.data!=&data||session.storeRevision!=data.revision){
+        session.data=&data;
+        session.storeRevision=data.revision;
+        ++session.generation;
     }
     return session;
+}
+void storeChanged(AddonSession& session){
+    session.storeRevision=++session.data->revision;
+    ++session.generation;
+}
+// F9 edits through the open editor, the requested record, or a loaded record sharing its settings.
+int liveAddonTarget(int target){
+    const auto stored=addonStores.find(addonSettingsTarget(target));
+    if(stored!=addonStores.end()&&stored->second.previewTarget>=0)return stored->second.previewTarget;
+    const auto group=addonSettingsGroup(target);
+    const auto now=GetTickCount64();
+    const auto seen=[&](int member){
+        const auto found=addonSessions.find(member);
+        return found!=addonSessions.end()&&wardrobeActorRecentlySeen(now,found->second.seen);
+    };
+    if(seen(target))return target;
+    for(const int member:group)if(seen(member))return member;
+    return target;
+}
+const SavedWardrobeEdit* addonPreview(AddonSession& session){
+    if(!session.checked||session.edit.restoring)return nullptr;
+    const auto source=addonSessions.find(session.data->previewTarget);
+    if(source==addonSessions.end()||!source->second.edit.open)return nullptr;
+    if(!session.previewed){
+        session.edit.before=session.worn;
+        session.previewed=true;
+    }
+    return &source->second.edit;
+}
+void endAddonPreview(AddonStore& data,bool restoreGame){
+    if(data.previewTarget<0)return;
+    data.previewTarget=-1;
+    for(auto& [target,session]:addonSessions){
+        if(session.data!=&data||!session.previewed)continue;
+        auto before=std::move(session.edit.before);
+        session.edit={};
+        session.previewed=false;
+        if(restoreGame){
+            session.edit.restore=std::move(before);
+            session.edit.restoring=true;
+        }
+    }
+    ++data.revision;
 }
 uintptr_t ptr(uintptr_t at){__try{return at?*reinterpret_cast<const uintptr_t*>(at):0;}__except(EXCEPTION_EXECUTE_HANDLER){return 0;}}
 uint32_t num(uintptr_t at){__try{return at?*reinterpret_cast<const uint32_t*>(at):0;}__except(EXCEPTION_EXECUTE_HANDLER){return 0;}}
@@ -141,9 +206,10 @@ bool text(uintptr_t wrapper,char* out,size_t capacity){
 }
 bool bytes(uintptr_t at,const unsigned char* expected,size_t count){unsigned char actual[32]{};return count<=sizeof actual&&read(at,actual,count)&&!memcmp(actual,expected,count);}
 bool retain(uintptr_t wrapper){__try{auto* refs=reinterpret_cast<volatile LONG*>(wrapper+16);const auto value=*refs;if(value<0)return true;if(value<1||value>0x1000000)return false;InterlockedIncrement(refs);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
-bool release(uintptr_t* wrapper){__try{reinterpret_cast<void(*)(uintptr_t*)>(base+gameLayout().releaseWrapper)(wrapper);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
-bool destroy(WardrobeRecord* record){__try{reinterpret_cast<void(*)(void*)>(base+gameLayout().destroyRecord)(record);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
+bool release(uintptr_t* wrapper){if(!loadedGameLayout())return false;__try{reinterpret_cast<void(*)(uintptr_t*)>(base+gameLayout().releaseWrapper)(wrapper);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
+bool destroy(WardrobeRecord* record){if(!loadedGameLayout())return false;__try{reinterpret_cast<void(*)(void*)>(base+gameLayout().destroyRecord)(record);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}}
 bool copyPart(WardrobeRecord* destination,const WardrobeRecord* source){
+    if(!loadedGameLayout())return false;
     __try{return reinterpret_cast<WardrobeRecord*(*)(WardrobeRecord*,const WardrobeRecord*)>(base+gameLayout().copyRecord)(destination,source)==destination;}
     __except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
@@ -154,6 +220,7 @@ bool pipeline(uintptr_t node,WardrobeVector* removals,WardrobeVector* additions,
 }
 template<class Visitor>
 bool visitRegisteredParts(Visitor visitor){
+    if(!loadedGameLayout())return false;
     const auto loader=ptr(base+gameLayout().loaderGlobal),table=loader+0x50;const auto count=num(table+4),capacity=num(table+8);const auto entries=ptr(table+0x18);
     if(!loader||!entries||!count||count>capacity||count>100000)return false;
     for(uint32_t i=0;i<count;++i){const auto entry=ptr(entries+i*8),wrapper=ptr(entry+8);char candidate[192]{};
@@ -581,7 +648,7 @@ bool queueSlotLook(const WardrobeSnapshot& snapshot,Owned& entry,const OutfitSlo
             else availableTarget[slot]=current->second;
         }
     }
-    const bool includeRetainedParts=selected==SlotOutfit::Saved||selected==SlotOutfit::Barber;
+    const bool includeRetainedParts=snapshot.witch>=firstAddonCharacter||selected==SlotOutfit::Saved||selected==SlotOutfit::Barber;
     const auto changes=outfitSlotChanges(worn,availableTarget,includeRetainedParts);
     if(changes.add.empty()&&changes.remove.empty()){
         entry.slotAttempt=generation;
@@ -1293,8 +1360,10 @@ bool setWardrobeSlotHidden(int witch,const std::string& slot,bool hidden,std::st
     std::lock_guard<std::mutex> lock(mutex);
     if(const auto* addon=characterAddon(witch);addon&&characterAddonEnabled(witch)){
         auto& session=addonSession(witch,*addon);
-        if(!session.loaded){error=session.storageIssue;return false;}
-        return session.store.setHidden(0,slot,hidden,error);
+        if(!session.data->loaded){error=session.data->storageIssue;return false;}
+        if(!session.data->store.setHidden(0,slot,hidden,error))return false;
+        storeChanged(session);
+        return true;
     }
     if(!slotStoreReady){error=slotStoreIssue;return false;}
     return slotStore.setHidden(witch,slot,hidden,error);
@@ -1315,9 +1384,9 @@ bool unequipWardrobeSlot(int target,const std::string& slot,std::string& error){
 std::vector<WardrobeItemControl> equippedWardrobeItemControls(int witch,bool preview){
     std::lock_guard<std::mutex> lock(mutex);
     if(const auto* addon=characterAddon(witch);addon&&characterAddonEnabled(witch)){
-        const auto& session=addonSession(witch,*addon);
-        const auto& profile=session.store.profile(0);
-        if(!session.loaded||preview!=session.edit.open||(!preview&&profile.selected!=SlotOutfit::Saved))return {};
+        const auto& session=addonSession(liveAddonTarget(witch),*addon);
+        const auto& profile=session.data->store.profile(0);
+        if(!session.data->loaded||preview!=session.edit.open||(!preview&&profile.selected!=SlotOutfit::Saved))return {};
         return wardrobeItemControls(preview?session.edit.draft:profile.saved,preview?session.edit.options:profile.itemOptions);
     }
     if(witch<0||witch>=int(savedEdits.size())||!slotStoreReady)return {};
@@ -1335,12 +1404,12 @@ bool setEquippedWardrobeItemControl(int witch,bool preview,const std::string& ou
         witch<0||witch>=int(savedEdits.size())||!slotStoreReady||!capabilities().switchReady){
         error="Saved Wardrobe is unavailable.";return false;
     }
-    auto* session=addon?&addonSession(witch,*addon):nullptr;
+    auto* session=addon?&addonSession(liveAddonTarget(witch),*addon):nullptr;
     auto& edit=session?session->edit:savedEdits[witch];
-    auto& store=session?session->store:slotStore;
+    auto& store=session?session->data->store:slotStore;
     const int index=session?0:witch;
     const auto& profile=store.profile(index);
-    if(session&&!session->loaded){error=session->status;return false;}
+    if(session&&!session->data->loaded){error=session->status;return false;}
     if(preview!=edit.open||(!preview&&(profile.selected!=SlotOutfit::Saved||
        (!session&&wardrobeOutfitId(selections.snapshot().choices[witch])!="hexappeal/default")))){
         error="Select the equipped item in [HA] Wardrobe first.";return false;
@@ -1356,7 +1425,7 @@ bool setEquippedWardrobeItemControl(int witch,bool preview,const std::string& ou
     else options[{outfit,control}]=match->control.type==HA_TOGGLE?std::to_string(value):match->control.options[value].id;
     if(preview)edit.options=std::move(options);
     else if(!store.save(index,SlotOutfit::Saved,profile.saved,error,false,&options))return false;
-    if(session)++session->generation;
+    if(session)storeChanged(*session);
     else ++slotGeneration[witch];
     return true;
 }
@@ -1375,15 +1444,17 @@ bool addonSupportsSlots(const CharacterAddon& addon,const OutfitSlots& slots){
     return true;
 }
 bool addonCanEdit(const AddonSession& session){
-    return session.loaded&&session.checked&&writesAllowed&&engineReady&&slotTransportReady&&
+    return session.data->loaded&&session.checked&&writesAllowed&&engineReady&&slotTransportReady&&
         wardrobeActorRecentlySeen(GetTickCount64(),session.seen);
 }
 bool addonCanEdit(const AddonSession& session,std::string& error){
     if(addonCanEdit(session))return true;
-    if(!session.loaded)error=session.storageIssue;
+    if(!session.data->loaded)error=session.data->storageIssue;
     else if(!writesAllowed||!engineReady)error=detail;
     else if(!slotTransportReady)error=slotTransportIssue;
-    else if(!wardrobeActorRecentlySeen(GetTickCount64(),session.seen))error="The live appearance has not been observed. Bring the character into view.";
+    else if(!wardrobeActorRecentlySeen(GetTickCount64(),session.seen))
+        error=wardrobeActorRecentlySeen(GetTickCount64(),session.identified)&&!session.status.empty()?
+            session.status:"The live appearance has not been observed. Bring the character into view.";
     else error=session.status.empty()?"The current appearance has no usable equipment slots.":session.status;
     return false;
 }
@@ -1394,7 +1465,7 @@ bool equipAddonParts(AddonSession& session,const std::string& slot,const OutfitP
     next[slot]=parts;
     if(outfitSlotParts(next).size()>24){error="This outfit has too many parts.";return false;}
     session.edit.draft=std::move(next);
-    ++session.generation;
+    storeChanged(session);
     return true;
 }
 bool addonBaseUnderwear(const WardrobeSnapshot& snapshot,AddonSession& session,bool exposed,bool hide,bool enabled){
@@ -1446,9 +1517,10 @@ void tickAddonWardrobe(uintptr_t actor,int target,uint64_t observedAt){
     const bool enabled=characterAddonEnabled(target);
     if(!enabled&&addonSessions.find(target)==addonSessions.end())return;
     auto& session=addonSession(target,*addon);
-    if(!session.loaded)return;
+    if(!session.data->loaded)return;
     const auto now=GetTickCount64();
     if(session.actor!=actor&&wardrobeActorRecentlySeen(now,session.seen))return;
+    session.identified=observedAt;
     WardrobeSnapshot snapshot;
     const char* issue=nullptr;
     if(!captureWardrobeSnapshot(actor,target,base,snapshot,addon->appearance.c_str(),&issue)){
@@ -1458,12 +1530,25 @@ void tickAddonWardrobe(uintptr_t actor,int target,uint64_t observedAt){
     }
     auto& live=session.live;
     if(session.actor!=actor||live.node!=snapshot.node||live.renderer!=snapshot.renderer||live.control!=snapshot.control){
+        Owned replacement;
         if(session.actor!=actor){
-            if(session.edit.open||session.edit.restoring){session.edit={};++session.generation;}
+            if(session.edit.open)
+                endAddonPreview(*session.data,session.data->store.profile(0).selected==SlotOutfit::Game);
+            session.edit={};
+            session.previewed=false;
+            ++session.generation;
             session.followKnown=false;
             session.follow.clear();
+            LOG("Wardrobe observed add-on record %u on %s.",addon->recordKey,snapshot.appearance);
+        }else{
+            // Assembly can replace the renderer. Keep the in-flight request for this actor.
+            replacement.slotRequest=live.slotRequest;
+            replacement.slotRetry=live.slotRetry;
+            replacement.slotRetryAt=live.slotRetryAt;
+            replacement.slotDeadline=live.slotDeadline;
+            replacement.slotTarget=std::move(live.slotTarget);
         }
-        live={};
+        live=std::move(replacement);
         session.shownBase.clear();
         session.externalUnderwear=false;
         live.node=snapshot.node;
@@ -1475,7 +1560,7 @@ void tickAddonWardrobe(uintptr_t actor,int target,uint64_t observedAt){
     }
     session.seen=observedAt;
     if(now-live.observedAt<250){session.checked=false;session.status="Waiting for the outfit to load.";return;}
-    const auto& profile=session.store.profile(0);
+    const auto& profile=session.data->store.profile(0);
     session.worn=wornSlots(snapshot,profile);
     const bool commonUnderwear=addonVenusBodyActive(target);
     session.underwearPresent=commonUnderwear?addonVenusUnderwearPresent(target):std::any_of(snapshot.claims.begin(),snapshot.claims.begin()+snapshot.claimCount,
@@ -1484,18 +1569,19 @@ void tickAddonWardrobe(uintptr_t actor,int target,uint64_t observedAt){
     auto& status=session.status;
     auto& edit=session.edit;
     const auto current=outfitSlotParts(session.worn);
-    if(session.checked&&!edit.open&&!edit.restoring&&(!session.followKnown||profile.selected==SlotOutfit::Game)){
+    if(session.checked&&!session.previewed&&!edit.restoring&&(!session.followKnown||profile.selected==SlotOutfit::Game)){
         session.follow=session.worn;
         session.followKnown=true;
     }
+    const auto* preview=addonPreview(session);
     const bool hideOutfit=enabled&&profile.hideOutfit;
     const bool hideUnderwear=enabled&&addonUnderwearHidden(target)&&(!commonUnderwear||!underwearOwnership(target).delegated);
     const bool expose=hideOutfit||(profile.selected==SlotOutfit::Saved&&profile.hasSaved&&profile.saved.empty());
     const bool baseHidden=!commonUnderwear&&addonBaseUnderwear(snapshot,session,expose,hideUnderwear,enabled);
-    const auto* saved=edit.open?&edit.draft:!edit.restoring&&profile.selected==SlotOutfit::Saved&&profile.hasSaved?&profile.saved:nullptr;
+    const auto* saved=preview?&preview->draft:!edit.restoring&&profile.selected==SlotOutfit::Saved&&profile.hasSaved?&profile.saved:nullptr;
     WardrobeItemLook itemLook;
     if(enabled&&saved){
-        itemLook=resolveWardrobeItems(*saved,edit.open?edit.options:profile.itemOptions,hideOutfit,hideUnderwear);
+        itemLook=resolveWardrobeItems(*saved,preview?preview->options:profile.itemOptions,hideOutfit,hideUnderwear);
         OutfitParts variants;
         for(const auto& [slot,parts]:itemLook.slots)if(parts!=saved->at(slot))variants.insert(parts.begin(),parts.end());
         if(variants!=live.itemVariants||(!live.missingItemVariants.empty()&&now-live.itemVariantsChecked>=1500)){
@@ -1517,7 +1603,7 @@ void tickAddonWardrobe(uintptr_t actor,int target,uint64_t observedAt){
             parts=saved->at(slot);
         }
     }
-    const auto mode=edit.open||edit.restoring?SlotOutfit::Saved:profile.selected;
+    const auto mode=preview||edit.restoring?SlotOutfit::Saved:profile.selected;
     const auto* desired=edit.restoring?&edit.restore:mode==SlotOutfit::Default?&addon->defaults:
         saved?&itemLook.slots:nullptr;
     const auto wanted=desired?outfitSlotParts(*desired):OutfitParts{};
@@ -1550,6 +1636,8 @@ void tickAddonWardrobe(uintptr_t actor,int target,uint64_t observedAt){
         return;
     }
     if(current==wanted||maskExtras){
+        if(live.slotDeadline&&visibility)
+            LOG("Wardrobe outfit acknowledged for add-on record %u.",addon->recordKey);
         live.slotDeadline=0;
         if(edit.restoring&&visibility)edit={};
         live.slotRetry.tryAgain(now,true,true,0);
@@ -1582,10 +1670,10 @@ AddonWardrobeStatus addonWardrobeStatus(int target){
     std::lock_guard<std::mutex> lock(mutex);
     const auto* addon=characterAddon(target);
     if(!addon)return {};
-    const auto& session=addonSession(target,*addon);
-    const auto& profile=session.store.profile(0);
+    const auto& session=addonSession(liveAddonTarget(target),*addon);
+    const auto& profile=session.data->store.profile(0);
     std::string status=session.status;
-    if(session.loaded&&!wardrobeActorRecentlySeen(GetTickCount64(),session.seen))
+    if(session.data->loaded&&!wardrobeActorRecentlySeen(GetTickCount64(),session.identified))
         status="Waiting for "+addon->label+"'s supported appearance.";
     const bool actorSeen=wardrobeActorRecentlySeen(GetTickCount64(),session.seen);
     const bool enabled=characterAddonEnabled(target);
@@ -1595,7 +1683,7 @@ AddonWardrobeStatus addonWardrobeStatus(int target){
     const bool savedAvailable=profile.hasSaved&&addonSupportsSlots(*addon,profile.saved);
     return {std::move(status),actorSeen?session.worn:OutfitSlots{},profile.saved,session.edit.draft,profile.hidden,profile.selected,
             enabled&&addonCanEdit(session),session.edit.open,profile.hideOutfit,savedAvailable,
-            enabled&&session.loaded&&writesAllowed&&engineReady&&slotTransportReady,
+            enabled&&session.data->loaded&&writesAllowed&&engineReady&&slotTransportReady,
             actorSeen&&session.underwearPresent,actorSeen,actorSeen&&session.externalUnderwear};
 }
 
@@ -1605,42 +1693,142 @@ bool selectAddonOutfit(int target,SlotOutfit outfit,std::string& error){
     if(!addon||!characterAddonEnabled(target)||(outfit!=SlotOutfit::Default&&outfit!=SlotOutfit::Game&&outfit!=SlotOutfit::Saved)){
         error="Choose an installed character and a supported outfit.";return false;
     }
-    auto& session=addonSession(target,*addon);
-    if(!session.loaded){error=session.storageIssue;return false;}
-    if(outfit==SlotOutfit::Saved&&!addonSupportsSlots(*addon,session.store.profile(0).saved)){
+    auto& session=addonSession(liveAddonTarget(target),*addon);
+    if(!session.data->loaded){error=session.data->storageIssue;return false;}
+    if(outfit==SlotOutfit::Saved&&!addonSupportsSlots(*addon,session.data->store.profile(0).saved)){
         error="Rebuild the saved outfit with equipment supported by this add-on.";return false;
     }
-    const auto previous=session.store.profile(0).selected;
-    if(!session.store.select(0,outfit,error))return false;
-    session.edit={};
-    if(outfit==SlotOutfit::Game&&previous!=SlotOutfit::Game&&session.followKnown&&
-       wardrobeActorRecentlySeen(GetTickCount64(),session.seen)){
-        session.edit.restore=session.follow;
-        session.edit.restoring=true;
+    const auto previous=session.data->store.profile(0).selected;
+    if(!session.data->store.select(0,outfit,error))return false;
+    endAddonPreview(*session.data,outfit==SlotOutfit::Game);
+    if(outfit==SlotOutfit::Game&&previous!=SlotOutfit::Game){
+        const auto now=GetTickCount64();
+        for(const int member:addonSettingsGroup(target)){
+            const auto found=addonSessions.find(member);
+            if(found==addonSessions.end())continue;
+            auto& record=found->second;
+            record.edit={};
+            if(record.followKnown&&wardrobeActorRecentlySeen(now,record.seen)){
+                record.edit.restore=record.follow;
+                record.edit.restoring=true;
+            }
+        }
+    }else if(outfit!=SlotOutfit::Game){
+        for(const int member:addonSettingsGroup(target)){
+            const auto found=addonSessions.find(member);
+            if(found!=addonSessions.end())found->second.edit={};
+        }
     }
-    ++session.generation;
+    storeChanged(session);
     return true;
 }
+#ifdef HEX_MENU_TESTS
+bool verifyAddonFollowGame(const std::filesystem::path& folder,std::string& error,bool fullRoster){
+    Runtime::get().profiles=folder/L"profiles.ini";
+    initializeCharacterAddons(folder);
+    const auto main=addonTargetForRecord("Nairah");
+    const auto variant=addonTargetForRecord("NHW_Unique_Nairah_DualSword_412");
+    const auto unseen=addonTargetForRecord("NHW_Unique_Nairah_DualSword_444");
+    if(main<0||variant<0||unseen<0||!addonGroupShared(main)){
+        error="The shared Naira fixture did not load.";
+        return false;
+    }
+    if(fullRoster&&unseen!=int(characterCapacity)-1){
+        error="The Naira test must reach the last available character slot.";
+        return false;
+    }
+    auto& first=addonSession(main,*characterAddon(main));
+    auto& second=addonSession(variant,*characterAddon(variant));
+    auto& third=addonSession(unseen,*characterAddon(unseen));
+    first.follow={{"Upper body",{"cd_phw_00_ub_00_0137"}}};
+    second.follow={{"Upper body",{"cd_phw_00_ub_00_0158"}}};
+    first.followKnown=second.followKnown=true;
+    first.worn=first.follow;
+    second.worn=second.follow;
+    first.checked=second.checked=true;
+    writesAllowed=engineReady=slotTransportReady=true;
+    first.seen=GetTickCount64();
+    if(openAddonWardrobe(variant,error,false)){
+        error="A native interaction edited a sibling when its exact record was unavailable.";
+        return false;
+    }
+    error.clear();
+    first.seen=second.seen=GetTickCount64();
+    if(!openAddonWardrobe(variant,error,false)||!clearAddonSlot(variant,"Upper body",error))return false;
+    if(!second.edit.open||addonPreview(first)!=&second.edit||!second.edit.draft.empty()||
+       first.edit.before!=first.worn||second.edit.before!=second.worn||addonPreview(third)){
+        error="The preview was not shared across both observed records with separate prior outfits.";
+        return false;
+    }
+    cancelAddonWardrobe(variant);
+    if(first.edit.restore!=first.follow||second.edit.restore!=second.follow||
+       !first.edit.restoring||!second.edit.restoring||first.data->previewTarget>=0||third.edit.restoring){
+        error="Cancelling the preview did not preserve each record's prior outfit.";
+        return false;
+    }
+    first.edit={};
+    second.edit={};
+    if(!openAddonWardrobe(variant,error,false)||!saveAddonWardrobe(variant,error))return false;
+    const auto oldGeneration=first.generation;
+    addonSession(main,*characterAddon(main));
+    if(first.data->store.profile(0).saved!=second.worn||
+       first.data->store.profile(0).selected!=SlotOutfit::Saved||
+       first.generation<=oldGeneration||first.data->previewTarget>=0){
+        error="Saving in a shared preview did not publish the outfit to the entire group.";
+        return false;
+    }
+    const OutfitSlots saved{{"Upper body",{"cd_phw_00_ub_00_0159"}}};
+    if(!first.data->store.save(0,SlotOutfit::Saved,saved,error,true)||
+       !selectAddonOutfit(variant,SlotOutfit::Game,error))return false;
+    if(first.edit.restore!=first.follow||second.edit.restore!=second.follow||
+       !first.edit.restoring||!second.edit.restoring||third.edit.restoring||
+       first.data->store.profile(0).saved!=saved){
+        error="Follow game did not queue each loaded record's own outfit and retain the saved profile.";
+        return false;
+    }
+    if(!selectAddonOutfit(variant,SlotOutfit::Game,error))return false;
+    if(!first.edit.restoring||!second.edit.restoring){
+        error="Selecting Follow game again interrupted a pending restore.";
+        return false;
+    }
+    if(!setAddonSettingsShared(main,false,error)||
+       !selectAddonOutfit(variant,SlotOutfit::Saved,error)||
+       !selectAddonOutfit(variant,SlotOutfit::Game,error))return false;
+    if(first.edit.restoring||!second.edit.restoring||second.edit.restore!=second.follow){
+        error="With separate settings, a restore must stay on the selected record.";
+        return false;
+    }
+    return true;
+}
+#endif
 bool setAddonOutfitHidden(int target,bool hidden,std::string& error){
     std::lock_guard<std::mutex> lock(mutex);
     const auto* addon=characterAddon(target);
     if(!addon||!characterAddonEnabled(target)){error="Choose an enabled character.";return false;}
     auto& session=addonSession(target,*addon);
-    if(!session.loaded){error=session.storageIssue;return false;}
-    return session.store.setOutfitHidden(0,hidden,error);
+    if(!session.data->loaded){error=session.data->storageIssue;return false;}
+    if(!session.data->store.setOutfitHidden(0,hidden,error))return false;
+    storeChanged(session);
+    return true;
 }
-bool openAddonWardrobe(int target,std::string& error){
+bool openAddonWardrobe(int target,std::string& error,bool allowSharedFallback){
     std::lock_guard<std::mutex> lock(mutex);
     const auto* addon=characterAddon(target);
     if(!addon){error="Choose an installed character.";return false;}
-    auto& session=addonSession(target,*addon);
+    const int selected=allowSharedFallback?liveAddonTarget(target):target;
+    auto& session=addonSession(selected,*addon);
     if(!addonCanEdit(session,error))return false;
     if(session.edit.open)return true;
-    const auto& profile=session.store.profile(0);
+    if(session.edit.restoring){error="Waiting for the previous outfit to return.";return false;}
+    const auto& profile=session.data->store.profile(0);
+    endAddonPreview(*session.data,profile.selected==SlotOutfit::Game);
+    if(session.edit.restoring){error="Waiting for the previous outfit to return.";return false;}
     const bool savedAvailable=profile.hasSaved&&addonSupportsSlots(*addon,profile.saved);
     session.edit={true,false,session.worn,savedAvailable?profile.saved:session.worn,{},
         savedAvailable?profile.itemOptions:WardrobeItemOptions{}};
-    ++session.generation;
+    session.previewed=true;
+    session.data->previewTarget=selected;
+    storeChanged(session);
     return true;
 }
 bool equipAddonItem(int target,const std::string& slot,const OutfitParts& parts,std::string& error){
@@ -1653,52 +1841,78 @@ bool equipAddonItem(int target,const std::string& slot,const OutfitParts& parts,
         error="This item has no checked appearance for that slot.";
         return false;
     }
-    return equipAddonParts(addonSession(target,*addon),slot,parts,error);
+    return equipAddonParts(addonSession(liveAddonTarget(target),*addon),slot,parts,error);
 }
 bool clearAddonSlot(int target,const std::string& slot,std::string& error){
     std::lock_guard<std::mutex> lock(mutex);
     const auto* addon=characterAddon(target);
     if(!addon||!validOutfitSlot(slot)){error="Choose an outfit slot for an installed character.";return false;}
-    auto& session=addonSession(target,*addon);
+    auto& session=addonSession(liveAddonTarget(target),*addon);
     if(!addonCanEdit(session,error)||!session.edit.open){if(error.empty())error="Open the wardrobe editor first.";return false;}
-    if(session.edit.draft.erase(slot))++session.generation;
+    if(session.edit.draft.erase(slot))storeChanged(session);
     return true;
 }
 bool saveAddonWardrobe(int target,std::string& error){
     std::lock_guard<std::mutex> lock(mutex);
     const auto* addon=characterAddon(target);
     if(!addon){error="Choose an installed character.";return false;}
-    auto& session=addonSession(target,*addon);
+    auto& session=addonSession(liveAddonTarget(target),*addon);
     if(!addonCanEdit(session,error)||!session.edit.open){if(error.empty())error="Open the wardrobe editor first.";return false;}
-    if(!session.store.save(0,SlotOutfit::Saved,session.edit.draft,error,true,&session.edit.options))return false;
-    session.edit={};
-    ++session.generation;
+    if(!session.data->store.save(0,SlotOutfit::Saved,session.edit.draft,error,true,&session.edit.options))return false;
+    endAddonPreview(*session.data,false);
     return true;
 }
 bool clearAddonWardrobe(int target,std::string& error){
     std::lock_guard<std::mutex> lock(mutex);
     const auto* addon=characterAddon(target);
     if(!addon||!characterAddonEnabled(target)){error="Choose an enabled character.";return false;}
-    auto& session=addonSession(target,*addon);
+    auto& session=addonSession(liveAddonTarget(target),*addon);
     if(!addonCanEdit(session,error)||!session.edit.open){if(error.empty())error="Open the wardrobe editor first.";return false;}
     session.edit.draft.clear();
     session.edit.options.clear();
-    ++session.generation;
+    storeChanged(session);
     return true;
 }
 void cancelAddonWardrobe(int target){
     std::lock_guard<std::mutex> lock(mutex);
-    const auto found=addonSessions.find(target);
-    if(found==addonSessions.end()||!found->second.edit.open)return;
-    auto& session=found->second;
-    const bool restoreGame=session.store.profile(0).selected==SlotOutfit::Game;
-    auto previous=std::move(session.edit.before);
-    session.edit={};
-    if(restoreGame){
-        session.edit.restore=std::move(previous);
-        session.edit.restoring=true;
+    const auto found=addonStores.find(addonSettingsTarget(target));
+    if(found==addonStores.end())return;
+    auto& data=found->second;
+    endAddonPreview(data,data.store.profile(0).selected==SlotOutfit::Game);
+}
+bool setAddonSettingsShared(int owner,bool shared,std::string& error){
+    std::lock_guard<std::mutex> lock(mutex);
+    const auto members=addonGroupTargets(owner);
+    const auto* main=characterAddon(owner);
+    if(!main||members.size()<2){error="This character has no other game records.";return false;}
+    const auto& profiles=Runtime::get().profiles;
+    if(!shared&&!profiles.empty()){
+        // Each record starts from the shared saved outfit unless it already has its own.
+        const auto folder=profiles.parent_path()/L"CharacterWardrobe";
+        const auto from=folder/("npc_"+main->id+".txt");
+        for(const int target:members){
+            if(target==owner)continue;
+            const auto to=folder/("npc_"+characterAddon(target)->id+".txt");
+            std::error_code ec;
+            if(std::filesystem::exists(to,ec)||!std::filesystem::exists(from,ec))continue;
+            if(!std::filesystem::copy_file(from,to,ec))
+                LOG("Character Wardrobe %s: could not copy the shared outfit (%s).",characterAddon(target)->id.c_str(),ec.message().c_str());
+            auto& data=addonStores[target];
+            data.store=WardrobeSlots{};
+            data.loaded=false;
+            data.nextStoreProbe=0;
+        }
     }
-    ++session.generation;
+    if(!setAddonGroupShared(owner,shared,error))return false;
+    for(const int target:members){
+        const auto stored=addonStores.find(target);
+        if(stored!=addonStores.end())endAddonPreview(stored->second,false);
+        const auto found=addonSessions.find(target);
+        if(found==addonSessions.end())continue;
+        found->second.edit={};
+        ++found->second.generation;
+    }
+    return true;
 }
 
 bool changeWardrobeChoice(int target,WardrobeField field,int value,std::string& error){

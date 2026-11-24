@@ -12,7 +12,7 @@ def build(base, model, physics, material, original_colours):
     packed_physics = physics.startswith(b"\x57\xe0\xe0\x57\x10\xc0\xc0\x10")
     tagged_physics = physics.startswith(b"TAG0SDKV") or physics[4:8] == b"TAG0"
     if model[:4] != b"PAR " or not (packed_physics or tagged_physics):
-        raise ValueError("Supply the currently mounted VENUS model and its matching physics.")
+        raise ValueError("Supply the currently mounted Venus Body for Damiane model and its matching physics.")
     colour_paths = {
         f"character/texture/{name}.dds": f"character/texture/hva_{name[4:]}.dds"
         for name in ("phw_00_nude_00_0001", "phw_00_nude_00_0001_hand")

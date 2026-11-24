@@ -82,9 +82,9 @@ if args.game:
     assert dependencies['status']=='PASS','One or more required local dependency files are missing or changed.'
     config=json.loads(dmm_config_path(args.game).read_text(encoding='utf-8'))
     selected,current=active_body(config,dmm_config_path(args.game))
-    assert refit_reference(metadata,sha(current))==baseline,'VENUS changed: review the outfit add-on before using it.'
+    assert refit_reference(metadata,sha(current))==baseline,'Venus Body for Damiane changed: review the outfit add-on before using it.'
     runtime={'checked':True,'enabled_variant':selected,'pac_sha256':sha(current),'shared_refit_reference_sha256':baseline}
 out={'scope':'Offline asset and source dependency checks only; see dmm-mount-verification.json and live-acceptance.json for separate live evidence.','offline_checks':len(checks),'status':'PASS','checks':checks,'venus_dependency':runtime,'in_game_tested':False,'dmm_mounted':False}
 (root/'reports'/'validation-summary.json').write_text(json.dumps(out,indent=2)+'\n')
-print('PASS:',len(checks),'offline asset checks; VENUS dependency', 'verified' if args.game else 'not checked against DMM')
+print('PASS:',len(checks),'offline asset checks; Venus Body for Damiane dependency', 'verified' if args.game else 'not checked against DMM')
 print('This command does not launch or mount the game. Separate mount and live acceptance reports are retained.')

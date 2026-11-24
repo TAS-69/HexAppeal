@@ -16,6 +16,8 @@ The SDK download includes these files under `examples/`. In the repository they 
 
 You need an x64 Windows C++17 provider plugin. The examples compile as objects for your plugin; they are not standalone ASIs. A file-only outfit can still be installed normally, but adding it to this menu needs provider code. JSON is a build definition, not an auto-loaded outfit manifest.
 
+For a character add-on, use a TSV manifest and the SDK packager. See the [character add-on format](../../runtime/sdk/CHARACTER-ADDONS.md) and the [Rucchia and Stranger example](../../runtime/sdk/examples/character-variants/README.md).
+
 ## First integration
 
 1. Copy the SDK into your provider project. Use a stable ID such as `yourname/dress` and the actual outfit/mod title as its label. The `hexappeal/` namespace is reserved.

@@ -1,6 +1,7 @@
 #include "runtime.h"
 #include "character_addons.h"
 #include "wardrobe_slots.h"
+#include "wardrobe_native.h"
 #include "gui/menu.h"
 #include "core/state.h"
 #include "controls.h"
@@ -123,6 +124,13 @@ static void verifyScale(hex::Runtime& runtime,const std::string& previewPath){
     if(ml::gui::WantsDraw())throw std::runtime_error("4K Wardrobe editor did not close");
 }
 int main(int argc,char** argv){try{
+    const std::string_view mode=argc>=2?argv[1]:"";
+    if(argc==3&&(mode=="--addon-follow-game"||mode=="--addon-follow-game-capacity")){
+        std::string error;
+        if(!hex::verifyAddonFollowGame(argv[2],error,mode=="--addon-follow-game-capacity"))throw std::runtime_error(error);
+        std::puts("PASS: shared and separate Follow game outfit restoration.");
+        return 0;
+    }
     if(argc!=3&&argc!=4&&argc!=6)throw std::runtime_error("preview output, profile output, optional addon folder or width height page required");
     ImGui::CreateContext();auto& io=ImGui::GetIO();io.DisplaySize=argc==6?ImVec2(float(atoi(argv[3])),float(atoi(argv[4]))):ImVec2(1200,1000);io.DeltaTime=1.f/60.f;io.IniFilename=nullptr;
     auto& r=hex::Runtime::get();r.preview=true;r.shapingAvailable=true;r.hexAvailable=true;r.weightAvailable=true;r.profiles=argv[2];r.native.detail="Offline preview: no game or editor is loaded.";
@@ -246,14 +254,65 @@ int main(int argc,char** argv){try{
     if(argc==4){
         const int before=r.model.target;
         hex::initializeCharacterAddons(argv[3]);
+        const int maegu=hex::addonTargetForRecord("NHW_Unique_Maegu_3452");
+        const int woosa=hex::addonTargetForRecord("NHW_Unique_Woosa_3453");
+        if(maegu<0||woosa<0)throw std::runtime_error("the independent NPC picker requires Woosa and Maegu");
+        const auto packRow="target"+std::to_string(maegu);
+        const auto duplicateRow="target"+std::to_string(woosa);
+        const auto activeBefore=hex::enabledAddonTargets();
+        hex::Profile maeguShape,woosaShape;
+        maeguShape.height=.15f;
+        woosaShape.height=-.1f;
+        std::string issue;
+        if(!hex::saveAddonBodyProfile(maegu,maeguShape,issue)||!hex::saveAddonBodyProfile(woosa,woosaShape,issue))
+            throw std::runtime_error(issue);
+        const hex::OutfitSlots maeguLook{{"Upper body",{"cd_phw_00_ub_00_0137"}}};
+        const hex::OutfitSlots woosaLook{{"Upper body",{"cd_phw_00_ub_00_0158"}}};
+        const auto seedLook=[&](int target,const hex::OutfitSlots& look){
+            const auto dir=r.profiles.parent_path()/"CharacterWardrobe";
+            std::filesystem::create_directories(dir);
+            const auto file=dir/("npc_"+hex::characterAddon(target)->id+".txt");
+            hex::WardrobeSlots saved;
+            if(!saved.load(file,issue,true)||!saved.save(0,hex::SlotOutfit::Saved,look,issue,true))
+                throw std::runtime_error(issue);
+        };
+        seedLook(maegu,maeguLook);
+        seedLook(woosa,woosaLook);
         frame();frame();click("tabInterface");click("characterPatches");frame();
-        if(!hex::test::controls.count("patch.maegu-woosa")||!hex::test::controls.count("target6")||
-           !hex::test::controls.count("target7"))
-            throw std::runtime_error("character patch management or main roster entries are missing");
-        click("target6");
+        if(!hex::test::controls.count("patch.maegu-woosa")||!hex::test::controls.count(packRow)||
+           hex::test::controls.count(duplicateRow))
+            throw std::runtime_error("Woosa and Maegu must share one sidebar row");
+        click(packRow);
         click("tabShape");
         if(!hex::test::controls.count("pad")||!hex::test::controls.count("height")||!hex::test::controls.count("weight"))
             throw std::runtime_error("add-on shape controls are missing");
+        if(!hex::test::controls.count("addonRecord")||hex::test::controls.count("shareVariants.ha_maegu"))
+            throw std::runtime_error("the independent NPC picker must appear without a Combine instances checkbox");
+        click("addonRecord");
+        frame();
+        click("packNpc"+std::to_string(woosa));
+        frame();
+        click(packRow);
+        if(!hex::test::controls.count("selectedAddon"+std::to_string(woosa)))
+            throw std::runtime_error("the pack sidebar row must keep the NPC chosen in its dropdown");
+        click("height",.9f);
+        if(!(hex::addonBodyProfile(maegu).profile==maeguShape)||hex::addonBodyProfile(woosa).profile==woosaShape)
+            throw std::runtime_error("selecting Woosa must direct the Shape edit only to Woosa. Heights "+
+                std::to_string(hex::addonBodyProfile(maegu).profile.height)+" / "+
+                std::to_string(hex::addonBodyProfile(woosa).profile.height)+". "+r.model.message);
+        const auto editedWoosa=hex::addonBodyProfile(woosa).profile;
+        click("addonRecord");
+        frame();
+        click("packNpc"+std::to_string(maegu));
+        frame();
+        click("height",.25f);
+        const auto maeguWardrobe=hex::addonWardrobeStatus(maegu);
+        const auto woosaWardrobe=hex::addonWardrobeStatus(woosa);
+        if(hex::enabledAddonTargets()!=activeBefore||
+           !(hex::addonBodyProfile(woosa).profile==editedWoosa)||hex::addonBodyProfile(maegu).profile==maeguShape||
+           maeguWardrobe.selected!=hex::SlotOutfit::Saved||maeguWardrobe.savedSlots!=maeguLook||
+           woosaWardrobe.selected!=hex::SlotOutfit::Saved||woosaWardrobe.savedSlots!=woosaLook)
+            throw std::runtime_error("switching NPCs interrupted the active roster or changed another NPC's saved Shape or outfit");
         click("tabWardrobe");
         for(const auto* control:{"outfit","editWardrobe","outfitSlots","outfitHidden","underwearOwner","underwear"})
             if(!hex::test::controls.count(control))throw std::runtime_error(std::string("shared Wardrobe missing ")+control);
@@ -265,14 +324,39 @@ int main(int argc,char** argv){try{
         frame();
         click("tabInterface");
         click("patch.maegu-woosa");frame();
-        if(hex::test::controls.count("target6")||hex::test::controls.count("target7")||r.model.target!=-1)
-            throw std::runtime_error("disabling a selected patch did not remove its roster entries and select all");
+        if(hex::test::controls.count(packRow)||hex::test::controls.count(duplicateRow)||r.model.target!=-1)
+            throw std::runtime_error("disabling the selected patch must remove its sidebar row and select all");
         click("patch.maegu-woosa");frame();
-        if(!hex::test::controls.count("target6")||!hex::test::controls.count("target7"))
-            throw std::runtime_error("enabling the patch did not restore its roster entries");
+        if(!hex::test::controls.count(packRow)||hex::test::controls.count(duplicateRow))
+            throw std::runtime_error("re-enabling the patch must restore a single sidebar row");
+        click(packRow);
+        if(!hex::test::controls.count("addonRecord")||hex::test::controls.count("shareVariants.ha_maegu"))
+            throw std::runtime_error("the independent NPC picker should return when the pack is re-enabled");
+        const auto naira=hex::addonTargetForRecord("Nairah");
+        if(naira>=hex::firstAddonCharacter){
+            const std::string combine="shareVariants.ha_naira";
+            const auto checkInline=[&](const std::string& name){
+                const auto header=hex::test::controls.at(name);
+                const auto checkbox=hex::test::controls.at(combine);
+                if(header.max.x>checkbox.min.x||header.min.y>=checkbox.max.y||header.max.y<=checkbox.min.y)
+                    throw std::runtime_error("the instance checkbox is not to the right of the character header");
+            };
+            click("target"+std::to_string(naira));
+            checkInline("characterName");
+            click(combine);frame();
+            if(hex::addonGroupShared(naira))throw std::runtime_error("the checkbox did not split Naira's settings");
+            checkInline("addonRecord");
+            click("addonRecord");
+            click("instance"+std::to_string(hex::addonTargetForRecord("NHW_Unique_Nairah_DualSword_444")));
+            click("compact");frame();
+            checkInline("quickWitch");
+            click(combine);frame();
+            if(!hex::addonGroupShared(naira))throw std::runtime_error("the compact checkbox did not recombine Naira's settings");
+            click("compact");frame();
+        }
         click("target"+std::to_string(before));
         click("tabShape");
-        if(!hex::test::controls.count("pad")||r.model.target!=before)
+        if(!hex::test::controls.count("pad")||!hex::test::controls.count("characterName")||r.model.target!=before)
             throw std::runtime_error("returning from Characters changed the witch interface");
     }
     verifyScale(r,argv[1]);

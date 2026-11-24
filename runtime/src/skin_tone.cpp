@@ -331,7 +331,7 @@ SkinToneSource activeVenusDamianeSkin(const std::map<std::string,fs::path>& rout
     if(mountedBodyMode(routes,nullptr,nullptr)!=BodyMode::Venus)
         return {{},{},"Skin matching requires the VENUS witch body option."};
     if(!mountedDamianeVenus(routes))
-        return {{},{},"Skin matching requires a recognised VENUS Body for Damiane to be active."};
+        return {{},{},"Skin matching requires a recognised Venus Body for Damiane to be active."};
     auto source=activeDamianeSkin(routes);
     source.bodyColours=stockBodyColours;
     if(const auto material=routes.find(venusMaterial);material!=routes.end()){
@@ -357,32 +357,80 @@ SkinToneSource activeVenusDamianeSkin(const std::map<std::string,fs::path>& rout
     return source;
 }
 
+namespace {
+constexpr auto standardBody="phw_00_nude_00_0001";
+constexpr auto standardBodyModelRoute="character/model/1_pc/2_phw/nude/phw_00_nude_00_0001.pac";
+constexpr auto noUnderwearVenusBody="phw_00_nude_00_0001_damian_lnw";
+constexpr auto vanillaDamianeBody="hvw_00_nude_00_0001_damian";
+constexpr auto vanillaDamianePrefabRoute="character/bin__/prefab/ha_p/02_phw/nude/hvw_00_nude_00_0001_damian.prefab";
+
+// Add-ons may name NPC appearances or female player-class appearances such as Naira's.
+// Damiane's own appearance stays with the player and is never an add-on body.
+bool addonBodyRoute(const std::string& route){
+    if(route.rfind("character/appearance/3_npc/",0)==0)return true;
+    return route.rfind("character/appearance/1_pc/2_phw/",0)==0&&
+        route.rfind("character/appearance/1_pc/2_phw/cd_phw_damian/",0)!=0;
+}
+bool prefabData(const std::string& prefab){
+    return prefab.compare(0,6,std::string("\xff\xff\x04\0\0\0",6))==0;
+}
+}
+
 AddonVenusAssets prepareAddonVenus(const fs::path& game,
     const std::map<std::string,fs::path>& routes,const std::vector<std::string>& appearances){
     AddonVenusAssets plan;
     uint32_t unavailable=0;
-    if(appearances.empty()||mountedBodyMode(routes,nullptr,&unavailable)!=BodyMode::Venus)return plan;
-    const auto model=routes.find(venusBodyModelRoute);
-    if(model==routes.end()||isOwnModContent(model->second)||!readableDependency(model->second,"PAR "))return plan;
+    if(appearances.empty())return plan;
+    const auto mode=mountedBodyMode(routes,nullptr,&unavailable);
+    if(mode!=BodyMode::Venus&&mode!=BodyMode::Vanilla)return plan;
     const GameArchive archive(game/L"0009");
     const auto read=[&](const std::string& route){
         const auto mounted=routes.find(route);
         return mounted==routes.end()?archive.read(route):readAsset(mounted->second);
     };
+    const auto redirect=[&](const std::string& route,std::string appearance,const std::string& original,const char* body){
+        if(!replaceOnce(appearance,original,body)||appearancePrefab(appearance,L"Nude")!=body)return;
+        plan.appearances.emplace(route,std::move(appearance));
+    };
+    if(mode==BodyMode::Vanilla){
+        plan.venus=false;
+        const auto model=routes.find(vanillaDamianeBodyModelRoute);
+        if(model==routes.end()||!readableDependency(model->second,"PAR ")||!routes.count(vanillaDamianePrefabRoute))return plan;
+        for(const auto& route:appearances){
+            if(!addonBodyRoute(route))continue;
+            auto appearance=read(route);
+            const auto original=appearancePrefab(appearance,L"Nude");
+            auto body=original;
+            lowerAscii(body);
+            if(body==venusBody)redirect(route,std::move(appearance),original,vanillaDamianeBody);
+        }
+        return plan;
+    }
+    const auto model=routes.find(venusBodyModelRoute);
+    if(model==routes.end()||isOwnModContent(model->second)||!readableDependency(model->second,"PAR "))return plan;
     const auto prefab=read("character/bin__/prefab/1_pc/02_phw/nude/phw_00_nude_00_0001_damian.prefab");
-    if(prefab.compare(0,6,std::string("\xff\xff\x04\0\0\0",6))!=0||
-       prefab.find(venusBodyModelRoute)==prefab.npos)return plan;
+    if(!prefabData(prefab)||prefab.find(venusBodyModelRoute)==prefab.npos)return plan;
     plan.hasBaseUnderwear=prefab.find("character/model/1_pc/2_phw/armor/38_underwear/")!=prefab.npos;
+    // A character variant such as phw_00_nude_00_0001_nornen is a separate prefab around the
+    // standard female body model, so it takes the VENUS body the same way.
+    const auto standardVariant=[&](const std::string& body){
+        if(body.size()<=std::strlen(standardBody)+1||body.rfind(std::string(standardBody)+"_",0)!=0||
+           body.rfind(venusBody,0)==0)return false;
+        const auto variant=read("character/bin__/prefab/1_pc/02_phw/nude/"+body+".prefab");
+        return prefabData(variant)&&variant.find(standardBodyModelRoute)!=variant.npos;
+    };
     for(const auto& route:appearances){
-        if(route.rfind("character/appearance/3_npc/",0)!=0)continue;
+        if(!addonBodyRoute(route))continue;
         auto appearance=read(route);
         const auto original=appearancePrefab(appearance,L"Nude");
         auto body=original;
         lowerAscii(body);
-        if(body=="phw_00_nude_00_0001"){
-            if(!replaceOnce(appearance,original,venusBody)||appearancePrefab(appearance,L"Nude")!=venusBody)continue;
-        }else if(body!=venusBody)continue;
-        plan.appearances.emplace(route,std::move(appearance));
+        if(body==standardBody||standardVariant(body))redirect(route,std::move(appearance),original,venusBody);
+        else if(body==venusBody)plan.appearances.emplace(route,std::move(appearance));
+        else if(body==noUnderwearVenusBody){
+            plan.withoutBaseUnderwear.insert(route);
+            plan.appearances.emplace(route,std::move(appearance));
+        }
     }
     return plan;
 }

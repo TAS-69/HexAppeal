@@ -3,6 +3,7 @@
 #include "core/log.h"
 #include "core/state.h"
 #include "game_layout.h"
+#include "game_signatures.h"
 #include "gui/menu.h"
 #include "hooks/frame_dispatch.h"
 #include "native_interface.h"
@@ -72,7 +73,15 @@ constexpr Layout layouts[]{
 const Layout* checkedInteractionLayout(){
     const auto* game=loadedGameLayout();
     if(!game)return nullptr;
-    for(const auto& entry:layouts)if(entry.gameStamp==game->timeStamp)return &entry;
+    if(!ignoreGameLayoutTable().load(std::memory_order_acquire))
+        for(const auto& entry:layouts)if(entry.gameStamp==game->timeStamp)return &entry;
+    // A build found by code signature carries its interaction addresses too.
+    if(const auto* found=signatureInteraction()){
+        static const Layout resolved{game->timeStamp,found->build,found->evaluate,found->select,found->records,
+            found->reserve,found->copy,found->makeLabel,found->copyLabel,found->emptyLabel,
+            {found->focusLists[0],found->focusLists[1],found->focusLists[2]}};
+        return &resolved;
+    }
     return nullptr;
 }
 

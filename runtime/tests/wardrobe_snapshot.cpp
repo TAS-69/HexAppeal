@@ -1,4 +1,5 @@
 #include "wardrobe_snapshot.h"
+#include "game_layout.h"
 #include <Windows.h>
 #include <array>
 #include <cstdio>
@@ -33,6 +34,7 @@ struct Fixture {
     }
 };
 int main(){
+    hex::testGameLayout()=&hex::layouts[0];  // the fixtures use this build's addresses
     check(!hex::wardrobeActorRecentlySeen(4500,0)&&hex::wardrobeActorRecentlySeen(4500,2501)&&
           !hex::wardrobeActorRecentlySeen(4500,2500)&&!hex::wardrobeActorRecentlySeen(4500,4501),
           "only a recent actual render observation grants an actor ownership, including during overlapping reloads");
@@ -89,6 +91,26 @@ int main(){
     f.setText(0,"character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20166.app_xml");
     put(f.actor.data(),0,base+0x59961d0);
     check(hex::wardrobeWitchForActorAppearance(ptr(f.actor.data()),base)<0,"a player actor cannot be a fallback witch");
+    auto companionLayout=hex::layouts[0];
+    Block<128> manager{},player{};
+    const uintptr_t managerGlobal=ptr(manager.data());
+    companionLayout.playerActor=0x59961d0;
+    companionLayout.actorManager=0x59c7a08;
+    companionLayout.actorManagerGlobal=reinterpret_cast<uintptr_t>(&managerGlobal)-base;
+    hex::testGameLayout()=&companionLayout;
+    put(manager.data(),0,base+companionLayout.actorManager);
+    put(manager.data(),0x50,ptr(player.data()));
+    put(player.data(),0,base+companionLayout.playerActor);
+    put(identity.data(),8,ptr(f.actor.data()));
+    f.setText(0,addon);
+    check(hex::readWardrobeCharacterRecord(ptr(f.actor.data()),base,ptr(characterInfo.data()),record)&&
+          hex::captureWardrobeSnapshot(ptr(f.actor.data()),6,base,out,addon),
+          "a non-player actor of the companion class can provide a checked record and renderer");
+    put(manager.data(),0x50,ptr(f.actor.data()));
+    check(!hex::readWardrobeCharacterRecord(ptr(f.actor.data()),base,ptr(characterInfo.data()),record)&&
+          !hex::captureWardrobeSnapshot(ptr(f.actor.data()),6,base,out,addon),
+          "the currently controlled player cannot enter Wardrobe even with a registered appearance");
+    hex::testGameLayout()=&hex::layouts[0];
     check(hex::wardrobePartKind(1,"cd_phw_00_ub_00_0157")==hex::WardrobePartKind::DefaultGarment,"alternate Bari default");
     check(hex::wardrobePartKind(1,"phw_00_uw_00_0002")==hex::WardrobePartKind::Underwear&&!hex::defaultOutfitPart(1,"phw_00_uw_00_0002"),"original alternate Bari underwear stays separate from clothing");
     check(hex::defaultOutfitPart(3,"cd_nhw_so_ub_20168")&&hex::defaultOutfitPart(3,"cd_phw_00_hel_00_0186")&&hex::defaultOutfitPart(3,"cd_phw_00_foot_00_0160"),"Hide outfit owns Elowen's exact default robe hat and footwear");

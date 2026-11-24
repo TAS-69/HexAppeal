@@ -22,7 +22,7 @@ def check(game):
             try:
                 variant,body=active_body(config,config_path)
                 passed=body.is_file() and hashlib.sha256(body.read_bytes()).hexdigest() in reference_hashes(dep)
-                detail='checked '+variant.rsplit('/',1)[-1]+' enabled' if passed else 'The selected VENUS body is missing or differs from the checked references.'
+                detail='checked '+variant.rsplit('/',1)[-1]+' enabled' if passed else 'The selected Venus Body for Damiane file is missing or differs from the checked references.'
             except ValueError as error:passed=False;detail=str(error)
         checks.append({'id':dep['id'],'name':dep['name'],'status':'PASS' if passed else 'FAIL','detail':detail,'matches':[str(p) for p in matching],'runtime_loaded_verified':False})
     return {'status':'PASS' if all(c['status']=='PASS' for c in checks) else 'FAIL','checks':checks,'dmm_config':str(config_path),'enforcement':'Source availability preflight. Use verify_mount.py and runtime served-dependency guards for mounted assets; this does not prove runtime loading.','runtime_preset_integration':'See docs/wiki/Compatibility.md for tested scope.'}

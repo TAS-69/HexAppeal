@@ -172,13 +172,13 @@ namespace ml::hooks
             Sleep(2000);
             const auto now = GetTickCount64();
             const bool seen = g_gameSwapChainSeen.load();
-            // Graphics diagnostics wait for the game's own swapchain, so nothing
-            // extra runs on this thread while the game and other mods start up.
-            if (seen || now - started >= 60000)
-                Log::RefreshGraphics();
             if (g_reShadeRequested && !g_reShadeRegistered)
                 g_reShadeRegistered = RegisterReShadeEvents(g_overlayModule);
-            if (State::Get().HasRecentPresentation(now)) continue;
+            if (State::Get().HasRecentPresentation(now))
+            {
+                ::ml::Log::MarkStartupComplete();  // for routes that did not see the creation
+                continue;
+            }
             InstallFactoryImports();
             if (hex::creation::PresentationProbeDue(now, nextProbe, probed, seen))
             {

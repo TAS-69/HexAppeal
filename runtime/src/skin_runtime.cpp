@@ -46,7 +46,7 @@ struct CachedFile {
 struct LocalFile {
     CachedFile main,fallback;
     bool appearance=false,needsRegistry=false;
-    int addon=-1;
+    std::vector<int> addons;
     bool baseUnderwear=false;
     mutable std::atomic<bool> requested{false};
     mutable std::atomic<bool> fallbackRequested{false};
@@ -81,6 +81,12 @@ bool copyRoute(const void* request,char* route,size_t capacity,size_t& length){
     }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
     return false;
 }
+void recordAddonBodies(const LocalFile& file){
+    for(const auto target:file.addons){
+        recordAddonVenusBody(target,file.baseUnderwear);
+        LOG_OK("VENUS body loaded for %s.",characterAddon(target)->label.c_str());
+    }
+}
 const DmmFile* lookup(const void* request){
     const auto& overlay=*activeOverlay.load(std::memory_order_acquire);
     char route[512];
@@ -95,10 +101,7 @@ const DmmFile* lookup(const void* request){
             }
             if(!found->second.needsRegistry||overlay.registryRequested.load()){
                 if(pathRequest&&!found->second.requested.exchange(true)){
-                    if(found->second.addon>=firstAddonCharacter){
-                        recordAddonVenusBody(found->second.addon,found->second.baseUnderwear);
-                        LOG_OK("VENUS body loaded for %s.",characterAddon(found->second.addon)->label.c_str());
-                    }
+                    recordAddonBodies(found->second);
                     if(found->second.appearance){
                         ++overlay.runtime->skinToneApplied;
                         LOG_OK("Skin tone: private appearance loaded for %s.",found->first.c_str());
@@ -113,10 +116,7 @@ const DmmFile* lookup(const void* request){
                 return &found->second.main.record;
             }
             if(found->second.fallback.record.path){
-                if(pathRequest&&!found->second.fallbackRequested.exchange(true)){
-                    recordAddonVenusBody(found->second.addon,found->second.baseUnderwear);
-                    LOG_OK("VENUS body loaded for %s; waiting for skin registry.",characterAddon(found->second.addon)->label.c_str());
-                }
+                if(pathRequest&&!found->second.fallbackRequested.exchange(true))recordAddonBodies(found->second);
                 return &found->second.fallback.record;
             }
         }
@@ -187,12 +187,13 @@ DWORD WINAPI prepare(LPVOID location){
         const auto routes=readMountedRoutes(manifest,&known,&warning);
         if(routes.empty())throw std::runtime_error("No readable mounted skin routes were found.");
         if(!known||!warning.empty())LOG("Skin routes will check the active file records from this file list.");
-        std::map<std::string,int> addonTargets;
+        std::map<std::string,std::vector<int>> addonTargets;
         std::vector<std::string> addonRoutes;
         for(int target:enabledAddonTargets()){
             const auto& route=characterAddon(target)->appearance;
-            addonTargets.emplace(route,target);
-            addonRoutes.push_back(route);
+            auto& owners=addonTargets[route];
+            if(owners.empty())addonRoutes.push_back(route);
+            owners.push_back(target);
         }
         const auto addonPlan=prepareAddonVenus(game,routes,addonRoutes);
         SkinToneAssets plan;
@@ -210,8 +211,10 @@ DWORD WINAPI prepare(LPVOID location){
             }
         }
         if(!addonPlan.appearances.empty()){
-            plan.sources.push_back(venusBodyModelRoute);
+            plan.sources.push_back(addonPlan.venus?venusBodyModelRoute:vanillaDamianeBodyModelRoute);
             plan.files.insert(addonPlan.appearances.begin(),addonPlan.appearances.end());
+            if(!addonPlan.venus)LOG("Character add-ons: %zu keep Damiane's original body under the Vanilla option.",
+                addonPlan.appearances.size());
         }
         if(plan.files.empty())return 0;
         HMODULE module=nullptr;
@@ -260,9 +263,9 @@ DWORD WINAPI prepare(LPVOID location){
             file.main=cacheFile(cache,route,data);
             file.appearance=std::find(plan.appearances.begin(),plan.appearances.end(),route)!=plan.appearances.end();
             file.needsRegistry=file.appearance&&plan.files.count(skinRegistryRoute);
-            if(auto target=addonTargets.find(route);target!=addonTargets.end()&&addonPlan.appearances.count(route)){
-                file.addon=target->second;
-                file.baseUnderwear=addonPlan.hasBaseUnderwear;
+            if(auto target=addonTargets.find(route);addonPlan.venus&&target!=addonTargets.end()&&addonPlan.appearances.count(route)){
+                file.addons=std::move(target->second);
+                file.baseUnderwear=addonPlan.hasBaseUnderwear&&!addonPlan.withoutBaseUnderwear.count(route);
                 if(file.needsRegistry)file.fallback=cacheFile(cache,route,addonPlan.appearances.at(route));
             }
         }

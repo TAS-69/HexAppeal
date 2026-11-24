@@ -238,14 +238,7 @@
         LogHookedModule("Wrapped swapchain Present", innerVt[8]);
 
         if (previousCount == 0)
-        {
-            LOG_OK("Swapchain wrapped - overlay composites before Frame Generation (%ux%u, %u buffers, flags 0x%X).",
-                   d1.Width, d1.Height, d1.BufferCount, d1.Flags);
-        }
+            LOG_OK("Swapchain wrapped - overlay composites before Frame Generation.");
         else
-        {
-
-            LOG("Swapchain re-wrapped after recreation (%ux%u, %u buffers, flags 0x%X).",
-                d1.Width, d1.Height, d1.BufferCount, d1.Flags);
-        }
+            LOG("Swapchain re-wrapped after recreation.");
     }

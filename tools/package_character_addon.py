@@ -5,7 +5,7 @@ from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
 
-def character_addon_entries(source, readme, title, version, minimum_core="1.0.5", *, license_file=None):
+def character_addon_entries(source, readme, title, version, minimum_core="1.0.5", *, license_file=None, author="TASx69"):
     if not re.fullmatch(r"[a-z0-9_-]{1,64}", source.stem):
         raise ValueError("Use a lowercase manifest filename with letters, digits, hyphens or underscores")
     manifest = source.read_text(encoding="utf-8-sig").rstrip("\n")
@@ -15,8 +15,16 @@ def character_addon_entries(source, readme, title, version, minimum_core="1.0.5"
         raise ValueError("Use a plain-text patch title of at most 63 characters")
     if any(not re.fullmatch(r"\d+\.\d+\.\d+", value, re.ASCII) for value in (version, minimum_core)):
         raise ValueError("Use numeric major.minor.patch versions")
+    if not author.strip() or not author.isprintable():
+        raise ValueError("Use a non-empty, printable mod author name")
     header, rows = manifest.split("\n", 1)
-    manifest = f"{header}\n#patch\t{title}\t{version}\t{minimum_core}\n{rows}"
+    if rows.startswith("#patch\t"):
+        patch = rows.split("\n", 1)[0].split("\t")
+        if (len(patch) != 4 or not re.fullmatch(r"[ -~]{1,63}", patch[1]) or "##" in patch[1]
+                or patch[2:] != [version, minimum_core]):
+            raise ValueError("The manifest #patch must have a valid label and match the requested versions")
+    else:
+        manifest = f"{header}\n#patch\t{title}\t{version}\t{minimum_core}\n{rows}"
     payload = f'<HexAppealCharacters version="1"><![CDATA[\n{manifest}\n]]></HexAppealCharacters>\n'
     if len(payload.encode("utf-8")) > 32 * 1024:
         raise ValueError("The mounted character add-on must fit within 32 KiB")
@@ -24,7 +32,7 @@ def character_addon_entries(source, readme, title, version, minimum_core="1.0.5"
     entries = {
         "mod.json": (json.dumps({
             "modinfo": {
-                "title": title, "author": "TASx69", "version": version,
+                "title": title, "author": author, "version": version,
                 "description": "Adds optional characters to Hex Appeal.",
             },
             "new_paths": ["character/hexappeal/characters/"],
@@ -37,9 +45,9 @@ def character_addon_entries(source, readme, title, version, minimum_core="1.0.5"
     return route, entries
 
 
-def package_character_addon(source, readme, output, title, version, minimum_core="1.0.5", *, license_file=None):
+def package_character_addon(source, readme, output, title, version, minimum_core="1.0.5", *, license_file=None, author="TASx69"):
     route, entries = character_addon_entries(source, readme, title, version, minimum_core,
-                                             license_file=license_file)
+                                             license_file=license_file, author=author)
     output.parent.mkdir(parents=True, exist_ok=True)
     with ZipFile(output, "x", compression=ZIP_DEFLATED) as archive:
         for name, data in entries.items():
@@ -60,7 +68,8 @@ if __name__ == "__main__":
     parser.add_argument("--title", required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--minimum-core", default="1.0.5")
+    parser.add_argument("--author", default="TASx69", help="Name shown in DMM.")
     parser.add_argument("--license-file", type=Path, help="Include a license for the add-on's own files.")
     args = parser.parse_args()
     print(package_character_addon(args.source, args.readme, args.output, args.title, args.version,
-                                  args.minimum_core, license_file=args.license_file))
+                                  args.minimum_core, license_file=args.license_file, author=args.author))

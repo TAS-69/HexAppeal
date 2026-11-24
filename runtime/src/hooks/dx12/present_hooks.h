@@ -190,10 +190,6 @@
                 PostPresentDeviceCheck(drew);
             }
         }
-        else
-        {
-            CountNotGameWindow();
-        }
         chain->Release();
     }
 
@@ -247,14 +243,6 @@
         if (FAILED(swapChain->GetDesc(&desc)) || !desc.OutputWindow) return false;
         if (IsProbeChain(desc.BufferDesc.Width, desc.BufferDesc.Height)) return false;
         if (desc.OutputWindow != g_gameHwnd && !IsGameWindow(desc.OutputWindow)) return false;
-        static thread_local UINT lastWidth = 0, lastHeight = 0;
-        const auto width = desc.BufferDesc.Width, height = desc.BufferDesc.Height;
-        if (width != lastWidth || height != lastHeight)
-        {
-            lastWidth = width;
-            lastHeight = height;
-            hex::observeGraphicsSwapchain(width, height);
-        }
         return true;
     }
 

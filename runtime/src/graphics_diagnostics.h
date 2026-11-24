@@ -4,10 +4,14 @@
 #include <filesystem>
 #include <string>
 
+struct ID3D12Device;
+
 namespace hex {
+struct GraphicsReportSource {
+    unsigned width = 0;
+    unsigned height = 0;
+    ID3D12Device* device = nullptr;
+};
 void setGraphicsSettingsPath(const std::filesystem::path& path);
-void observeGraphicsSwapchain(unsigned width, unsigned height, const LUID* adapter = nullptr);
-// The loaded-library list reads each graphics DLL's file version, so only
-// saved reports include it; the automatic log passes false.
-std::string graphicsSummary(bool includeLibraries = true);
+std::string graphicsSummary(const GraphicsReportSource& source = {});
 }

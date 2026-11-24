@@ -458,7 +458,7 @@ def main(argv=None):
     parser.add_argument('--body', choices=['venus', 'vanilla'], required=True,
                         help='Body option the garments are fitted for.')
     parser.add_argument('--input', type=Path, nargs='+', required=True,
-                        help='Garment .pac files or folders. VENUS inputs should already be fitted to the VENUS baseline.')
+                        help='Garment .pac files or folders. VENUS inputs should already be fitted to Venus Body for Damiane.')
     parser.add_argument('--relative-to', type=Path, help='Mirror paths below this folder into --output.')
     parser.add_argument('--output', type=Path, required=True, help='A new folder; existing files are never replaced.')
     parser.add_argument('--report', type=Path, required=True, help='A new JSON report file.')

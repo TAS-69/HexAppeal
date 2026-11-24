@@ -295,7 +295,6 @@
         }
 
 
-        hex::observeGraphicsSwapchain(newW, newH);
         WaitForOverlayIdle();
 
 
@@ -343,8 +342,7 @@
         g_scFormat  = newFmt;
         s_failedW = s_failedH = s_failedCount = 0;
 
-        LOG("Swapchain reconciled (%ux%u, %u buffers, fmt %d) - in-place reconfigure.",
-            g_scWidth, g_scHeight, g_bufferCount, static_cast<int>(g_scFormat));
+        LOG("Swapchain reconciled - in-place reconfigure.");
         return true;
     }
 
@@ -389,8 +387,6 @@
         DXGI_SWAP_CHAIN_DESC desc = {};
         if (FAILED(swapChain->GetDesc(&desc)) || !desc.OutputWindow || !desc.BufferCount)
             return false;
-        const LUID adapter = g_device->GetAdapterLuid();
-        hex::observeGraphicsSwapchain(desc.BufferDesc.Width, desc.BufferDesc.Height, &adapter);
         g_hwnd        = desc.OutputWindow;
         g_bufferCount = desc.BufferCount;
         g_scWidth     = desc.BufferDesc.Width;
@@ -513,7 +509,6 @@
 
         g_swapChain = swapChain;
 
-        LOG_OK("Overlay ready - %ux%u, %u back buffers.",
-               desc.BufferDesc.Width, desc.BufferDesc.Height, g_bufferCount);
+        LOG_OK("Overlay ready.");
         return true;
     }

@@ -1,4 +1,6 @@
 HexAppealCharacters	1
+#patch	Woosa & Maegu	1.0.1	1.0.5
+#multiCharacter	1
 character	ha_maegu	Maegu	3452	NHW_Unique_Maegu_3452	character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20113.app_xml
 default	ha_maegu	Maegu's robes	cd_phw_00_ub_00_0158
 default	ha_maegu	Maegu's footwear	cd_phw_00_foot_00_0158

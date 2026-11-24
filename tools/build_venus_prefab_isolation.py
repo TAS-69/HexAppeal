@@ -19,7 +19,7 @@ UNDERWEAR = b"character/model/1_pc/2_phw/armor/38_underwear/phw_00_uw_00_0001.pa
 
 def build(registry_bytes, prefab, definition, appearances):
     if not prefab.startswith(b"\xff\xff\x04\0\0\0") or prefab.count(BODY_MODEL) != 1 or prefab.count(UNDERWEAR) != 1:
-        raise ValueError("Supply the original game prefab with VENUS's shared model path and stock underwear.")
+        raise ValueError("Supply the original game prefab with the shared Venus Body for Damiane model path and stock underwear.")
     root = ET.fromstring(definition)
     skeleton = root.find("SkeletonName")
     if root.tag != "NudePrefabData" or skeleton is None or skeleton.get("FileName", "").lower() != "1_pc/2_phw/phw_01.pab":

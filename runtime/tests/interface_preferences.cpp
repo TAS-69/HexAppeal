@@ -31,7 +31,6 @@ static void checkGraphicsReport(hex::Runtime& runtime)
     const auto options = runtime.profiles.parent_path() / L"video-options.xml";
     const auto log = options.parent_path() / L"HexAppeal.log";
     hex::setGraphicsSettingsPath(options);
-    hex::observeGraphicsSwapchain(32, 32);
     {
         std::ofstream previous(log);
         previous << "Previous session\n";
@@ -41,10 +40,8 @@ static void checkGraphicsReport(hex::Runtime& runtime)
     const auto startup = runtime.recentLog();
     const auto startupMarker = startup.find("Startup fixture.");
     require(startup.rfind("Hex Appeal ", 0) == 0 && startupMarker != std::string::npos &&
-            startup.find("\nGraphics\r\n") < startupMarker && startup.find("Previous session") == std::string::npos,
-            "the automatic log starts with the new graphics header");
-    require(startup.find("Loaded graphics libraries") == std::string::npos,
-            "the automatic log does not scan graphics libraries");
+            startup.find("\nGraphics\r\n") == std::string::npos && startup.find("Previous session") == std::string::npos,
+            "the automatic log starts with the build header and no graphics data");
     bool previousPreserved = false;
     for (const auto& file : std::filesystem::directory_iterator(log.parent_path())) {
         if (file.path() == log || file.path().extension() != L".log") continue;
@@ -53,7 +50,7 @@ static void checkGraphicsReport(hex::Runtime& runtime)
         previousPreserved |= std::getline(archive, line) && line == "Previous session";
     }
     require(previousPreserved, "starting a session preserves its previous log");
-    auto summary = hex::graphicsSummary();
+    auto summary = hex::graphicsSummary({32,32});
     require(summary.find("Game swapchain size: Not observed yet") != std::string::npos,
             "hidden swapchain probes do not become the game resolution");
     require(summary.find("Frame Generation (saved game setting): Settings unavailable") != std::string::npos,
@@ -68,18 +65,14 @@ static void checkGraphicsReport(hex::Runtime& runtime)
             <OptionBool _value="True" Name="_enableHDR"/>
         </EngineOptionVideo></EngineOption></EngineOptionSave>)";
     }
-    hex::observeGraphicsSwapchain(3840, 2160);
-    ml::Log::RefreshGraphics();
-    const auto updated = runtime.recentLog();
-    ml::Log::RefreshGraphics();
-    require(updated.find("Graphics diagnostics updated.") != std::string::npos &&
-            updated.find("Game swapchain size: 3840 x 2160") != std::string::npos && updated == runtime.recentLog(),
-            "the automatic log refreshes observed changes and skips repeated snapshots");
-    require(updated.find("Loaded graphics libraries") == std::string::npos,
-            "automatic log refreshes do not scan graphics libraries");
+    const auto preview = runtime.diagnosticReport();
+    require(preview.find("\nGraphics\n")==std::string::npos &&
+            preview.find("Intel XeSS Frame Generation")==std::string::npos &&
+            runtime.recentLog()==startup,
+            "the on-screen report and automatic log omit graphics data even with saved settings present");
     std::filesystem::path report;
     std::string error;
-    require(runtime.saveDiagnosticReport(report, error), "save report with graphics diagnostics");
+    require(runtime.saveDiagnosticReport(report, error, {3840,2160}), "save report with graphics diagnostics");
     std::ifstream input(report);
     const std::string contents((std::istreambuf_iterator<char>(input)), {});
     const auto graphics = contents.find("\nGraphics\n");
@@ -92,6 +85,8 @@ static void checkGraphicsReport(hex::Runtime& runtime)
             contents.find("VSync (saved game setting): Not recorded") < checks &&
             contents.find("Loaded graphics libraries (presence alone does not establish enablement)") < checks,
             "saved reports start with observed resolution, saved options and independently labelled DLLs");
+    require(runtime.recentLog()==startup,
+            "saving a report does not append graphics details to the automatic log");
     {
         std::ofstream saved(options, std::ios::trunc);
         saved << R"(<EngineOptionSave><EngineOption><EngineOptionVideo>
@@ -101,6 +96,17 @@ static void checkGraphicsReport(hex::Runtime& runtime)
     require(summary.find("Settings unavailable") != std::string::npos &&
             summary.find("Intel XeSS Frame Generation") == std::string::npos,
             "truncated preferences do not retain stale settings or report partial settings as current");
+    // Startup tracking across sessions.
+    {std::ofstream previous(log, std::ios::trunc);
+     previous << "Hex Appeal 1.1.2 session\n[t] [info ] [startup] Watching for the game's first frame.\n";}
+    ml::Log::OpenSession(log);
+    require(ml::Log::PreviousStartupIncomplete(), "a session that ended during startup is noticed");
+    ml::Log::MarkStartupComplete();
+    ml::Log::OpenSession(log);
+    require(!ml::Log::PreviousStartupIncomplete(), "a session that finished starting is not flagged");
+    {std::ofstream previous(log, std::ios::trunc); previous << "Hex Appeal 1.1.1 session\n";}
+    ml::Log::OpenSession(log);
+    require(!ml::Log::PreviousStartupIncomplete(), "logs from versions without startup tracking are not flagged");
     hex::setGraphicsSettingsPath({});
 }
 

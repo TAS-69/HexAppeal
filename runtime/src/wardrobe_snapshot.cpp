@@ -93,10 +93,25 @@ bool rebindAddonVisibilityClaim(const WardrobeSnapshot& snapshot,WardrobeVisibil
     mask=wardrobeVisibilityClaim(snapshot,*replacement);
     return true;
 }
+bool isWardrobeNpc(uintptr_t actor,uintptr_t gameBase){
+    const auto& layout=gameLayout();
+    if(!actor||!gameBase||!layout.actor)return false;
+    __try{
+        const auto type=pointer(actor);
+        if(type==gameBase+layout.actor)return true;
+        if(!layout.playerActor||!layout.actorManagerGlobal||!layout.actorManager||
+           type!=gameBase+layout.playerActor)return false;
+        const auto manager=pointer(gameBase+layout.actorManagerGlobal);
+        if(!manager||pointer(manager)!=gameBase+layout.actorManager)return false;
+        const auto player=pointer(manager+0x50);
+        return player&&player!=actor&&pointer(player)==gameBase+layout.playerActor&&
+            pointer(manager+0x50)==player&&pointer(gameBase+layout.actorManagerGlobal)==manager;
+    }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
 uintptr_t readWardrobeActorAppearance(uintptr_t actor,uintptr_t gameBase,char (&path)[256]){
     if(!actor||!gameBase)return 0;
     __try {
-        if(pointer(actor)!=gameBase+gameLayout().actor)return 0;
+        if(!isWardrobeNpc(actor,gameBase))return 0;
         const auto components=pointer(actor+0x68);
         const auto control=components?pointer(components+0x40):0;
         if(!control||pointer(control)!=gameBase+gameLayout().control||pointer(control+8)!=actor)return 0;
@@ -119,7 +134,7 @@ int wardrobeWitchForActorAppearance(uintptr_t actor,uintptr_t gameBase){
 bool readWardrobeCharacterRecord(uintptr_t actor,uintptr_t gameBase,uintptr_t characterInfo,char (&name)[96]){
     if(!actor||!gameBase||!characterInfo)return false;
     __try {
-        if(pointer(actor)!=gameBase+gameLayout().actor)return false;
+        if(!isWardrobeNpc(actor,gameBase))return false;
         const auto components=pointer(actor+0x68);
         const auto entry=components?pointer(components+0x20):0;
         if(!entry||pointer(entry+8)!=actor)return false;
@@ -164,7 +179,7 @@ bool captureWardrobeSnapshot(uintptr_t actor,int witch,uintptr_t gameBase,Wardro
     if(!actor||witch<0||(witch>5)!=bool(addonAppearance)||!gameBase)return false;
     __try {
         WardrobeSnapshot next{};next.actor=actor;next.witch=witch;
-        if(pointer(actor)!=gameBase+gameLayout().actor)return false;
+        if(!isWardrobeNpc(actor,gameBase))return false;
         const auto components=pointer(actor+0x68);if(!components)return false;
         next.control=pointer(components+0x40);
         if(!next.control||pointer(next.control)!=gameBase+gameLayout().control||pointer(next.control+8)!=actor)return false;

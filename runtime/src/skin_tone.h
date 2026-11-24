@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <map>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -29,11 +30,17 @@ struct SkinToneAssets {
 SkinToneAssets prepareSkinTone(const std::filesystem::path& game,
     const std::map<std::string,std::filesystem::path>& routes,
     const std::map<std::string,std::string>& addonAppearances={});
+// Add-on appearances served with a different body. With VENUS mounted, characters on the
+// standard female body (or a character variant of it) get Damiane's VENUS body. With Vanilla
+// mounted, characters who normally wear Damiane's body keep her original body, as Sylvia does.
 struct AddonVenusAssets {
     std::map<std::string,std::string> appearances;
+    std::set<std::string> withoutBaseUnderwear;
     bool hasBaseUnderwear=false;
+    bool venus=true;
 };
 AddonVenusAssets prepareAddonVenus(const std::filesystem::path& game,
     const std::map<std::string,std::filesystem::path>& routes,const std::vector<std::string>& appearances);
 inline constexpr auto venusBodyModelRoute="character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac";
+inline constexpr auto vanillaDamianeBodyModelRoute="character/model/ha_p/2_phw/nude/hvw_00_nude_00_0001_damian.pac";
 }

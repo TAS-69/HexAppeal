@@ -1,12 +1,12 @@
 from pathlib import Path
-import argparse, concurrent.futures, configparser, ctypes, hashlib, json, shutil, struct, subprocess, tempfile
+import argparse, concurrent.futures, configparser, ctypes, hashlib, json, re, shutil, struct, subprocess, tempfile
 from zipfile import ZipFile
 
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description='Run offline runtime checks. Does not launch Crimson Desert.')
 parser.add_argument('--instant', type=Path, help='Installed InstantSurgery.asi; a test copy is made without modifying the original.')
 parser.add_argument('--game', type=Path, help='Read the actual DMM manifest and test conflicting-body rejection in an isolated fixture.')
-parser.add_argument('--venus-human', type=Path, help='Check the original VENUS 2.6 Human Body on both manifest aliases. Requires --game.')
+parser.add_argument('--venus-human', type=Path, help='Check the original Venus Body for Damiane 2.6 Human Body on both manifest aliases. Requires --game.')
 args = parser.parse_args()
 if args.venus_human and not args.game:parser.error('--venus-human requires --game')
 for name in ('instant','game','venus_human'):
@@ -22,6 +22,25 @@ addon_pack = root.parent/'addons/maegu-woosa'
 addon_source = addon_pack/'Characters/maegu-woosa.tsv'
 addon_preview = fixture/'addon-menu'
 shutil.copytree(addon_pack/'Characters', addon_preview/'Characters')
+follow_game_fixture = fixture/'addon-follow-game'
+shutil.copytree(root.parent/'addons/naira/Characters', follow_game_fixture/'Characters')
+shutil.copytree(follow_game_fixture/'Characters', addon_preview/'Characters', dirs_exist_ok=True)
+preview_pack = addon_preview/'Characters'/'naira.tsv'
+header, rows = preview_pack.read_text(encoding='utf-8-sig').split('\n', 1)
+preview_pack.write_text(f'{header}\n#multiCharacter\t0\n{rows}', encoding='utf-8')
+full_roster = fixture/'addon-follow-game-capacity'
+shutil.copytree(follow_game_fixture/'Characters', full_roster/'Characters')
+addon_header = (root/'src/character_addons.h').read_text(encoding='utf-8')
+capacity = int(re.search(r'characterCapacity=(\d+);', addon_header)[1])
+first_addon = int(re.search(r'firstAddonCharacter=(\d+);', addon_header)[1])
+filler_count = capacity-first_addon-3
+for start in range(0, filler_count, 64):
+    with (full_roster/'Characters'/f'aaa-capacity-{start:03}.tsv').open('w', encoding='ascii') as filler:
+        filler.write('HexAppealCharacters\t1\n')
+        for i in range(start, min(start+64, filler_count)):
+            filler.write(f'character\tha_fixture_{i}\tFixture {i}\t{600000+i}\tHA_Fixture_{i}'
+                         f'\tcharacter/appearance/npc/fixture_{i}.app_xml\n'
+                         f'default\tha_fixture_{i}\tRobe\texample_ub_robe\n')
 addon_zip = fixture/'character-addon.zip'
 addon_route = subprocess.check_output([
     __import__('sys').executable, str(root.parent/'tools/package_character_addon.py'),
@@ -46,8 +65,11 @@ commands = [
     ('appearance_hook_compatibility', [str(build/'appearance_hook_tests.exe')]),
     ('feature_compatibility', [str(build/'compatibility_tests.exe')]),
     ('wardrobe_instance_ownership', [str(build/'wardrobe_snapshot_tests.exe')]),
-    ('character_addons', [str(build/'character_addon_tests.exe'), str(fixture/'character-addons'), str(addon_source), str(addon_payload)]),
+    ('character_addons', [str(build/'character_addon_tests.exe'), str(fixture/'character-addons'), str(addon_source), str(addon_payload), str(root.parent/'addons')]),
+    ('addon_follow_game', [str(build/'preview.exe'),'--addon-follow-game',str(follow_game_fixture)]),
+    ('addon_follow_game_capacity', [str(build/'preview.exe'),'--addon-follow-game-capacity',str(full_roster)]),
     ('wardrobe_selection', [str(build/'wardrobe_selection_tests.exe'),str(build/'wardrobe-fixture'/'wardrobe.ini')]),
+    ('wardrobe_item_names', [str(build/'wardrobe_names_tests.exe')]),
     ('wardrobe_outfit_slots', [str(build/'wardrobe_slots_tests.exe'),str(fixture/'outfit-slots.txt')]),
     ('wardrobe_transport_abi', [str(build/'wardrobe_transport_tests.exe')]),
     ('barber_catalog', [str(build/'barber_catalog_tests.exe'),str(fixture/'barber-catalog.xml')]),
@@ -57,6 +79,7 @@ commands = [
 ]
 if args.game:
     commands.append(('wardrobe_stock_items',[str(build/'wardrobe_stock_tests.exe'),str(args.game)]))
+    commands.append(('game_signatures',[str(build/'game_signatures_tests.exe'),str(args.game/'bin64'/'CrimsonDesert.exe')]))
     commands.append(('witch_skin_routes',[str(build/'skin_routes.exe'), str(args.game), str(fixture/'skin-routes')]))
     if args.venus_human:commands[-1][1].append(str(args.venus_human))
     commands.append(('served_dependency_routes', [str(build/'dependency_routes.exe'), str(args.game), str(fixture/'dependency-routes')]))

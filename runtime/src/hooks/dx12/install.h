@@ -133,6 +133,7 @@
             return false;
         g_gameHwnd = hwnd;
         g_gameSwapChainSeen = true;
+        ::ml::Log::MarkStartupComplete();
 
         bool s_stack = false;
         {
@@ -187,19 +188,8 @@
         const auto baseDevice = StreamlineBaseInterface(device);
         auto* queueSource = baseDevice ? baseDevice.Get() : device;
         Microsoft::WRL::ComPtr<ID3D12CommandQueue> presentQueue;
-        Microsoft::WRL::ComPtr<ID3D12Device> renderingDevice;
         if (queueSource && SUCCEEDED(queueSource->QueryInterface(IID_PPV_ARGS(presentQueue.GetAddressOf()))) && presentQueue)
-        {
             PublishPresentQueue(presentQueue.Get(), true);
-            presentQueue->GetDevice(IID_PPV_ARGS(renderingDevice.GetAddressOf()));
-        }
-        if (renderingDevice)
-        {
-            const LUID adapter = renderingDevice->GetAdapterLuid();
-            hex::observeGraphicsSwapchain(desc.Width, desc.Height, &adapter);
-        }
-        else
-            hex::observeGraphicsSwapchain(desc.Width, desc.Height);
         if ((!s_stack && WrapWanted()) || !detoured)
         {
             auto* original = *ppSwapChain;

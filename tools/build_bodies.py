@@ -20,4 +20,4 @@ for path in paths:
         name=part.get('Name')
         if name in PRIVATE_BOOTS:operations.append(ET.Element('set',{'find':'Prefab','key':name,'attr':'Name','value':PRIVATE_BOOTS[name]}))
     dest.write_text('<xml-patch>\n'+''.join('  '+ET.tostring(operation,encoding='unicode')+'\n' for operation in operations)+'</xml-patch>\n',encoding='utf-8')
-print('Built',len(paths),'body appearance patches. VENUS supplies the body model and physics.')
+print('Built',len(paths),'body appearance patches. Venus Body for Damiane supplies the body model and physics.')

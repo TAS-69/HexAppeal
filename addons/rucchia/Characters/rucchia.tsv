@@ -1,0 +1,5 @@
+HexAppealCharacters	1
+character	ha_rucchia	Rucchia	429	NHW_Unique_Lucia_429	character/appearance/1_pc/2_phw/cd_phw_lucia/cd_phw_lucia_00000.app_xml
+#variant	ha_rucchia_stranger	Rucchia (Stranger)	1000212	NHW_Unique_Lucia_Catchfire_Forest	ha_rucchia
+default	ha_rucchia	Rucchia's robes	cd_m0001_00_so_phw_ub_21005
+default	ha_rucchia	Rucchia's boots	cd_phw_00_foot_0137

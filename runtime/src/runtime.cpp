@@ -17,11 +17,11 @@
 #include <cstring>
 #include <map>
 #include <sstream>
+#include <atomic>
 
 static std::mutex logMutex;
 static std::mutex interfaceSaveMutex;
 static std::filesystem::path logPath;
-static std::string lastLoggedGraphics;
 // First 8 hex digits of this ASI's SHA-256, so a log or report names the exact build.
 static std::string buildId;
 static std::string buildSuffix(){return buildId.empty()?std::string{}:" (build "+buildId+")";}
@@ -35,18 +35,50 @@ static const char* compatibilityLabel(hex::CompatibilityState state){
     switch(state){case hex::CompatibilityState::Ready:return "Ready";case hex::CompatibilityState::Blocked:return "Blocked";default:return "Waiting";}
 }
 namespace ml::Log {
+static constexpr char startupWatching[]="[startup] Waiting for the game's graphics output.";
+static constexpr char startupFinished[]="[startup] Detected the game's graphics output.";
+static std::atomic<bool> startupComplete{false},previousStartupIncomplete{false};
+
 void OpenSession(const std::filesystem::path& path)
 {
     {
         const std::lock_guard<std::mutex> guard(logMutex);
+        // Keep the startup hint compatible with earlier 1.1.3 test logs.
+        std::ifstream previous(path, std::ios::binary);
+        std::string head(256 * 1024, '\0');
+        previous.read(head.data(), std::streamsize(head.size()));
+        head.resize(size_t(previous.gcount()));
+        const bool watched = head.find(startupWatching) != std::string::npos ||
+            head.find("[startup] Watching for the game's first frame.") != std::string::npos;
+        const bool detected = head.find(startupFinished) != std::string::npos ||
+            head.find("[startup] The game finished starting.") != std::string::npos;
+        previousStartupIncomplete = watched && !detected;
+        previous.close();
+        startupComplete = false;
         logPath = path;
         auto archive = path.parent_path() / path.stem();
         archive += "-" + logTime(true) + "-" + std::to_string(GetCurrentProcessId()) + path.extension().string();
         // Move without replacement so previous sessions remain available.
         MoveFileExW(path.c_str(), archive.c_str(), 0);
-        lastLoggedGraphics.clear();
+        std::ofstream log(path,std::ios::app);
+        if(log){
+            if(log.tellp()>0)log<<'\n';
+            log<<"Hex Appeal " HEX_APPEAL_BUILD_VERSION " session"<<buildSuffix()<<"\n"<<logTime()<<"\n\n";
+        }
     }
-    RefreshGraphics();
+    Write("info ", "%s", startupWatching);
+    if (previousStartupIncomplete)
+        Write("info ", "[startup] The previous log ended before game graphics were detected.");
+}
+
+void MarkStartupComplete()
+{
+    if (!startupComplete.exchange(true)) Write("info ", "%s", startupFinished);
+}
+
+bool PreviousStartupIncomplete()
+{
+    return previousStartupIncomplete.load();
 }
 
 void Write(const char* level,const char* fmt,...) {
@@ -58,27 +90,7 @@ void Write(const char* level,const char* fmt,...) {
     file<<'['<<logTime()<<"] ["<<level<<"] "<<text<<'\n';
 }
 
-void RefreshGraphics()
-{
-    try {
-        // The automatic log leaves out the library list; saved reports include it.
-        auto summary = hex::graphicsSummary(false);
-        const std::lock_guard<std::mutex> guard(logMutex);
-        if (logPath.empty() || summary == lastLoggedGraphics) return;
-        std::ofstream file(logPath, std::ios::app);
-        if (!file) return;
-        if (lastLoggedGraphics.empty()) {
-            if (file.tellp() > 0) file << '\n';
-            file << "Hex Appeal " HEX_APPEAL_BUILD_VERSION " session" << buildSuffix() << "\n" << logTime() << "\n\n";
-        } else {
-            file << "\n[" << logTime() << "] [info ] Graphics diagnostics updated.\n";
-        }
-        file << summary << '\n';
-        if (file) lastLoggedGraphics = std::move(summary);
-    } catch (const std::exception&) {
-        // A failed diagnostic read must leave startup and presentation retries available.
-    }
-}
+
 }
 namespace hex {
 FeatureCompatibility Runtime::featureCompatibility(Feature feature){std::lock_guard<std::mutex> lock(compatibilityMutex);return effectiveCompatibility(compatibility,feature);}
@@ -103,12 +115,12 @@ std::string Runtime::skinToneFailure(){
     return skinToneError;
 }
 
-std::string Runtime::diagnosticReport(){
+std::string Runtime::diagnosticReport(const std::string& graphics){
     const auto dependency=dependencyStatus();const auto& deps=*dependency;
     const auto checks=compatibilityStatus();
     std::ostringstream out;
     out<<"Hex Appeal " HEX_APPEAL_BUILD_VERSION " diagnostics"<<buildSuffix()<<"\n"<<logTime()<<"\n\n"
-       <<graphicsSummary()<<"\nFeature checks\n";
+       <<graphics<<"\nFeature checks\n";
     for(size_t i=0;i<checks.size();++i)out<<featureName(Feature(i))<<" / "<<compatibilityLabel(checks[i].state)<<" — "<<checks[i].detail<<'\n';
     const auto range=outfitRangeMeters.load();
     const auto* layout=loadedGameLayout();
@@ -117,8 +129,8 @@ std::string Runtime::diagnosticReport(){
     else out<<"Game default\n";
     out<<"\nDependencies and paths\n";
     const std::pair<const char*,const DependencyFile*> files[]={
-        {"Crimson Desert",&deps.game},{"Desert Mod Manager",&deps.manager},{"DMM active file list",&deps.manifest},
-        {"VENUS Body for Damiane",&deps.venus},{"Instant Surgery",&deps.instant},{"Hex's Hentai Preset / selected preset",&deps.hex},
+        {"Crimson Desert",&deps.game},{"Definitive Mod Manager",&deps.manager},{"DMM active file list",&deps.manifest},
+        {"Venus Body for Damiane",&deps.venus},{"Instant Surgery",&deps.instant},{"Hex's Hentai Preset / selected preset",&deps.hex},
         {"Character Creator Enhanced",&deps.creator},{"Two Reasons Body Physics",&deps.physics}};
     for(const auto& [name,file]:files){
         out<<name<<" / "<<(file->valid?(file->verified?"verified":"found"):"unavailable")<<" — "<<file->detail<<'\n';
@@ -184,12 +196,15 @@ std::string Runtime::recentLog(){
     return tail;
 }
 
-bool Runtime::saveDiagnosticReport(std::filesystem::path& path,std::string& error){
+bool Runtime::saveDiagnosticReport(std::filesystem::path& path,std::string& error,const GraphicsReportSource& source){
     if(profiles.empty()){error="The Hex Appeal settings folder is unavailable.";return false;}
     const auto report=profiles.parent_path()/("HexAppeal-report-"+logTime(true)+".txt");
     const auto file=CreateFileW(report.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
     if(file==INVALID_HANDLE_VALUE){error="The report could not be created (Windows error "+std::to_string(GetLastError())+").";return false;}
-    const auto contents=diagnosticReport()+"\nRecent runtime log\n"+recentLog();
+    std::string graphics;
+    try{graphics=graphicsSummary(source);}
+    catch(...){graphics="Graphics\nDetails unavailable.\n";}
+    const auto contents=diagnosticReport(graphics)+"\nRecent runtime log\n"+recentLog();
     DWORD written=0;
     const bool success=WriteFile(file,contents.data(),DWORD(contents.size()),&written,nullptr)&&written==contents.size();
     CloseHandle(file);
