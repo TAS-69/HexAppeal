@@ -13,6 +13,62 @@
         }
     }
 
+    // The overlay normally renders with the swapchain's own device. A presentation layer
+    // (NVIDIA's NvPresent64.dll, Streamline) can leave the swapchain reporting a different
+    // device object from the queue that owns its back buffers. The overlay is recorded and
+    // submitted on that queue, so then the queue's device is used. When they agree, or no
+    // queue is known, this returns exactly what swapChain->GetDevice returns.
+    static bool g_deviceFromQueue = false;
+
+    static bool SameComObject(IUnknown* a, IUnknown* b)
+    {
+        if (a == b) return true;
+        if (!a || !b) return false;
+        IUnknown* ia = nullptr;
+        IUnknown* ib = nullptr;
+        a->QueryInterface(IID_PPV_ARGS(&ia));
+        b->QueryInterface(IID_PPV_ARGS(&ib));
+        const bool same = ia && ia == ib;
+        if (ia) ia->Release();
+        if (ib) ib->Release();
+        return same;
+    }
+
+    static HRESULT OverlayDevice(IDXGISwapChain3* swapChain, ID3D12Device** out, bool* fromQueue = nullptr)
+    {
+        *out = nullptr;
+        if (fromQueue) *fromQueue = false;
+        ID3D12Device* chainDevice = nullptr;
+        const HRESULT hr = swapChain->GetDevice(IID_PPV_ARGS(&chainDevice));
+        if (FAILED(hr)) chainDevice = nullptr;
+        ID3D12Device* queueDevice = nullptr;
+        if (g_queueLockReady)
+        {
+            EnterCriticalSection(&g_queueLock);
+            if (g_presentQueue && FAILED(g_presentQueue->GetDevice(IID_PPV_ARGS(&queueDevice))))
+                queueDevice = nullptr;
+            LeaveCriticalSection(&g_queueLock);
+        }
+        if (queueDevice && queueDevice != chainDevice)
+        {
+            static bool s_logged = false;
+            if (!s_logged)
+            {
+                s_logged = true;
+                LOG("[overlay] The swapchain reports device %p, but its present queue belongs to device %p (same object: %d). "
+                    "The overlay uses the queue's device so its resources and submissions match.",
+                    static_cast<void*>(chainDevice), static_cast<void*>(queueDevice), int(SameComObject(chainDevice, queueDevice)));
+            }
+            if (chainDevice) chainDevice->Release();
+            *out = queueDevice;
+            if (fromQueue) *fromQueue = true;
+            return S_OK;
+        }
+        if (queueDevice) queueDevice->Release();
+        *out = chainDevice;
+        return hr;
+    }
+
     static bool CreateRenderTargets(IDXGISwapChain3* swapChain)
     {
 
@@ -27,6 +83,26 @@
             ID3D12Resource* buffer = nullptr;
             if (FAILED(swapChain->GetBuffer(i, IID_PPV_ARGS(&buffer))))
                 return false;
+
+            if (g_deviceFromQueue)
+            {
+                // Only on the queue-device path: never create a view across devices.
+                ID3D12Device* owner = nullptr;
+                const bool matches = SUCCEEDED(buffer->GetDevice(IID_PPV_ARGS(&owner))) && owner == g_device;
+                if (owner) owner->Release();
+                if (!matches)
+                {
+                    static bool s_logged = false;
+                    if (!s_logged)
+                    {
+                        s_logged = true;
+                        LOG_ERR("[overlay] Back buffer %u belongs to device %p, not the present queue's device %p. Not drawing on it.",
+                                i, static_cast<void*>(owner), static_cast<void*>(g_device));
+                    }
+                    buffer->Release();
+                    return false;
+                }
+            }
 
             g_device->CreateRenderTargetView(buffer, nullptr, handle);
             g_frames[i].renderTarget = buffer;
@@ -282,7 +358,7 @@
 
 
         ID3D12Device* dev = nullptr;
-        if (SUCCEEDED(swapChain->GetDevice(IID_PPV_ARGS(&dev))))
+        if (SUCCEEDED(OverlayDevice(swapChain, &dev)) && dev)
         {
             const bool sameDevice = (dev == g_device);
             dev->Release();
@@ -367,6 +443,7 @@
         release(g_compositePSO);
         release(g_compositeRootSig);
         release(g_device);
+        g_deviceFromQueue = false;
         g_compositeFormat = DXGI_FORMAT_UNKNOWN;
         g_fenceValue = 0;
         g_swapChain = nullptr;
@@ -378,7 +455,7 @@
 
     static bool InitImGui(IDXGISwapChain3* swapChain)
     {
-        if (FAILED(swapChain->GetDevice(IID_PPV_ARGS(&g_device))))
+        if (FAILED(OverlayDevice(swapChain, &g_device, &g_deviceFromQueue)) || !g_device)
         {
             LOG_ERR("InitImGui: swapChain->GetDevice failed.");
             return false;
@@ -509,6 +586,7 @@
 
         g_swapChain = swapChain;
 
-        LOG_OK("Overlay ready.");
+        LOG_OK("Overlay ready (%ux%u, %u buffers, format %u, %s device).", g_scWidth, g_scHeight, g_bufferCount,
+               unsigned(g_scFormat), g_deviceFromQueue ? "present queue's" : "swapchain's");
         return true;
     }

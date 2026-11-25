@@ -75,16 +75,34 @@
     }
 
 
+    // Names each reason the overlay declines to draw, once per call site, so a log shows why
+    // the panel is missing when presentation reaches Hex Appeal. Only the refusal branches use it.
+#define HA_DRAW_REFUSED(...) do { static bool s_noted = false; if (!s_noted) { s_noted = true; \
+        LOG_ERR("[overlay] Not drawing: " __VA_ARGS__); } } while (0)
+
     static bool DrawOverlay(IDXGISwapChain3* swapChain)
     {
 
 
 
-        if (!ReconcileSwapChain(swapChain) || !g_offscreenTex || !g_rtvHeap)
+        if (!ReconcileSwapChain(swapChain))
+        {
+            HA_DRAW_REFUSED("the swapchain could not be reconciled (%ux%u, %u buffers prepared).",
+                            g_scWidth, g_scHeight, g_bufferCount);
             return false;
+        }
+        if (!g_offscreenTex || !g_rtvHeap)
+        {
+            HA_DRAW_REFUSED("the offscreen target (%d) or render-target heap (%d) is missing.",
+                            int(g_offscreenTex != nullptr), int(g_rtvHeap != nullptr));
+            return false;
+        }
 
         if (!EnsureCompositePipeline(g_scFormat))
+        {
+            HA_DRAW_REFUSED("the composite pipeline could not be created for swapchain format %u.", unsigned(g_scFormat));
             return false;
+        }
 
 
 
@@ -99,13 +117,18 @@
         }
         LeaveCriticalSection(&g_queueLock);
         if (!submitQueue)
+        {
+            HA_DRAW_REFUSED("no present queue is known for the game's swapchain.");
             return false;
+        }
         ID3D12Device* queueDevice = nullptr;
         const bool sameDevice = SUCCEEDED(submitQueue->GetDevice(IID_PPV_ARGS(&queueDevice))) &&
             queueDevice == g_device;
         if (queueDevice) queueDevice->Release();
         if (!sameDevice)
         {
+            HA_DRAW_REFUSED("the present queue belongs to device %p, the overlay to device %p.",
+                            static_cast<void*>(queueDevice), static_cast<void*>(g_device));
             submitQueue->Release();
             return false;
         }
@@ -152,9 +175,8 @@
         const UINT idx = swapChain->GetCurrentBackBufferIndex();
         if (idx >= g_frames.size() || !g_frames[idx].renderTarget)
         {
-
-
-
+            HA_DRAW_REFUSED("back buffer %u has no prepared render target (%zu prepared).",
+                            idx, g_frames.size());
             submitQueue->Release();
             return false;
         }
@@ -179,6 +201,8 @@
             FAILED(frame.commandAllocator->Reset()) ||
             FAILED(g_commandList->Reset(frame.commandAllocator, nullptr)))
         {
+            HA_DRAW_REFUSED("buffer %u was not ready for recording (fence %llu of %llu).",
+                            idx, static_cast<unsigned long long>(completed), static_cast<unsigned long long>(frame.fenceValue));
             submitQueue->Release();
             return false;
         }
@@ -327,7 +351,7 @@
                 DXGI_SWAP_CHAIN_DESC desc{};
                 if (FAILED(swapChain->GetDesc(&desc)) || !desc.OutputWindow) return false;
                 ID3D12Device* device = nullptr;
-                if (FAILED(swapChain->GetDevice(IID_PPV_ARGS(&device))) || !device) return false;
+                if (FAILED(OverlayDevice(swapChain, &device)) || !device) return false;
                 const bool changed = device != g_device || desc.OutputWindow != g_hwnd;
                 device->Release();
                 if (changed || g_renderDisabled)

@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.4
+
+- Fixed F9 and the native **[HA] Wardrobe** not appearing on some NVIDIA setups where NVIDIA's presentation layer (NvPresent64.dll) handles the game's frames. The Wardrobe preview opened, then closed because the editor stopped drawing. When the game's swapchain and its present queue report different devices, Hex Appeal now draws with the queue's device. Where they match, it draws exactly as 1.1.3 did.
+- If Hex Appeal can't draw its menu, the log says why once, in a line starting with `[overlay] Not drawing:`. The log also records the device and present queue of the game's swapchain.
+
 ## 1.1.3
 
 - The roster supports 250 add-on characters alongside the six witches. Packs of separate NPCs can use one F9 sidebar entry with a dropdown. Each NPC keeps her own saved Shape and Wardrobe.

@@ -190,6 +190,14 @@
         Microsoft::WRL::ComPtr<ID3D12CommandQueue> presentQueue;
         if (queueSource && SUCCEEDED(queueSource->QueryInterface(IID_PPV_ARGS(presentQueue.GetAddressOf()))) && presentQueue)
             PublishPresentQueue(presentQueue.Get(), true);
+        {
+            Microsoft::WRL::ComPtr<ID3D12Device> chainDevice, queueDevice;
+            (*ppSwapChain)->GetDevice(IID_PPV_ARGS(chainDevice.GetAddressOf()));
+            if (presentQueue) presentQueue->GetDevice(IID_PPV_ARGS(queueDevice.GetAddressOf()));
+            LOG("[hook] Game swapchain device %p; present queue %p (%s) on device %p.",
+                static_cast<void*>(chainDevice.Get()), static_cast<void*>(presentQueue.Get()),
+                baseDevice ? "Streamline's native queue" : "as created", static_cast<void*>(queueDevice.Get()));
+        }
         if ((!s_stack && WrapWanted()) || !detoured)
         {
             auto* original = *ppSwapChain;
