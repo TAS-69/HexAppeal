@@ -1,5 +1,16 @@
 # Changes
 
+## 1.1.5
+
+- Supports Crimson Desert 2.06.00. Shape, Height, Weight, HEX, Wardrobe, Hide outfit, base underwear and the native **[HA] Wardrobe** work on the updated game. Hex Appeal finds the changed game functions by checked signatures and keeps the 2.05.01 layouts.
+- On 2.06, Instant Surgery 0.9.6 no longer receives the game's animation uploads. Hex Appeal attaches to the game's checked upload itself and still uses Instant Surgery's shaping engine and presets. Shape and Weight show Ready once a supported character has been seen.
+- The native **[HA] Wardrobe** opens through the game's own Interact group, so the Interact camera, depth of field and character hold work as before. Cancel restores the outfit and closes the native session.
+- Reads 2.06's new game data tables for Wardrobe item names and icons, and its new character table for add-on characters.
+- Supports DMM 5.3.2 and DMM Runtime 1.4.0 for mounted file checks and skin tone matching.
+- Fixed Shape being skipped for a witch whose body another mod renames. On 2.06, Legion's Slider "No Underwear - NPCs" renames Sylvia's body to a copy written with capital letters, which Hex Appeal rejected. Prefab names and paths are now compared without regard to letter case.
+- Body and appearance warnings show only on the witch they apply to, not on every character and add-on. A copy of the checked Venus body whose only change is its underwear no longer shows a warning.
+- Two Reasons Body Physics: Instant Surgery's pose bridge does not run on 2.06 yet, so the physics handoff waits for updates to those mods. Shaping works without it.
+
 ## 1.1.4
 
 - Fixed F9 and the native **[HA] Wardrobe** not appearing on some NVIDIA setups where NVIDIA's presentation layer (NvPresent64.dll) handles the game's frames. The Wardrobe preview opened, then closed because the editor stopped drawing. When the game's swapchain and its present queue report different devices, Hex Appeal now draws with the queue's device. Where they match, it draws exactly as 1.1.3 did.

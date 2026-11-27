@@ -26,32 +26,52 @@ std::string lower(string_view value){
     for(auto& ch:result)if(ch>='A'&&ch<='Z')ch+=char('a'-'A');
     return result;
 }
-std::vector<std::pair<uint32_t,string_view>> records(string_view header,string_view body){
+struct StaticInfoRecord {uint32_t id;string_view data;string_view name;bool indexed;};
+std::vector<StaticInfoRecord> records(string_view header,string_view body){
     if(header.size()<2||body.empty())return {};
     const auto count=static_cast<unsigned char>(header[0])+size_t(static_cast<unsigned char>(header[1]))*256;
-    if(!count||header.size()!=2+count*8)return {};
+    if(!count)return {};
+    std::vector<StaticInfoRecord> result;
+    result.reserve(count);
+    if(header.size()!=2+count*8){
+        // 2.06 puts the resource name and an explicit body span in each
+        // header entry. The body starts with the ID and ordinal.
+        size_t at=2,end=0;
+        for(size_t i=0;i<count;++i){
+            if(header.size()-at<16)return {};
+            const auto id=u32(header,at),nameSize=u32(header,at+4);
+            if(nameSize>header.size()-at-16)return {};
+            const auto name=header.substr(at+8,nameSize);
+            at+=8+nameSize;
+            const auto offset=u32(header,at),size=u32(header,at+4);
+            at+=8;
+            if(offset!=end||size<8||size>body.size()-end||u32(body,offset)!=id||u32(body,offset+4)!=i)return {};
+            result.push_back({id,body.substr(offset,size),name,true});
+            end+=size;
+        }
+        if(at!=header.size()||end!=body.size())return {};
+        return result;
+    }
     std::vector<std::pair<uint32_t,uint32_t>> offsets;
     offsets.reserve(count);
     for(size_t offset=2;offset<header.size();offset+=8)
         offsets.emplace_back(u32(header,offset+4),u32(header,offset));
     std::sort(offsets.begin(),offsets.end());
     if(offsets.front().first!=0||offsets.back().first>=body.size())return {};
-    std::vector<std::pair<uint32_t,string_view>> result;
-    result.reserve(count);
     for(size_t i=0;i<offsets.size();++i){
         const auto [start,id]=offsets[i];
         const auto end=i+1<offsets.size()?size_t(offsets[i+1].first):body.size();
         if(end<=start)return {};
-        result.emplace_back(id,body.substr(start,end-start));
+        result.push_back({id,body.substr(start,end-start),{},false});
     }
     return result;
 }
 std::unordered_map<uint32_t,std::string> itemIcons(string_view header,string_view body){
     std::unordered_map<uint32_t,std::string> result;
-    for(const auto& [id,record]:records(header,body)){
+    for(const auto& [id,record,name,indexed]:records(header,body)){
         constexpr size_t bufferOffset=13;
         if(record.size()<=bufferOffset||record.size()-bufferOffset>191||
-           u32(record,4)!=id||u32(record,9)!=record.size()-bufferOffset)continue;
+           u32(record,indexed?0:4)!=id||u32(record,9)!=record.size()-bufferOffset)continue;
         auto ref=lower(record.substr(bufferOffset));
         if(ref.compare(0,9,"itemicon_")==0&&validOutfitPart(ref))result.try_emplace(id,std::move(ref));
     }
@@ -186,16 +206,17 @@ bool WardrobeItemCatalog::loadStock(const std::filesystem::path& game,const std:
             if(result.empty()&&!suffix.empty())result=stockIcon(read(baseIcons,route),*factory.Get());
             return result;
         };
-        for(const auto& [id,record]:entries){
+        for(const auto& [id,record,headerName,indexed]:entries){
             if(!id||record.size()<8)continue;
-            const auto length=u32(record,0);
-            if(length>200||length+8>=record.size()||u32(record,length+4)!=id)continue;
-            const auto display=nameFor(record,length+8,names);
+            const size_t length=indexed?0:u32(record,0);
+            if(!indexed&&(length>200||length+8>=record.size()||u32(record,length+4)!=id))continue;
+            const size_t bodyStart=indexed?0:length+4;
+            const auto display=nameFor(record,bodyStart+4,names);
 
             OutfitSlots parts;
             const std::string* iconName=nullptr;
             bool severalIcons=false;
-            for(size_t at=length+20;at+4<=record.size();++at){
+            for(size_t at=bodyStart+16;at+4<=record.size();++at){
                 const auto key=u32(record,at);
                 const auto part=prefabs.find(key);
                 if(part!=prefabs.end()&&!part->second.empty())
@@ -208,7 +229,7 @@ bool WardrobeItemCatalog::loadStock(const std::filesystem::path& game,const std:
             if(parts.empty())continue;
             WardrobeItem item;
             item.id=id;
-            const auto internal=record.substr(4,length);
+            const auto internal=indexed?headerName:record.substr(4,length);
             item.name=display.empty()?"Equipment #"+std::to_string(id):std::string(display);
             if(iconName&&!severalIcons)item.icon=readIcon(*iconName);
             const auto stem=lower(internal);

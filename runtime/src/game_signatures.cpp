@@ -22,6 +22,32 @@ constexpr Signature signatures[]={
 };
 constexpr uint32_t sourceStamp=0x6afdc0cf;  // the build the table was generated from
 
+// 2.06 changes the appearance record ABI as well as the signatures below.
+// Keep these signatures tied to the executable checked for that ABI.
+constexpr Signature expandedRecordSignatures[]={
+    {"mergeAppearance",Method::Code,Expect::Code,false,"48 89 54 24 10 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 38 E2 FF FF B8 C8 1E 00 00",0,0,0,nullptr,0x30e2040},
+    {"copyPart",Method::Code,Expect::Code,false,"48 89 5C 24 18 48 89 4C 24 08 55 56 57 41 56 41 57 48 83 EC 20 4C 8B F2 48 8B F1 45 33 FF 4C 89 39 48 8B 02",0,0,0,nullptr,0x578600},
+    {"destroyRecord",Method::Code,Expect::Code,false,"48 89 5C 24 18 48 89 4C 24 08 57 48 83 EC 20 48 8B F9 48 83 C1 68 48 89 4C 24 38 48 8D 15",0,0,0,nullptr,0x567060},
+    {"copyRecord",Method::Code,Expect::Code,false,"48 89 5C 24 18 48 89 4C 24 08 55 56 57 41 56 41 57 48 83 EC 20 4C 8B F2 48 8B F1 33 ED 48 89 29 48 8B 0A",0,0,0,nullptr,0x57a1c0},
+    {"applyAppearance",Method::Code,Expect::Code,false,"48 89 5C 24 10 44 88 4C 24 20 4C 89 44 24 18 48 89 4C 24 08 55 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 90 E2 FF FF B8 70 1E 00 00",0,0,0,nullptr,0x30d9510},
+    {"appearance",Method::Rtti,Expect::ReadOnly,false,nullptr,0,0,0,".?AVAppearanceTableData@pa@@",0},
+    {"emptyWrapper",Method::Reference,Expect::Writable,false,"48 89 0E 4C 8D 3D ?? ?? ?? ?? 49 3B CF 74 0B 8B 41 10 85 C0 78 04 F0 FF 41 10",0,6,10,nullptr,0x70d4348},
+    {"characterInfo",Method::Reference,Expect::Writable,false,"BE FF FF FF FF 45 8B 4E 04 4C 8B 15 ?? ?? ?? ?? 41 83 7A 4C 00 74 4A 41 8B 4A 48 85 C9 74 42 33 D2",0,12,16,nullptr,0x73f2178},
+    {"ia_build",Method::Code,Expect::Code,false,"48 89 5C 24 08 48 89 74 24 10 48 89 7C 24 20 44 88 44 24 18 55 41 54 41 55 41 56 41 57 48 8D 6C 24 C9 48 81 EC E0 00 00 00",0,0,0,nullptr,0x2430620},
+    {"ia_records",Method::Reference,Expect::Writable,false,"C6 45 17 00 EB 72 8B 0B 4C 8B 15 ?? ?? ?? ?? 41 83 7A 4C 00 74 52 45 8B 42 48 45 85 C0 74 49",0,11,15,nullptr,0x73f21f0},
+    {"ia_reserve",Method::Reference,Expect::Code,false,"E8 ?? ?? ?? ?? 8B 47 08 48 6B C8 38 48 03 0F 48 8B D3 E8",0,1,5,nullptr,0xb455a0},
+    {"ia_emptyLabel",Method::Reference,Expect::Writable,false,"48 89 0E 4C 8D 3D ?? ?? ?? ?? 49 3B CF 74 0B 8B 41 10 85 C0 78 04 F0 FF 41 10",0,6,10,nullptr,0x70d4348},
+    {"ia_focus0",Method::Code,Expect::Code,false,"E8 ?? ?? ?? ?? 90 48 8B 8D 50 06 00 00 48 8B 01 B2 01 FF 50 20 45 32 FF 48 8B 7D 80",5,0,0,nullptr,0xb3e359},
+    {"ia_focus1",Method::Code,Expect::Code,false,"E8 ?? ?? ?? ?? 90 48 8B 8D B0 0E 00 00 48 8B 01 B2 01 FF 50 20 83 7D 58 00 74 33 48 8D 45 50",5,0,0,nullptr,0xc5cec9},
+    {"ia_focus2",Method::Code,Expect::Code,false,"E8 ?? ?? ?? ?? 90 48 8B 8D D0 0D 00 00 48 8B 01 B2 01 FF 50 20 83 7D 88 00 74 3E 48 8D 45 80",5,0,0,nullptr,0xc52761},
+};
+
+const Signature& signatureFor(const Signature& stock,bool expanded){
+    if(expanded)for(const auto& sig:expandedRecordSignatures)
+        if(std::strcmp(stock.field,sig.field)==0)return sig;
+    return stock;
+}
+
 bool readRaw(const unsigned char* from,void* to,size_t size){
     __try{std::memcpy(to,from,size);return true;}__except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
@@ -309,7 +335,9 @@ SignatureResult resolveBySignature(const unsigned char* base){
     SignatureResult result;Image image;
     if(!readImage(base,image)){result.detail="not a 64-bit PE image";return result;}
     Resolver resolver(image);
-    for(const auto& sig:signatures){
+    const bool expanded=image.stamp==expandedRecordBuild&&image.size==expandedRecordImageSize&&image.checksum==expandedRecordChecksum;
+    for(const auto& stock:signatures){
+        const auto& sig=signatureFor(stock,expanded);
         ++result.total;
         uint32_t rva=0;std::string why;
         if(!resolver.resolve(sig,rva,why)){
@@ -318,15 +346,34 @@ SignatureResult resolveBySignature(const unsigned char* base){
             return result;
         }
         if(sig.method!=Method::Optional)++result.found;
+        if(expanded&&sig.sourceRva&& &sig!=&stock&&rva!=sig.sourceRva){
+            result.detail=std::string(sig.field)+" (signature differs from the checked 2.06 address)";
+            return result;
+        }
         *slot(result.layout,result.interaction,sig.field)=rva;
     }
     result.layout.timeStamp=image.stamp;result.layout.imageSize=image.size;result.layout.checkSum=image.checksum;
     result.layout.digest="";
+    result.layout.expandedRecords=expanded;
     if(!calls(image,result.layout.frameCalls[0],result.layout.frameDispatch)||
        !calls(image,result.layout.frameCalls[1],result.layout.frameDispatch)||
        !calls(image,result.layout.hudCall,result.layout.hudSubmit)){
         result.detail="the resolved frame or HUD call does not target its checked function";
         return result;
+    }
+    if(expanded)for(const auto site:result.interaction.focusLists){
+        if(site<5||!calls(image,site-5,result.interaction.build)){
+            result.detail="a 2.06 interaction caller does not target the checked builder";
+            return result;
+        }
+    }
+    if(expanded){
+        // These builders feed the focus result list and the visible action picker.
+        constexpr uintptr_t alternativeCallers[]{0xb3e5a5,0xb3e7bc,0xb3f655,0xc5de0d};
+        for(size_t i=0;i<std::size(alternativeCallers);++i){
+            const auto site=alternativeCallers[i];
+            if(calls(image,site-5,result.interaction.build))result.interaction.alternateFocusLists[i]=site;
+        }
     }
     bool compared=false;
     if(!signaturesMatchSource(result,compared,result.detail))return result;

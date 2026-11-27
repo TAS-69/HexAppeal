@@ -5,10 +5,11 @@
 #include <vector>
 
 namespace hex {
-struct alignas(8) WardrobeRecord {std::array<unsigned char,0x70> bytes{};};
+struct alignas(8) WardrobeRecord {std::array<unsigned char,0x78> bytes{};};
 struct WardrobeVector {void* data=nullptr;uint32_t count=0,capacity=0;};
 struct WardrobeRemoval {uintptr_t wrapper=0,metadata=0;};
-static_assert(sizeof(WardrobeRecord)==0x70&&sizeof(WardrobeVector)==16&&sizeof(WardrobeRemoval)==16);
+static_assert(sizeof(WardrobeRecord)==0x78&&sizeof(WardrobeVector)==16&&sizeof(WardrobeRemoval)==16);
+size_t wardrobeRecordSize();
 struct WardrobeTransport {
     bool(*retain)(uintptr_t)=nullptr;
     bool(*release)(uintptr_t*)=nullptr;

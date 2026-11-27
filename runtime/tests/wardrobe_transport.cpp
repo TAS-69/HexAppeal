@@ -14,15 +14,22 @@ static uintptr_t expectedRemoval=oldWrapper,expectedAddition=newWrapper;
 static void check(bool condition,const char* label){if(!condition){std::fprintf(stderr,"FAIL: %s\n",label);std::exit(1);}}
 static uintptr_t word(const hex::WardrobeRecord& record,size_t offset){uintptr_t value=0;std::memcpy(&value,record.bytes.data()+offset,8);return value;}
 static void put(hex::WardrobeRecord& record,size_t offset,uintptr_t value){std::memcpy(record.bytes.data()+offset,&value,8);}
+static size_t sentinelOffset(){return hex::wardrobeRecordSize()-0x10;}
+static hex::WardrobeRecord unpack(const hex::WardrobeVector* rows,size_t index){
+    hex::WardrobeRecord result;
+    const auto stride=hex::wardrobeRecordSize();
+    std::memcpy(result.bytes.data(),static_cast<const unsigned char*>(rows->data)+index*stride,stride);
+    return result;
+}
 static bool retain(uintptr_t p){if(++retainCalls==failRetainAt)return false;++refs[p];return true;}
 static bool release(uintptr_t* p){--refs[*p];*p=base+0x6f29f48;return true;}
 static bool destroy(hex::WardrobeRecord* p){auto wrapper=word(*p,0);return release(&wrapper);}
 static bool pipeline(uintptr_t actor,hex::WardrobeVector* remove,hex::WardrobeVector* add,uint8_t flag){
     ++calls;check(actor==node&&flag==0,"exact node and flag forwarded");
     check(remove->count==1&&remove->capacity==1&&add->count==1&&add->capacity==1,"native vector layout");
-    const auto* removed=static_cast<hex::WardrobeRemoval*>(remove->data);const auto* record=static_cast<hex::WardrobeRecord*>(add->data);
-    check(removed->wrapper==expectedRemoval&&removed->metadata==0&&word(*record,0)==expectedAddition,"selected removal and target addition");
-    check(record->bytes[8]==1&&record->bytes[9]==255&&word(*record,0x60)==base+0x6f14108,"default metadata and sentinel preserved");
+    const auto* removed=static_cast<hex::WardrobeRemoval*>(remove->data);const auto record=unpack(add,0);
+    check(removed->wrapper==expectedRemoval&&removed->metadata==0&&word(record,0)==expectedAddition,"selected removal and target addition");
+    check(record.bytes[8]==1&&record.bytes[9]==255&&word(record,sentinelOffset())==base+0x6f14108,"default metadata and sentinel preserved");
     check(refs[oldWrapper]==3&&refs[newWrapper]==3,"both temporaries retained before the native call");return !failCall;
 }
 static void reset(){refs={{oldWrapper,2},{newWrapper,2}};calls=retainCalls=failRetainAt=0;failCall=false;expectedRemoval=oldWrapper;expectedAddition=newWrapper;}
@@ -34,8 +41,8 @@ static bool batch(uintptr_t actor,hex::WardrobeVector* remove,hex::WardrobeVecto
     const auto* unused=attachBatch?remove:add;
     check(used->data&&used->count==2&&used->capacity==2&&!unused->data&&!unused->count&&!unused->capacity,"batch touches only its selected direction");
     if(attachBatch){
-        const auto* rows=static_cast<hex::WardrobeRecord*>(used->data);
-        check(word(rows[0],0)==oldWrapper&&word(rows[1],0)==newWrapper&&rows[1].bytes[9]==255,"attached originals keep exact record metadata");
+        const auto first=unpack(used,0),second=unpack(used,1);
+        check(word(first,0)==oldWrapper&&word(second,0)==newWrapper&&second.bytes[9]==255,"attached originals keep exact record metadata");
     }else{
         const auto* rows=static_cast<hex::WardrobeRemoval*>(used->data);
         check(rows[0].wrapper==oldWrapper&&rows[1].wrapper==newWrapper&&!rows[0].metadata&&!rows[1].metadata,"detach includes only the original wrappers");
@@ -52,8 +59,8 @@ static bool recipe(uintptr_t actor,hex::WardrobeVector* remove,hex::WardrobeVect
     ++calls;
     check(actor==node&&!flag&&remove->count==1&&add->count==1,"recipe removes the live original and adds the saved piece together");
     const auto* removals=static_cast<const hex::WardrobeRemoval*>(remove->data);
-    const auto* records=static_cast<const hex::WardrobeRecord*>(add->data);
-    check(removals[0].wrapper==oldWrapper&&word(records[0],0)==newWrapper&&word(records[0],0x18)==0x245000,"recipe carries native appearance metadata without substituting the wrapper");
+    const auto record=unpack(add,0);
+    check(removals[0].wrapper==oldWrapper&&word(record,0)==newWrapper&&word(record,0x18)==0x245000,"recipe carries native appearance metadata without substituting the wrapper");
     check(refs[oldWrapper]==3&&refs[newWrapper]==3,"recipe owns the native copies through dispatch");
     return !failCall;
 }
@@ -65,7 +72,7 @@ static bool edits(uintptr_t actor,const hex::WardrobeVector* baseline,hex::Wardr
     check(add->count==wantedAdditions,"rebuild submits the complete desired body and outfit, excluding removed clothes");
     check((remove->count?remove->data!=nullptr:remove->data==nullptr)&&(add->count?add->data!=nullptr:add->data==nullptr),"empty native vectors have no dangling data");
     for(uint32_t i=0;i<remove->count;++i){const auto& item=static_cast<hex::WardrobeRemoval*>(remove->data)[i];check(!item.metadata&&refs[item.wrapper]==3,"each removed garment has a retained temporary");}
-    for(uint32_t i=0;i<add->count;++i){const auto& item=static_cast<hex::WardrobeRecord*>(add->data)[i];check(refs[word(item,0)]==3&&hex::isSimpleWardrobeRecord(item,base),"restoration uses validated retained original records");}
+    for(uint32_t i=0;i<add->count;++i){const auto item=unpack(add,i);check(refs[word(item,0)]==3&&hex::isSimpleWardrobeRecord(item,base),"restoration uses validated retained original records");}
     return !failCall;
 }
 static int guardMode=0;
@@ -73,12 +80,16 @@ static bool guardedPipeline(uintptr_t actor,hex::WardrobeVector*,hex::WardrobeVe
     ++calls;check(*reinterpret_cast<const uint32_t*>(actor+0x48)==0,"the retained source list cannot silently reintroduce removed clothing");
     if(guardMode==2)RaiseException(0xe0123456,0,0,nullptr);return guardMode==0;
 }
-int main(){
-    // This process is not a checked game build: it must get no addresses at all.
-    check(!hex::loadedGameLayout()&&hex::gameLayout().actor==0&&hex::gameLayout().releaseWrapper==0&&
-          hex::gameLayout().copyRecord==0,"an unrecognised game build gets an empty layout");
-    hex::testGameLayout()=&hex::layouts[0];  // the fixtures use this build's addresses
-    using namespace hex;WardrobeRecord record;put(record,0,oldWrapper);put(record,0x60,base+0x6f14108);put(record,0x68,0xffffffff);record.bytes[8]=1;record.bytes[9]=255;
+static void checkTransactions(){
+    using namespace hex;WardrobeRecord record;put(record,0,oldWrapper);put(record,sentinelOffset(),base+0x6f14108);put(record,sentinelOffset()+8,0xffffffff);record.bytes[8]=1;record.bytes[9]=255;
+    if(gameLayout().expandedRecords){
+        put(record,0x40,base+gameLayout().emptyWrapper);
+        record.bytes[0x4b]=0x78;
+        record.bytes[0x4f]=0x93;
+        auto complex=record;
+        put(complex,0x40,0x245000);
+        check(!isSimpleWardrobeRecord(complex,base),"a live auxiliary wrapper is never carried into a synthetic part");
+    }
     const auto original=record.bytes;const WardrobeTransport ops{retain,release,destroy,pipeline};reset();
     check(isSimpleWardrobeRecord(record,base),"observed plain baseline accepted");
     check(invokeWardrobeSwap(node,record,newWrapper,base,ops)==WardrobeCallResult::Completed,"native call completion reported");
@@ -120,10 +131,24 @@ int main(){
     reset();check(invokeWardrobeRebuild(node,baseline,{},{},base,editOps)==WardrobeCallResult::InvalidRecord&&invokeWardrobeRebuild(node,baseline,std::vector<WardrobeRecord>(9,record),{},base,editOps)==WardrobeCallResult::InvalidRecord&&calls==0,"empty and oversized wardrobe edits are refused");
     reset();auto conflict=record;conflict.bytes[8]^=1;check(invokeWardrobeRebuild(node,baseline,{}, {conflict},base,editOps)==WardrobeCallResult::InvalidRecord&&calls==0&&retainCalls==0,"conflicting restoration metadata cannot replace a newer live record");
     auto complexBody=body;put(complexBody,0x18,1);check(invokeWardrobeRebuild(node,{record,complexBody},{record},{},base,editOps)==WardrobeCallResult::InvalidRecord&&retainCalls==0,"unknown owned source fields block rebuilding instead of shallow copying");
-    std::array<uint64_t,16> nativeNode{};const auto address=reinterpret_cast<uintptr_t>(nativeNode.data());nativeNode[0x40/8]=reinterpret_cast<uintptr_t>(baseline.data());nativeNode[0x48/8]=uint64_t(2)|(uint64_t(2)<<32);const auto originalNode=nativeNode;
-    WardrobeVector nativeReady{const_cast<WardrobeRecord*>(baseline.data()),2,2},empty{};
+    const auto stride=wardrobeRecordSize();
+    alignas(8) std::array<unsigned char,2*sizeof(WardrobeRecord)> raw{};
+    std::memcpy(raw.data(),record.bytes.data(),stride);
+    std::memcpy(raw.data()+stride,body.bytes.data(),stride);
+    std::array<uint64_t,16> nativeNode{};const auto address=reinterpret_cast<uintptr_t>(nativeNode.data());nativeNode[0x40/8]=reinterpret_cast<uintptr_t>(raw.data());nativeNode[0x48/8]=uint64_t(2)|(uint64_t(2)<<32);const auto originalNode=nativeNode;
+    WardrobeVector nativeReady{raw.data(),2,2},empty{};
     for(guardMode=0;guardMode<3;++guardMode){calls=0;check(rebuildWardrobePipeline(address,&nativeReady,&empty,&empty,0,guardedPipeline)==(guardMode==0)&&calls==1&&nativeNode==originalNode,"source pointer, size, capacity and records are restored after success, failure and an engine exception");}
-    auto changed=baseline;changed[0].bytes[9]^=1;nativeReady.data=changed.data();calls=0;check(!rebuildWardrobePipeline(address,&nativeReady,&empty,&empty,0,guardedPipeline)&&calls==0&&nativeNode==originalNode,"a changed source baseline rejects the rebuild before any write");
+    auto changed=raw;changed[stride+9]^=1;nativeReady.data=changed.data();calls=0;check(!rebuildWardrobePipeline(address,&nativeReady,&empty,&empty,0,guardedPipeline)&&calls==0&&nativeNode==originalNode,"a changed source baseline rejects the rebuild before any write");
+}
+int main(){
+    using namespace hex;
+    check(!loadedGameLayout()&&gameLayout().actor==0&&gameLayout().releaseWrapper==0&&
+          gameLayout().copyRecord==0,"an unrecognised game build gets an empty layout");
+    auto layout=layouts[0];
+    testGameLayout()=&layout;
+    checkTransactions();
+    layout.expandedRecords=true;
+    checkTransactions();
     WardrobeNudeCycle cycle;
     cycle.removing(100);
     auto observation=cycle.observe(true,true,true,101);

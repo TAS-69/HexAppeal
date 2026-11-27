@@ -13,6 +13,7 @@ namespace hex {
 struct InteractionAddresses {
     uintptr_t build=0,evaluate=0,select=0,records=0,reserve=0,copy=0,makeLabel=0,copyLabel=0,emptyLabel=0;
     uintptr_t focusLists[3]{};
+    uintptr_t alternateFocusLists[4]{};
 };
 struct SignatureResult {
     bool ok=false;

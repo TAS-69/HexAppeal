@@ -16,6 +16,8 @@ int wmain(int argc,wchar_t** argv){try{
     auto actual=hex::inspectDependencies(game,{});
     require(actual.bodyVerified&&actual.hex.valid,"installed external fixtures must be valid");
     if(!actual.bodyWarning.empty())std::cout<<"Mounted body warning: "<<actual.bodyWarning<<'\n';
+    for(size_t i=0;i<actual.witchBodyWarnings.size();++i)
+        if(!actual.witchBodyWarnings[i].empty())std::cout<<"Mounted body warning for witch "<<i<<": "<<actual.witchBodyWarnings[i]<<'\n';
     if(!actual.bodyNote.empty())std::cout<<"Mounted body note: "<<actual.bodyNote<<'\n';
     hex::DependencyPaths referencePaths;referencePaths.manifest=hex::test::venusManifestFixture(actual.manifest.path,temp/L"venus-reference");actual=hex::inspectDependencies(game,referencePaths);
     const auto storage=temp/L"custom staging \u00e9\u6f22",preset=storage/L"renamed resource"/actual.hex.path.filename();
@@ -66,8 +68,10 @@ int wmain(int argc,wchar_t** argv){try{
         changedManifest.replace(valueStart,valueEnd-valueStart,changedMetadata.u8string());
         write(isolatedManifest,changedManifest);
         inferred=hex::inspectDependencies(isolated,isolatedPaths);
-        require(inferred.bodyVerified&&inferred.bodyWarning.find("No Underwear")!=std::string::npos,
-            "changed removal mod metadata warns without blocking a valid mounted body");
+        const bool witchOnly=std::any_of(inferred.witchBodyWarnings.begin(),inferred.witchBodyWarnings.end(),
+            [](const std::string& text){return text.find("No Underwear")!=std::string::npos;});
+        require(inferred.bodyVerified&&witchOnly&&inferred.bodyWarning.find("No Underwear")==std::string::npos,
+            "changed removal mod metadata warns, for the affected witch only, without blocking a valid mounted body");
         std::istringstream input(manifestText);std::string row,withoutAlias;
         while(std::getline(input,row))if(row.find("/phw_00_nude_00_0001_damian_lnw.")==std::string::npos)withoutAlias+=row+'\n';
         write(isolatedManifest,withoutAlias);

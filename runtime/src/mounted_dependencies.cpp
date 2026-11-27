@@ -1,4 +1,5 @@
 #include "mounted_dependencies.h"
+#include "game_archive.h"
 #include "runtime.h"
 #include "venus_bodies.h"
 #include <algorithm>
@@ -13,7 +14,7 @@
 
 namespace hex {
 namespace {
-struct BodyAppearance {const char* path;const char* vanilla;int witch;};
+struct BodyAppearance {const char* path;const char* vanilla;int witch;bool stockUsesDamiane=false;};
 constexpr BodyAppearance bodyAppearances[]={
     {"character/appearance/2_mon/cd_m0001_00_twofeet/cd_m0001_00_phw_north/cd_m0001_00_phw_north_44001.app_xml","hvw_00_nude_00_0001",5},
     {"character/appearance/3_npc/cd_npc_north/cd_nhw_north/cd_nhw_north_20026.app_xml","hvw_00_nude_00_0301",1},
@@ -21,7 +22,7 @@ constexpr BodyAppearance bodyAppearances[]={
     {"character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20166.app_xml","hvw_00_nude_00_0001",0},
     {"character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20167.app_xml","hvw_00_nude_00_0001",1},
     {"character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20168.app_xml","hvw_00_nude_00_0001",3},
-    {"character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20169.app_xml","hvw_00_nude_00_0001_damian",4}};
+    {"character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20169.app_xml","hvw_00_nude_00_0001_damian",4,true}};
 constexpr auto npcUnderwearPrefab="phw_00_nude_00_0001_damian_lnw";
 constexpr auto npcUnderwearPrefabPath="character/bin__/prefab/1_pc/02_phw/nude/phw_00_nude_00_0001_damian_lnw.prefab";
 constexpr auto npcUnderwearMetadataPath="character/prefab/1_pc/02_phw/nude/phw_00_nude_00_0001_damian_lnw.prefabdata_xml";
@@ -73,12 +74,27 @@ bool isolatedVenusReady(const std::map<std::string,std::filesystem::path>& route
         readableDependency(body->second,"DDS ")&&readableDependency(hands->second,"DDS ")&&
         bindings.find(isolatedBodyColourPath)!=std::string::npos&&bindings.find(isolatedHandColourPath)!=std::string::npos;
 }
-std::string appearanceBody(const std::filesystem::path& path){
-    const auto text=readMountAsset(path);
+std::string lowerAscii(std::string text){
+    std::transform(text.begin(),text.end(),text.begin(),[](unsigned char c){return char(std::tolower(c));});
+    return text;
+}
+// The game matches prefab names case-insensitively, and DMM's routes are lower case.
+// Generated looks such as Legion's Slider ..._IAL bodies keep capitals in the name.
+std::string appearanceBodyFromXml(const std::string& text){
     static const std::regex nude(R"(<Nude\s*>\s*(<Prefab\s+[^<>]*/>)\s*</Nude\s*>)");
     static const std::regex name(R"(\bName\s*=\s*(["'])([^"']+)\1)");
     std::smatch match;if(!std::regex_search(text,match,nude)||std::regex_search(match.suffix().str(),nude))return {};
-    const auto part=match[1].str();std::smatch named;return std::regex_search(part,named,name)?named[2].str():std::string{};
+    const auto part=match[1].str();std::smatch named;return std::regex_search(part,named,name)?lowerAscii(named[2].str()):std::string{};
+}
+std::string appearanceBody(const std::filesystem::path& path){return appearanceBodyFromXml(readMountAsset(path));}
+bool checkedStockDamianeAppearance(const BodyAppearance& row,const std::filesystem::path& game){
+    if(!row.stockUsesDamiane||game.empty())return false;
+    const std::string_view route(row.path);
+    try{
+        const GameArchive archive(game/L"0009",route.substr(0,route.find_last_of('/')));
+        return appearanceBodyFromXml(archive.read(row.path))==venusPrefab;
+    }catch(const std::runtime_error&){return false;}
+    catch(const std::out_of_range&){return false;}
 }
 bool cloneUnderwearPathCleared(const std::string& prefab){
     static constexpr char partHeader[]="\x09\0\0\0" "Underwear" "\x01\x01\0\x01\x03\0\0"
@@ -94,8 +110,13 @@ bool cloneUnderwearPathCleared(const std::string& prefab){
     return size>0&&size<=512&&size<=prefab.size()-pathStart&&
         prefab.find_first_not_of('\0',pathStart)>=pathStart+size;
 }
-bool mountedPhwBodyClone(const std::map<std::string,std::filesystem::path>& routes,const std::string& name,std::filesystem::path* remover=nullptr){
+// sharesVenusModel reports a clone that draws the mounted Venus Body for Damiane model itself,
+// such as a copy of the Damiane prefab whose only change is its underwear part.
+bool mountedPhwBodyClone(const std::map<std::string,std::filesystem::path>& routes,const std::string& prefabName,std::filesystem::path* remover=nullptr,
+                         bool* sharesVenusModel=nullptr){
     constexpr auto root="character/bin__/prefab/";
+    if(sharesVenusModel)*sharesVenusModel=false;
+    const auto name=lowerAscii(prefabName);
     if(name.empty()||name.size()>96||name==venusPrefab||name==npcUnderwearPrefab||name==isolatedVenusPrefab||
        name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789_")!=std::string::npos)return false;
     const std::string suffix="/"+name+".prefab";
@@ -110,14 +131,15 @@ bool mountedPhwBodyClone(const std::map<std::string,std::filesystem::path>& rout
     const auto stem=prefab->first.substr(std::strlen(root),prefab->first.size()-std::strlen(root)-std::strlen(".prefab"));
     const auto metadata=routes.find("character/prefab/"+stem+".prefabdata_xml");
     if(metadata==routes.end())return false;
-    const auto data=readMountAsset(prefab->second),description=readMountAsset(metadata->second);
+    const auto data=readMountAsset(prefab->second),description=lowerAscii(readMountAsset(metadata->second));
     static const std::regex nudeModel(R"(character/model/[a-zA-Z0-9_/]{1,200}/nude/[a-zA-Z0-9_]{1,96}\.pac)",std::regex::icase);
     std::smatch modelMatch;
+    // Resource paths are case-insensitive: the stock rig writes 1_PC/2_PHW/Nude, generated clones 1_pc/2_phw/nude.
     const bool sameRig=data.compare(0,6,std::string("\xff\xff\x04\0\0\0",6))==0&&
         data.find("SkinnedMeshComponent")!=std::string::npos&&
         std::regex_search(data,modelMatch,nudeModel)&&
-        description.find("<SkeletonName FileName=\"1_pc/2_phw/PHW_01.pab\"")!=std::string::npos&&
-        description.find("<SkeletonVariationName FileName=\"1_PC/2_PHW/Nude/PHW_00_Nude_00_0001.pabc\"")!=std::string::npos;
+        description.find("<skeletonname filename=\"1_pc/2_phw/phw_01.pab\"")!=std::string::npos&&
+        description.find("<skeletonvariationname filename=\"1_pc/2_phw/nude/phw_00_nude_00_0001.pabc\"")!=std::string::npos;
     if(!sameRig)return false;
     auto modelRoute=modelMatch.str();
     std::transform(modelRoute.begin(),modelRoute.end(),modelRoute.begin(),[](unsigned char c){return char(std::tolower(c));});
@@ -125,6 +147,7 @@ bool mountedPhwBodyClone(const std::map<std::string,std::filesystem::path>& rout
         if(!readableDependency(model->second,"PAR "))return false;
     }else if(modelRoute!=venusModelPath&&modelRoute!="character/model/1_pc/2_phw/nude/phw_00_nude_00_0001.pac")return false;
     if(remover&&cloneUnderwearPathCleared(data))*remover=prefab->second;
+    if(sharesVenusModel)*sharesVenusModel=modelRoute==venusModelPath;
     return true;
 }
 }
@@ -164,7 +187,7 @@ bool npcUnderwearReady(const std::map<std::string,std::filesystem::path>& routes
 }
 
 BodyMode classifyBodyRoutes(const std::map<std::string,std::filesystem::path>& routes,uint32_t* cloneWitches,uint32_t* unavailableWitches,
-                           std::vector<MountedBodyIssue>* issues=nullptr){
+                           std::vector<MountedBodyIssue>* issues,const std::filesystem::path& game){
     bool meshRemoved=false;
     const bool npcUnderwear=npcUnderwearReady(routes,meshRemoved);
     const bool isolatedVenus=isolatedVenusReady(routes);
@@ -184,7 +207,10 @@ BodyMode classifyBodyRoutes(const std::map<std::string,std::filesystem::path>& r
         }
         else if(npcUnderwear&&body==npcUnderwearPrefab)removerBodies|=bit;
         else if(mountedPhwBodyClone(routes,body))clones|=bit;
-        else{
+        else if(found==routes.end()&&venus&&!vanilla&&checkedStockDamianeAppearance(row,game)){
+            venus|=bit;
+            if(issues)stockRoutes.push_back({row.witch,row.path,"The stock appearance already uses the mounted Damiane body.",true});
+        }else{
             unavailable|=bit;
             if(issues){
                 const auto reason=found==routes.end()?"No active file in the DMM mount.":
@@ -256,8 +282,8 @@ BodyMode mountedBodyMode(const std::filesystem::path& manifest,uint32_t* cloneWi
     return mountedBodyMode(readMountedRoutes(manifest),cloneWitches,unavailableWitches);
 }
 BodyMode mountedBodyMode(const std::map<std::string,std::filesystem::path>& routes,uint32_t* cloneWitches,uint32_t* unavailableWitches,
-                         std::vector<MountedBodyIssue>* issues){
-    return classifyBodyRoutes(routes,cloneWitches,unavailableWitches,issues);
+                         std::vector<MountedBodyIssue>* issues,const std::filesystem::path& game){
+    return classifyBodyRoutes(routes,cloneWitches,unavailableWitches,issues,game);
 }
 bool mountedDamianeVenus(const std::map<std::string,std::filesystem::path>& routes){
     const auto appearance=routes.find("character/appearance/1_pc/2_phw/cd_phw_damian/cd_phw_damian_00000.app_xml");
@@ -279,10 +305,24 @@ bool verifyMountedDependencies(const std::filesystem::path& game,std::string& er
 bool verifyMountedDependencies(const std::filesystem::path& game,const std::filesystem::path& manifest,std::string& error) {
     std::string warning;return verifyMountedDependencies(game,manifest,error,warning);
 }
-bool verifyMountedDependencies(const std::filesystem::path& game,const std::filesystem::path& manifest,std::string& error,std::string& warning,uint32_t* unavailableWitches,std::string* note) {
+bool verifyMountedDependencies(const std::filesystem::path& game,const std::filesystem::path& manifest,std::string& error,std::string& warning,uint32_t* unavailableWitches,std::string* note,
+                               std::array<std::string,6>* witchWarnings,std::string* skipped) {
     error.clear();warning.clear();
     if(unavailableWitches)*unavailableWitches=0;
     if(note)note->clear();
+    if(witchWarnings)for(auto& text:*witchWarnings)text.clear();
+    if(skipped)skipped->clear();
+    // Warnings accumulate. A witch's own appearance or body is reported for her alone when the
+    // caller asks for per-witch warnings, so it no longer marks every character's controls.
+    const auto append=[](std::string& out,const std::string& text){
+        if(text.empty()||out.find(text)!=std::string::npos)return;
+        if(!out.empty())out+="\n\n";
+        out+=text;
+    };
+    const auto witchWarning=[&](int witch,const std::string& text){
+        if(witchWarnings&&witch>=0&&witch<int(witchWarnings->size()))append((*witchWarnings)[witch],text);
+        else append(warning,text);
+    };
     bool version=false;
     const auto routes=readMountedRoutes(manifest,&version,&warning);
     if(!version){
@@ -290,7 +330,7 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
             "Mount one Hex Appeal body option through Definitive Mod Manager first.";
         return false;
     }
-    const auto mode=classifyBodyRoutes(routes,nullptr,unavailableWitches);
+    const auto mode=classifyBodyRoutes(routes,nullptr,unavailableWitches,nullptr,game);
     if(mode==BodyMode::Invalid){error="The mounted witch bodies are missing or mixed. Enable one Hex Appeal body option, remove any stale older entry and remount.";return false;}
     const char* bodyPaths[]={
         venusModelPath,
@@ -311,7 +351,7 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
         if(found==routes.end()||isOwnModContent(found->second)||!readableDependency(found->second,"PAR ")) {
             error="The mounted Venus Body for Damiane path is missing, unreadable or not a PAC file. Check body priority and remount.";return false;
         }
-        if(!venusBodyVersion(sha256(found->second,true)))warning=unverifiedDependency("Venus Body for Damiane");
+        if(!venusBodyVersion(sha256(found->second,true)))append(warning,unverifiedDependency("Venus Body for Damiane"));
     }
     if(mode==BodyMode::Vanilla){
         const std::pair<const char*,const char*> bodies[]={
@@ -321,7 +361,7 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
         for(const auto& row:bodies){
             const auto path="character/model/ha_p/2_phw/nude/"+std::string(row.first)+".pac";const auto body=routes.find(path);
             if(body==routes.end()||!readableDependency(body->second,"PAR ")){error="A mounted original-witch body is missing or unreadable. Reinstall the Vanilla option and remount.";return false;}
-            if(sha256(body->second,true)!=row.second)warning=unverifiedDependency("the original-witch body resource");
+            if(sha256(body->second,true)!=row.second)append(warning,unverifiedDependency("the original-witch body resource"));
             for(const auto& resource:{"character/modelproperty/ha_p/2_phw/nude/"+std::string(row.first)+".pac_xml","character/bin__/meshphysics/ha_p/2_phw/nude/"+std::string(row.first)+".hkx"}){
                 const auto found=routes.find(resource);if(found==routes.end()||!readableDependency(found->second)){error="Original-witch body metadata or physics is missing. Reinstall the Vanilla option and remount.";return false;}
             }
@@ -348,6 +388,7 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
         const auto& appearance=appearances[index];
         if(unavailableWitches&&(*unavailableWitches&(1u<<bodyAppearances[index].witch)))continue;
         const auto found=routes.find(appearance.path);
+        if(found==routes.end()&&mode==BodyMode::Venus&&checkedStockDamianeAppearance(bodyAppearances[index],game))continue;
         if(found==routes.end()||!readableDependency(found->second)) {
             error="A mounted witch appearance path is missing or unreadable. Remount the body component.";return false;
         }
@@ -355,29 +396,33 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
         const bool usesNpcUnderwear=npcUnderwear&&body==npcUnderwearPrefab;
         if(isolatedVenus&&body==isolatedVenusPrefab)continue;
         const auto* selectedBody=mode==BodyMode::Vanilla?appearance.vanillaName:venusPrefab;
+        const int witch=bodyAppearances[index].witch;
         if(body!=selectedBody&&!usesNpcUnderwear){
-            if(!mountedPhwBodyClone(routes,body)){
+            bool sharesVenusModel=false;
+            if(!mountedPhwBodyClone(routes,body,nullptr,&sharesVenusModel)){
                 error="A witch appearance does not use a compatible body. Check the selected body option and remount.";return false;
             }
-            if(mode==BodyMode::Vanilla)mountedMidpoint|=1u<<bodyAppearances[index].witch;
-            warning=unverifiedDependency("the mounted witch body replacement");
+            if(mode==BodyMode::Vanilla)mountedMidpoint|=1u<<witch;
+            // A VENUS clone that draws the checked Venus model with the same rig is that body;
+            // only its underwear part differs, which the underwear provider already reports.
+            if(!(mode==BodyMode::Venus&&sharesVenusModel))witchWarning(witch,unverifiedDependency("the mounted witch body replacement"));
             continue;
         }
         const auto digest=sha256(found->second,true);
         if(usesNpcUnderwear){
-            if(mode==BodyMode::Vanilla)mountedMidpoint|=1u<<bodyAppearances[index].witch;
+            if(mode==BodyMode::Vanilla)mountedMidpoint|=1u<<witch;
             if(!npcUnderwearAssetsVerified||!appearance.npcUnderwearHash||digest!=appearance.npcUnderwearHash)
-                warning=unverifiedDependency("No Underwear – NPCs");
+                witchWarning(witch,unverifiedDependency("No Underwear – NPCs"));
         }else if(mode==BodyMode::Vanilla?digest!=vanillaHashes[index]:
                   digest!=appearance.hash&&(!appearance.isolatedHash||digest!=appearance.isolatedHash)){
-            warning=unverifiedDependency("the mounted witch appearance replacement");
+            witchWarning(witch,unverifiedDependency("the mounted witch appearance replacement"));
         }
     }
     if(isolatedVenus){
         const auto alternate=routes.find(isolatedVenusModelPath);
         const auto current=routes.find(venusModelPath);
         if(alternate!=routes.end()&&current!=routes.end()&&sha256(alternate->second,true)!=sha256(current->second,true))
-            warning="The local witch skin package uses a different Venus Body for Damiane model. Rebuild the local package after updating Venus Body for Damiane.";
+            append(warning,"The local witch skin package uses a different Venus Body for Damiane model. Rebuild the local package after updating Venus Body for Damiane.");
     }
     if(mountedMidpoint&&note){
         *note="Shape uses the mounted replacement body as the midpoint for ";
@@ -388,13 +433,15 @@ bool verifyMountedDependencies(const std::filesystem::path& game,const std::file
         *note+=".";
     }
     if(unavailableWitches&&*unavailableWitches){
-        if(!warning.empty())warning+="\n\n";
-        warning+="Shape skipped for ";
+        std::string text="Shape skipped for ";
         const char* separator="";
         for(size_t i=0;i<witches.size();++i)if(*unavailableWitches&(1u<<i)){
-            warning+=separator;warning+=witches[i].name;separator=", ";
+            text+=separator;text+=witches[i].name;separator=", ";
         }
-        warning+=". Check their mounted body in DMM.";
+        text+=". Check their mounted body in DMM.";
+        // Each skipped witch already shows her own reason; the summary is for ALL CHARACTERS and reports.
+        if(skipped)*skipped=std::move(text);
+        else append(warning,text);
     }
     return true;
 }

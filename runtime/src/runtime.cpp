@@ -137,6 +137,7 @@ std::string Runtime::diagnosticReport(const std::string& graphics){
         if(!file->path.empty())out<<"  "<<file->path.u8string()<<'\n';
     }
     out<<"\nBody and visibility by witch\n"<<deps.bodyDetail<<'\n';
+    if(!deps.bodySkipped.empty())out<<deps.bodySkipped<<'\n';
     if(!deps.bodyNote.empty())out<<deps.bodyNote<<'\n';
     out<<"Witch skin match: "<<(skinToneAtStartup?(skinToneFailed.load()?"unavailable":"on"):"off")
        <<" / "<<skinToneApplied.load()<<" of "<<skinTonePrepared.load()<<" skin routes loaded\n";
@@ -157,6 +158,7 @@ std::string Runtime::diagnosticReport(const std::string& graphics){
         if(deps.missingUnderwearMeshMask&bit)out<<" / Base mesh removed from mounted assets";
         out<<'\n';
         if(!deps.unavailableBodyDetails[i].empty())out<<"  "<<deps.unavailableBodyDetails[i]<<'\n';
+        if(!deps.witchBodyWarnings[i].empty())out<<"  "<<deps.witchBodyWarnings[i]<<'\n';
     }
     out<<"\nMounted source folders and direct file counts\n";
     if(deps.mountedMods.empty())out<<"No source folders attributable from the active file list.\n";

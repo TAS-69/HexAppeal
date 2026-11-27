@@ -327,8 +327,8 @@ SkinToneSource activeDamianeSkin(const std::map<std::string,fs::path>& routes){
     return {route,file->second,"Custom Damiane face texture detected."};
 }
 
-SkinToneSource activeVenusDamianeSkin(const std::map<std::string,fs::path>& routes){
-    if(mountedBodyMode(routes,nullptr,nullptr)!=BodyMode::Venus)
+SkinToneSource activeVenusDamianeSkin(const std::map<std::string,fs::path>& routes,const fs::path& game){
+    if(mountedBodyMode(routes,nullptr,nullptr,nullptr,game)!=BodyMode::Venus)
         return {{},{},"Skin matching requires the VENUS witch body option."};
     if(!mountedDamianeVenus(routes))
         return {{},{},"Skin matching requires a recognised Venus Body for Damiane to be active."};
@@ -381,7 +381,7 @@ AddonVenusAssets prepareAddonVenus(const fs::path& game,
     AddonVenusAssets plan;
     uint32_t unavailable=0;
     if(appearances.empty())return plan;
-    const auto mode=mountedBodyMode(routes,nullptr,&unavailable);
+    const auto mode=mountedBodyMode(routes,nullptr,&unavailable,nullptr,game);
     if(mode!=BodyMode::Venus&&mode!=BodyMode::Vanilla)return plan;
     const GameArchive archive(game/L"0009");
     const auto read=[&](const std::string& route){
@@ -438,7 +438,7 @@ AddonVenusAssets prepareAddonVenus(const fs::path& game,
 SkinToneAssets prepareSkinTone(const fs::path& game,const std::map<std::string,fs::path>& routes,
                               const std::map<std::string,std::string>& addonAppearances){
     SkinToneAssets plan;
-    plan.source=activeVenusDamianeSkin(routes);
+    plan.source=activeVenusDamianeSkin(routes,game);
     if(!plan.source.custom())return plan;
     const GameArchive stock(game/L"0009");
     const auto get=[&](const std::string& route){

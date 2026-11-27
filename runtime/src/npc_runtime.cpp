@@ -12,6 +12,7 @@
 #include "character_addons.h"
 #include "record_flags.h"
 #include "native_interface.h"
+#include "appearance_hooks.h"
 #include "core/log.h"
 #include <MinHook.h>
 #include <algorithm>
@@ -72,6 +73,8 @@ struct RuntimeState {
     HMODULE module=nullptr;
     NativeShapeEngine engine;
     std::atomic<bool> hooked{false};
+    std::atomic<bool> sawCompatibleUpload{false};
+    std::atomic<bool> reportedUploadLayout{false};
     std::atomic<bool> failed{false};
     std::atomic<bool> allowWrites{false};
     RecordFlags<characterCapacity> seen;
@@ -310,10 +313,13 @@ bool updateActor(void* upload,void* model,void* actor,const ActorIdentity& ident
     };
     if(!capturePoseParts(upload,model,parts,error)) {
         const auto message=std::string(identity.name)+": "+error;
+        if(gameLayout().expandedRecords&&!s.sawCompatibleUpload&&!s.reportedUploadLayout.exchange(true))
+            LOG_ERR("Could not validate the 2.06 character upload: %s",message.c_str());
         if(isAddon&&enabled())fail(message);
         else if(!isAddon)setStatus(message);
         return false;
     }
+    s.sawCompatibleUpload=true;
     s.lastSeen[identity.witch]=GetTickCount();
     const bool firstObservation=!s.seen.exchange(size_t(identity.witch),true);
     const auto countChangedParts=[&]{
@@ -420,6 +426,53 @@ void hookedUpdate(void* upload,void* model,void* actor) {
     const bool handled=!s.failed&&observed&&updateActor(upload,model,actor,identity);
     if(!handled)originalUpdate(upload,model,actor);
 }
+using GameUpload=void(*)(void*,void*);
+GameUpload originalGameUpload=nullptr;
+void* readUploadActor(void* model){
+    __try{
+        const auto at=[](uintptr_t address,uintptr_t offset){return address?*reinterpret_cast<const uintptr_t*>(address+offset):0;};
+        const auto address=reinterpret_cast<uintptr_t>(model);
+        if(!address||*reinterpret_cast<const uint8_t*>(address+0x2bc)!=0)return nullptr;
+        const auto link=at(address,0x18),owner=at(link,8);
+        if(!link||!owner||at(owner,8)!=link||at(owner,0x1d8)!=address)return nullptr;
+        const auto scene=at(owner,0x40),component=at(scene,0x180);
+        if(!scene||!component||at(component,0x10)!=scene)return nullptr;
+        const auto attachment=at(component,0xb0);
+        if(!attachment||at(attachment,0x10)!=component)return nullptr;
+        const auto actor=at(at(attachment,0x28),8);
+        const auto game=reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
+        return isWardrobeNpc(actor,game)?reinterpret_cast<void*>(actor):nullptr;
+    }__except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
+}
+void updateGameUpload(void* upload,void* model){
+    originalGameUpload(upload,model);
+    auto& s=state();
+    if(!s.hooked||s.failed)return;
+    auto* actor=readUploadActor(model);
+    ActorIdentity identity;
+    if(!actor||!readWardrobeIdentity(actor,identity))return;
+    struct SurgeryLock {
+        PSRWLOCK lock;
+        explicit SurgeryLock(HMODULE module):lock(reinterpret_cast<PSRWLOCK>(reinterpret_cast<uintptr_t>(module)+0x12a730)){
+            AcquireSRWLockExclusive(lock);
+        }
+        ~SurgeryLock(){ReleaseSRWLockExclusive(lock);}
+    } guard(s.module);
+    try{updateActor(upload,model,actor,identity);}
+    catch(...){if(!s.reportedUploadLayout.exchange(true))LOG_ERR("Could not finish a 2.06 character pose update.");}
+}
+bool installGamePoseUpload(){
+    if(!gameLayout().expandedRecords)return false;
+    const auto game=GetModuleHandleW(nullptr);
+    auto* entry=reinterpret_cast<unsigned char*>(game)+0x324fd80;
+    const unsigned char head[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x6c,0x24,0x10,0x48,0x89,0x74,0x24,0x18};
+    const unsigned char tail[]{0x48,0x8b,0x9a,0x90,0x01,0x00,0x00,0x4c,0x8d,0x7a,0x40,0x8b,0x82,0x98,0x01,0x00,0x00};
+    if(!executablePluginFunction(game,entry)||appearance::checkedGameEntry(entry,head,28,tail)!=appearance::GameEntry::Stock)return false;
+    if(MH_CreateHook(entry,reinterpret_cast<void*>(&updateGameUpload),reinterpret_cast<void**>(&originalGameUpload))!=MH_OK)return false;
+    if(MH_EnableHook(entry)!=MH_OK){MH_RemoveHook(entry);return false;}
+    LOG("Hex Appeal attached directly to the checked 2.06 animation upload. Instant Surgery supplies the shaping engine.");
+    return true;
+}
 int observedPhysicsPose(void* context,void* skeleton,const PoseMatrix* source,PoseMatrix* destination,uint32_t count,uint64_t* stamp) {
     auto& s=state();ActorIdentity identity;
     bool observed=readContextWitchIdentity(s.module,context,identity,addonTargetForRecord);
@@ -482,9 +535,14 @@ DWORD WINAPI worker(void*) {
         if(ec)s.observations.clear();
     }
     const auto game=r.folder.parent_path();
+    waitForGameLayout();
+    bool gamePoseUpload=false;
     std::string error,hexError,hexWarning;DependencyStatus dependencies;uint64_t scannedRevision=0;DWORD scannedAt=0;bool engineBound=false;std::filesystem::path loadedPreset;std::string loadedPresetHash;
+    bool hadCompatibleUpload=false;
     const auto rescan=[&](bool force=false){
-        const auto revision=r.dependencyRevision.load();const auto now=GetTickCount();if(!force&&revision==scannedRevision&&now-scannedAt<15000)return;
+        const bool compatibleUpload=!gameLayout().expandedRecords||s.sawCompatibleUpload.load();
+        const auto revision=r.dependencyRevision.load();const auto now=GetTickCount();if(!force&&revision==scannedRevision&&now-scannedAt<15000&&compatibleUpload==hadCompatibleUpload)return;
+        hadCompatibleUpload=compatibleUpload;
         scannedAt=now;scannedRevision=revision;
         try {dependencies=inspectDependencies(game,r.configuredDependencyPaths());}
         catch(...){dependencies={};dependencies.scanned=true;dependencies.bodyDetail="Dependency detection failed. Check the paths in Settings.";}
@@ -500,28 +558,31 @@ DWORD WINAPI worker(void*) {
         }
         if(!hexWarning.empty())dependencies.hex.detail+=" "+hexWarning;
         r.hexAvailable=hexReady;
-        const bool shapingReady=s.hooked&&engineBound&&dependencies.canShapeBody()&&!s.failed;
+        const bool shapingReady=s.hooked&&engineBound&&compatibleUpload&&dependencies.canShapeBody()&&!s.failed;
         if(!shapingReady)r.shapingAvailable=false;
         r.publishDependencies(dependencies);
         r.shapingAvailable=shapingReady;
         r.weightAvailable=engineBound&&shapingReady;
         if(force||presetLoaded||oldHex!=hexReady||oldShape!=shapingReady)++s.addonDependencyVersion;
         const auto shapeIssue=!dependencies.canShapeBody()?dependencies.bodyDetail:!dependencies.instant.valid?dependencies.instant.detail:
-            !error.empty()?error:std::string("Waiting for the installed Instant Surgery plugin to initialize.");
+            !error.empty()?error:s.hooked&&engineBound&&!compatibleUpload?
+            std::string(gamePoseUpload?"Waiting for a compatible game animation upload. Keep a supported character visible.":
+                "Waiting for a compatible animation upload from Instant Surgery. Keep a supported character visible."):
+            std::string("Waiting for the installed Instant Surgery plugin to initialize.");
         if(!s.failed)r.reportCompatibility(Feature::Shaping,r.shapingAvailable?CompatibilityState::Ready:
             !dependencies.canShapeBody()||!dependencies.instant.valid?CompatibilityState::Blocked:CompatibilityState::Waiting,
             r.shapingAvailable?(dependencies.bodyVerified?"Native shaping and active body checks passed.":dependencies.bodyDetail):shapeIssue);
         r.reportCompatibility(Feature::Hex,hexReady?CompatibilityState::Ready:!dependencies.hex.valid||!hexError.empty()||!error.empty()?CompatibilityState::Blocked:CompatibilityState::Waiting,hexReady?(hexWarning.empty()?"The external preset was parsed by the installed shaping adapter.":hexWarning):!hexError.empty()?hexError:!dependencies.hex.valid?dependencies.hex.detail:!error.empty()?error:"Waiting for the native shaping adapter.");
         r.reportCompatibility(Feature::Weight,r.weightAvailable?CompatibilityState::Ready:r.featureCompatibility(Feature::Shaping).state,r.weightAvailable?"Native proportion controls are available; no outfit dependency is required.":shapeIssue);
         if(presetLoaded)r.presetChanged=true;
-        if(!s.hooked)setStatus(shapeIssue);
+        if(!s.hooked||!compatibleUpload)setStatus(shapeIssue);
     };
     const auto stopShaping=[&](const std::string& message){error=message;r.shapingAvailable=false;r.weightAvailable=false;r.reportCompatibility(Feature::Shaping,CompatibilityState::Blocked,message);r.reportCompatibility(Feature::Weight,CompatibilityState::Blocked,message);setStatus(message);};
     uint64_t nextPhysicsCheck=0;
     bool reportedPhysicsIssue=false;
     const auto tryOptionalPhysics=[&](){
         const auto now=GetTickCount64();
-        if(!engineBound||!checkPhysics||s.physicsRoute||now<nextPhysicsCheck)return;
+        if(gamePoseUpload||!engineBound||!checkPhysics||s.physicsRoute||now<nextPhysicsCheck)return;
         nextPhysicsCheck=now+2000;
         const auto bodyPhysics=GetModuleHandleW(L"BodyPhysics.asi");
         if(!bodyPhysics)return;
@@ -566,8 +627,9 @@ DWORD WINAPI worker(void*) {
             s.module=retained;
             const auto target=reinterpret_cast<unsigned char*>(module)+0x18D70;
             s.allowWrites=allowNpcWrites&&engineBound;
-            const bool prepared=MH_CreateHook(target,reinterpret_cast<void*>(&hookedUpdate),reinterpret_cast<void**>(&originalUpdate))==MH_OK;
-            const bool installed=prepared&&MH_EnableHook(target)==MH_OK;
+            gamePoseUpload=engineBound&&installGamePoseUpload();
+            const bool prepared=!gamePoseUpload&&MH_CreateHook(target,reinterpret_cast<void*>(&hookedUpdate),reinterpret_cast<void**>(&originalUpdate))==MH_OK;
+            const bool installed=gamePoseUpload||(prepared&&MH_EnableHook(target)==MH_OK);
             if(!installed){
                 if(prepared)MH_RemoveHook(target);
                 s.module=nullptr;
@@ -582,7 +644,7 @@ DWORD WINAPI worker(void*) {
             if(!engineBound)LOG("Native actor observation is ready without the shaping interface: %s",error.c_str());
             s.hooked=true;setStatus(!error.empty()?error:"NPC route ready. Saved shapes restore when a selected witch becomes visible.");
             rescan(true);
-            LOG("Instant Surgery NPC adapter installed. Body/outfit writes require a validated transaction and witch identity; version verification is reported separately.");
+            if(!gamePoseUpload)LOG("Instant Surgery NPC adapter installed. Body/outfit writes require a validated transaction and witch identity; version verification is reported separately.");
             break;
         }
         if(!error.empty()){

@@ -30,13 +30,17 @@ struct DmmPath {
 };
 static_assert(sizeof(DmmPath)==24&&sizeof(DmmFile)==16);
 using Lookup=const DmmFile*(*)(const void*);
-constexpr size_t lookupOffset=0x9240;
-constexpr size_t pathRequestReturn=0x94b1;
-constexpr size_t fileCountOffset=0x527f0;
-constexpr size_t looseReaderOffset=0x52420;
-constexpr size_t looseTableOffset=0x52348;
-constexpr const char* dmmDigest="ec0929a7d4697249020ae09704fb96aebdce4db4b201049598045224ec4261af";
-constexpr unsigned char lookupPrefix[]{0x48,0x81,0xec,0x88,0,0,0,0x48,0x8b,0x05,0x72,0x7e,0x04,0,0x48,0x33};
+struct DmmLayout {
+    const char* digest;
+    size_t lookup,pathReturn,fileCount,looseReader,looseTable;
+    unsigned char lookupPrefix[16];
+};
+constexpr DmmLayout dmmLayouts[]{
+    {"ec0929a7d4697249020ae09704fb96aebdce4db4b201049598045224ec4261af",0x9240,0x94b1,0x527f0,0x52420,0x52348,
+     {0x48,0x81,0xec,0x88,0,0,0,0x48,0x8b,0x05,0x72,0x7e,0x04,0,0x48,0x33}},
+    {"3e13a921b80ee8b08b12de42bf2834a78ad6be6ebeb67ad2bfcdd3e8e579569a",0x9400,0x9671,0x52850,0x52580,0x52418,
+     {0x48,0x81,0xec,0x88,0,0,0,0x48,0x8b,0x05,0xf2,0x7c,0x04,0,0x48,0x33}},
+};
 constexpr unsigned char lookupTail[]{0xc4,0x48,0x89,0x44,0x24,0x50,0xe8,0x05,0x06,0,0,0x48,0x85,0xc0,0x0f,0x84};
 
 struct CachedFile {
@@ -53,7 +57,7 @@ struct LocalFile {
 };
 struct Overlay {
     Lookup original=nullptr;
-    uintptr_t dmm=0;
+    uintptr_t pathRequestReturn=0;
     Runtime* runtime=nullptr;
     mutable std::atomic<bool> registryRequested{false};
     std::map<std::string,LocalFile,std::less<>> files;
@@ -94,7 +98,7 @@ const DmmFile* lookup(const void* request){
     if(copyRoute(request,route,sizeof route,length)){
         const std::string_view key(route,length);
         if(const auto found=overlay.files.find(key);found!=overlay.files.end()){
-            const auto pathRequest=reinterpret_cast<uintptr_t>(_ReturnAddress())==overlay.dmm+pathRequestReturn;
+            const auto pathRequest=reinterpret_cast<uintptr_t>(_ReturnAddress())==overlay.pathRequestReturn;
             if(key==skinRegistryRoute&&pathRequest&&
                !overlay.registryRequested.exchange(true)){
                 LOG_OK("Skin tone: the runtime requested the isolated witch skin registry.");
@@ -224,21 +228,33 @@ DWORD WINAPI prepare(LPVOID location){
         }
         wchar_t modulePath[32768]{};
         if(!module)throw std::runtime_error("DMM did not load its file router.");
-        if(!GetModuleFileNameW(module,modulePath,32768)||sha256(modulePath)!=dmmDigest)
-            LOG("Unverified DMM runtime version. Checking the mounted skin file records.");
         const auto base=reinterpret_cast<uintptr_t>(module);
-        auto* entry=reinterpret_cast<void*>(base+lookupOffset);
-        const auto lookupReady=[&]{
+        const auto digest=GetModuleFileNameW(module,modulePath,32768)?sha256(modulePath):std::string{};
+        const auto lookupReady=[&](const DmmLayout& layout){
+            auto* entry=reinterpret_cast<void*>(base+layout.lookup);
             return executablePluginFunction(module,entry)&&
-                appearance::checkedGameEntry(entry,lookupPrefix,16,lookupTail)!=appearance::GameEntry::Unavailable;
+                appearance::checkedGameEntry(entry,layout.lookupPrefix,16,lookupTail)!=appearance::GameEntry::Unavailable;
         };
+        const DmmLayout* layout=nullptr;
+        for(const auto& candidate:dmmLayouts)
+            if(digest==candidate.digest){layout=&candidate;break;}
+        if(!layout){
+            LOG("Unverified DMM runtime version. Checking the mounted skin file records.");
+            for(const auto& candidate:dmmLayouts){
+                if(!lookupReady(candidate))continue;
+                if(layout)throw std::runtime_error("Multiple mounted file layouts matched DMM's runtime instructions.");
+                layout=&candidate;
+            }
+        }
+        if(!layout)throw std::runtime_error("DMM's mounted file lookup failed the live instruction check.");
+        auto* entry=reinterpret_cast<void*>(base+layout->lookup);
         bool validated=false;
         std::string rejectedRoute;
         for(unsigned waited=0;waited<100&&!validated;++waited){
             uintptr_t reader=0;
             size_t count=0;
-            if(lookupReady()&&memoryCopy(reinterpret_cast<const void*>(base+looseReaderOffset),&reader,sizeof reader)&&reader==base+looseTableOffset&&
-               memoryCopy(reinterpret_cast<const void*>(base+fileCountOffset),&count,sizeof count)&&count>0){
+            if(lookupReady(*layout)&&memoryCopy(reinterpret_cast<const void*>(base+layout->looseReader),&reader,sizeof reader)&&reader==base+layout->looseTable&&
+               memoryCopy(reinterpret_cast<const void*>(base+layout->fileCount),&count,sizeof count)&&count>0){
                 validated=std::all_of(plan.sources.begin(),plan.sources.end(),[&](const auto& route){
                     const auto sample=routes.find(route);
                     if(sample!=routes.end()&&validateRecord(reinterpret_cast<Lookup>(entry),sample->first,sample->second))return true;
@@ -249,14 +265,14 @@ DWORD WINAPI prepare(LPVOID location){
             if(!validated)Sleep(15);
         }
         if(!validated){
-            if(!lookupReady())throw std::runtime_error(appearance::entryIssue(entry,"DMM's mounted file lookup"));
+            if(!lookupReady(*layout))throw std::runtime_error(appearance::entryIssue(entry,"DMM's mounted file lookup"));
             if(rejectedRoute.empty())throw std::runtime_error("DMM did not initialize its mounted file table in time.");
             throw std::runtime_error("DMM's live file record did not match the mounted skin route "+rejectedRoute+".");
         }
         const auto cache=runtime.profiles.parent_path()/L"Skin cache";
         fs::create_directories(cache);
         auto overlay=std::make_unique<Overlay>();
-        overlay->dmm=base;
+        overlay->pathRequestReturn=base+layout->pathReturn;
         overlay->runtime=&runtime;
         for(const auto& [route,data]:plan.files){
             auto& file=overlay->files.try_emplace(route).first->second;
@@ -273,7 +289,7 @@ DWORD WINAPI prepare(LPVOID location){
         for(unsigned attempt=0;attempt<3&&!attached;++attempt){
             if(attempt)Sleep(120);
             void* original=nullptr;
-            if(!lookupReady()||MH_CreateHook(entry,reinterpret_cast<void*>(&lookup),&original)!=MH_OK)continue;
+            if(!lookupReady(*layout)||MH_CreateHook(entry,reinterpret_cast<void*>(&lookup),&original)!=MH_OK)continue;
             overlay->original=reinterpret_cast<Lookup>(original);
             activeOverlay.store(overlay.get(),std::memory_order_release);
             attached=MH_EnableHook(entry)==MH_OK;

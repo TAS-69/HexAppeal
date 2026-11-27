@@ -301,7 +301,14 @@ static void dependencySettings(hex::Runtime& r){
     if(status.customPreset)state("Custom preset",r.hexAvailable,r.featureCompatibility(hex::Feature::Hex).detail);else fileState("Hex's Hentai Preset",status.hex);if(status.physics.valid)fileState("Two Reasons Body Physics",status.physics);if(status.creator.valid)fileState("Character Creator",status.creator);
     ImGui::Spacing();ImGui::TextDisabled("Feature checks");const auto capabilities=r.compatibilityStatus();
     for(size_t i=0;i<capabilities.size();++i){const auto& feature=capabilities[i];ImGui::TextColored(feature.state==hex::CompatibilityState::Ready?green:feature.state==hex::CompatibilityState::Blocked?errorColour:muted,"%s / %s%s",hex::featureName(hex::Feature(i)),feature.state==hex::CompatibilityState::Ready?"Ready":feature.state==hex::CompatibilityState::Blocked?"Blocked":"Checking",feature.state==hex::CompatibilityState::Blocked?"  (!)":"");tip(feature.detail.c_str());record("feature"+std::to_string(i));}
-    if(!status.bodyWarning.empty()){ImGui::TextColored(gold,"Active body routes / unverified  (!)");tip(status.bodyWarning.c_str());}
+    {
+        std::string routes=status.bodyWarning;
+        const auto addText=[&](const std::string& text){if(text.empty())return;if(!routes.empty())routes+="\n\n";routes+=text;};
+        for(size_t i=0;i<status.witchBodyWarnings.size();++i)
+            if(!status.witchBodyWarnings[i].empty())addText(std::string(hex::witches[i].name)+": "+status.witchBodyWarnings[i]);
+        addText(status.bodySkipped);
+        if(!routes.empty()){ImGui::TextColored(gold,"Active body routes / unverified  (!)");tip(routes.c_str());}
+    }
     if(!status.bodyNote.empty())ImGui::TextWrapped("%s",status.bodyNote.c_str());
     static std::array<std::array<char,32768>,6> buffers{};static std::array<std::string,6> synced{};static std::array<bool,6> editing{};
     auto paths=r.configuredDependencyPaths();bool changed=false;
@@ -1083,6 +1090,15 @@ void Render(const hex::GraphicsReportSource& graphics){
     const auto appendWarning=[](std::string& out,const hex::DependencyFile& file){if(file.valid&&!file.verified){if(!out.empty())out+="\n\n";out+=file.detail;}};
     for(const auto* file:{&dependencies.game,&dependencies.instant,&dependencies.venus,&dependencies.physics})appendWarning(baseVersionWarning,*file);
     if(!dependencies.bodyWarning.empty()){if(!baseVersionWarning.empty())baseVersionWarning+="\n\n";baseVersionWarning+=dependencies.bodyWarning;}
+    // A witch's own body or appearance replacement marks only her controls (and ALL CHARACTERS,
+    // which edits her too). Add-on characters share only the checks that apply to everyone.
+    if(addonCharacterTarget<0){
+        const auto addText=[](std::string& out,const std::string& text){if(text.empty())return;if(!out.empty())out+="\n\n";out+=text;};
+        const auto& own=dependencies.witchBodyWarnings;
+        if(model.target>=0&&model.target<int(own.size()))addText(baseVersionWarning,own[model.target]);
+        else if(model.target<0)for(size_t i=0;i<own.size();++i)
+            if(!own[i].empty()&&!(dependencies.unavailableBodyWitches&(1u<<i)))addText(baseVersionWarning,std::string(hex::witches[i].name)+": "+own[i]);
+    }
     if(!customPreset)appendWarning(hexVersionWarning,dependencies.hex);
     appendWarning(underwearVersionWarning,dependencies.creator);
     const bool shapingFiles=dependencies.scanned?dependencies.game.valid&&dependencies.instant.valid&&dependencies.canShapeBody():r.shapingAvailable.load();
@@ -1361,7 +1377,7 @@ void Render(const hex::GraphicsReportSource& graphics){
     const bool limited=model.target<0&&dependencies.unavailableBodyWitches;
     if(!selectedShapeMask()){blocked=true;dependencyIssue=shapeBlockReason;}
     else if(blocked&&shaping.state==hex::CompatibilityState::Blocked)dependencyIssue=shapeBlockReason;
-    if(limited&&dependencyIssue.empty())dependencyIssue=dependencies.bodyWarning;
+    if(limited&&dependencyIssue.empty())dependencyIssue=dependencies.bodySkipped.empty()?dependencies.bodyWarning:dependencies.bodySkipped;
     const bool waiting=(r.queuedMask&selectedShapeMask())||model.pendingTransaction;
     const auto* shapeStatus=r.savePending?"Shape / saving...":blocked?"Shape / blocked  (!)":waiting?"Shape / waiting":
         limited?"Shape / available witches only  (!)":!dependencyIssue.empty()?"Shape / dependency needed":model.applied?"Shape / active":"Shape / saved";

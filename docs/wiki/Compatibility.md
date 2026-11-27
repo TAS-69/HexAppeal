@@ -2,16 +2,16 @@
 
 ## Checked references
 
-Last reviewed **19 November 2026**. These versions were used for local checks.
+Last reviewed **27 November 2026**. These versions were used for local checks.
 
 | Component | Checked version | Scope |
 | --- | --- | --- |
-| Crimson Desert | **2.05.01 / Steam 26776744** | Native layouts, actor ownership, shaping and sampled outfit operations |
-| Definitive Mod Manager | **5.0.1** | Two body choices, ordered labels, merged appearance/registry routes and private resource mounting |
+| Crimson Desert | **2.06.00 / Steam 26949954**; **2.05.01 / Steam 26776744** retained | Native layouts, actor ownership, shaping and sampled outfit operations |
+| Definitive Mod Manager | **5.3.2** with DMM Runtime **1.4.0**; **5.0.1** retained | Two body choices, ordered labels, merged appearance/registry routes and private resource mounting |
 | Venus Body for Damiane | **2.6 Human / Elf Body** | Body format and matching skinning; Elf core session and earlier Human comparison |
 | Instant Surgery | **0.9.6** | Checked native shaping interface and live coordinated deformation |
 | Hex's Hentai Preset | **1.3**, with **1.2** retained | External preset parsing and regional shaping; 1.3 is preferred |
-| Two Reasons Body Physics | **1.0.7** | Optional pose interface and coordinated update acknowledgement |
+| Two Reasons Body Physics | **1.0.7** | Optional pose interface and coordinated update acknowledgement. On 2.06 the handoff waits for updated Instant Surgery and Two Reasons releases. |
 | Character Creator | **9.1.41**, **9.1.42** | Optional hook coexistence, startup, shaping, Wardrobe and base visibility |
 | Spouse Overhaul | **0.5.0**, **0.6.0** | Optional hook coexistence. Live checks on 0.6.0 covered saved Barber changes, save reloads and Combat Gear with Lyselia. |
 
@@ -52,9 +52,9 @@ Both Human Body and Elf Body are recognized. Their body/hand skinning and physic
 
 ## What was checked
 
-The 1.1.4 release passed 33 offline runtime checks and 58 helper tests. Live DMM imports of the 1.1.3 release covered VENUS and Vanilla, the six character packs, Woosa & Maegu’s saved disabled state through its 1.0.1 update and a full 250-record roster. They cover dependency variants, Wardrobe slots and the stock equipment catalogue, wearer names on default outfit pieces, Barber looks, outfit providers, skin routes, character add-ons and game signature lookup. The native fixture covers all nine blends, 44 weighted cases and eleven reference poses. Earlier live tests near Elowen checked both body choices with the armour pack enabled.
+The 1.1.5 release passed 33 offline runtime checks and 58 helper tests and was live-tested on Crimson Desert 2.06.00 with a full mod loadout. Live DMM imports of the 1.1.3 release covered VENUS and Vanilla, the six character packs, Woosa & Maegu’s saved disabled state through its 1.0.1 update and a full 250-record roster. They cover dependency variants, Wardrobe slots and the stock equipment catalogue, wearer names on default outfit pieces, Barber looks, outfit providers, skin routes, character add-ons and game signature lookup. The native fixture covers all nine blends, 44 weighted cases and eleven reference poses. Earlier live tests near Elowen checked both body choices with the armour pack enabled.
 
-The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See the [1.1.4](../VERIFICATION-1.1.4.md) and [1.1.3](../VERIFICATION-1.1.3.md) verification records for the exact builds and test scope, and the [1.0.2 record](../VERIFICATION-1.0.2.md) for the earlier body and packaging checks.
+The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See the [1.1.5](../VERIFICATION-1.1.5.md) and [1.1.3](../VERIFICATION-1.1.3.md) verification records for the exact builds and test scope, and the [1.0.2 record](../VERIFICATION-1.0.2.md) for the earlier body and packaging checks.
 
 ## Troubleshooting
 

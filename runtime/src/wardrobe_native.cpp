@@ -249,8 +249,9 @@ std::map<std::string,uintptr_t> registeredParts(const OutfitParts& parts){
 bool readyRecord(const WardrobeSnapshot& snapshot,const char* expected,WardrobeRecord& record){
     const auto data=ptr(snapshot.node+0x40);const auto count=num(snapshot.node+0x48),capacity=num(snapshot.node+0x4c);
     if(!data||count>64||count>capacity)return false;
-    for(uint32_t i=0;i<count;++i){WardrobeRecord candidate;const auto address=data+i*0x70;char name[192]{};
-        if(!read(address,&candidate,sizeof candidate))return false;
+    const auto stride=wardrobeRecordSize();
+    for(uint32_t i=0;i<count;++i){WardrobeRecord candidate;const auto address=data+i*stride;char name[192]{};
+        if(!read(address,candidate.bytes.data(),stride))return false;
         uintptr_t wrapper=0;memcpy(&wrapper,candidate.bytes.data(),8);
         if(text(wrapper,name,sizeof name)&&(!expected||!strcmp(name,expected))&&isSimpleWardrobeRecord(candidate,base)){
             if(ptr(snapshot.node+0x40)!=data||num(snapshot.node+0x48)!=count)return false;
@@ -298,12 +299,17 @@ void confirmOutfitHidden(const WardrobeSnapshot& snapshot,bool hidden,bool compl
 bool checkSlotTransport(){
     const unsigned char copyStart[]={0x48,0x89,0x5c,0x24,0x18,0x48,0x89,0x6c,0x24,0x20,0x48,0x89,0x4c,0x24,0x08};
     const unsigned char copyTail[]={0x57,0x41,0x56,0x48,0x83,0xec,0x20,0x4c,0x8b,0xf2,0x48,0x8b,0xf1,0x33,0xed};
+    const unsigned char expandedCopyStart[]={0x48,0x89,0x5c,0x24,0x18,0x48,0x89,0x4c,0x24,0x08,0x55,0x56,0x57,0x41,0x56};
+    const unsigned char expandedCopyTail[]={0x48,0x83,0xec,0x20,0x4c,0x8b,0xf2,0x48,0x8b,0xf1,0x33,0xed,0x48,0x89,0x29,0x48,0x8b,0x0a};
     const unsigned char copyRetain[]={0x8b,0x41,0x10,0x85,0xc0,0x78,0x04,0xf0,0xff,0x41,0x10};
     auto* entry=reinterpret_cast<void*>(base+gameLayout().copyRecord);
     slotTransportIssue.clear();
-    if(appearance::checkedGameEntry(entry,copyStart,16,copyTail)==appearance::GameEntry::Unavailable)
+    const bool expanded=gameLayout().expandedRecords;
+    const auto checked=expanded?appearance::checkedGameEntry(entry,expandedCopyStart,17,expandedCopyTail):
+        appearance::checkedGameEntry(entry,copyStart,16,copyTail);
+    if(checked==appearance::GameEntry::Unavailable)
         slotTransportIssue=appearance::entryIssue(entry,"The game's equipped part copy");
-    else if(!bytes(base+gameLayout().copyRecord+0x34,copyRetain,sizeof copyRetain))
+    else if(!bytes(base+gameLayout().copyRecord+(expanded?0x32:0x34),copyRetain,sizeof copyRetain))
         slotTransportIssue=appearance::entryIssue(entry,"The equipped part copy's reference retention instructions");
     return slotTransportIssue.empty();
 }
@@ -587,7 +593,7 @@ OutfitSlots observedDefaultSlots(const WardrobeSnapshot& snapshot){
     if(!data||!count||count>64||count>capacity)return {};
     for(uint32_t i=0;i<count;++i){
         char name[192]{};
-        const auto wrapper=ptr(data+i*sizeof(WardrobeRecord));
+        const auto wrapper=ptr(data+i*wardrobeRecordSize());
         if(!text(wrapper,name,sizeof name)||!defaultOutfitPart(snapshot.witch,name))continue;
         auto slot=outfitSlotForPart(name);
         if(slot.empty())slot="Armour";
@@ -818,8 +824,9 @@ bool checkApplyAppearance(std::string& issue){
         return false;
     }
     constexpr size_t replayedPrologueSize=15;
-    const unsigned char pipelineTail[]={0x48,0x89,0x4c,0x24,0x08,0x55,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57,
+    unsigned char pipelineTail[]={0x48,0x89,0x4c,0x24,0x08,0x55,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57,
         0x48,0x8d,0xac,0x24,0x90,0xe4,0xff,0xff,0xb8,0x70,0x1c,0x00,0x00,0xe8};
+    if(layout->expandedRecords){pipelineTail[21]=0xe2;pipelineTail[26]=0x1e;}
     auto* entry=reinterpret_cast<unsigned char*>(base+layout->applyAppearance);
     auto* continuation=entry+replayedPrologueSize;
     unsigned char actual[sizeof pipelineTail]{};
@@ -835,7 +842,8 @@ bool checkApplyAppearance(std::string& issue){
 }
 bool checkOutfitCleanup(std::string& issue){
     const unsigned char destroyBytes[]={0x48,0x89,0x5c,0x24,0x18,0x48,0x89,0x4c,0x24,0x08,0x57,0x48,0x83,0xec,0x20};
-    const unsigned char destroyTail[]={0x8b,0xf9,0x48,0x83,0xc1,0x60,0x48,0x89,0x4c,0x24,0x38,0x48,0x8d,0x15};
+    unsigned char destroyTail[]={0x8b,0xf9,0x48,0x83,0xc1,0x60,0x48,0x89,0x4c,0x24,0x38,0x48,0x8d,0x15};
+    if(gameLayout().expandedRecords)destroyTail[5]=0x68;
     const unsigned char releaseBytes[]={0x48,0x89,0x5c,0x24,0x10,0x48,0x89,0x74,0x24,0x18,0x57,0x48,0x83,0xec,0x20};
     const unsigned char releaseTail[]={0x5f,0x8b,0x43,0x10,0x85,0xc0,0x78,0x58,0xb8,0xff,0xff,0xff,0xff,0xf0,0x0f,0xc1};
     auto* destroy=reinterpret_cast<void*>(base+gameLayout().destroyRecord);

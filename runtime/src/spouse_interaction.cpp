@@ -62,6 +62,13 @@ struct Layout {
     uintptr_t reserve, copy, makeLabel, copyLabel, emptyLabel;
     uintptr_t focusLists[3];
 };
+struct PreviewLayout {
+    size_t groups, rowSize, group, selected, rootState, handle, cursor;
+    uintptr_t chooseCaller, closeEvent, cursorClass;
+};
+constexpr PreviewLayout stockPreview{0x1e0,0x80,0x284,0x282,0x280,0x268,0x1b0,0x129c951,0x71a7ca8,0x5af0ee0};
+constexpr PreviewLayout expandedPreview{0x210,0x78,0x29e,0x29c,0x2bc,0x2b8,0x1e0,0x131b192,0x734fdd4,0x5c7f9d8};
+const PreviewLayout& previewLayout(){return gameLayout().expandedRecords?expandedPreview:stockPreview;}
 constexpr Layout layouts[]{
     {0x6af5d198,0x235b640,0xaf5030,0xc049f0,0x7246388,
       0xafd060,0x235e4a0,0x464550,0x4d6c20,0x6f29f48,
@@ -94,6 +101,7 @@ using ResolveMenuTarget=void*(*)(void*,void*,uint32_t);
 using ReleaseMenuTarget=void(*)(void*);
 using CloseMenu=void(*)(void*,const uint32_t*,bool);
 using RefreshMenuRows=void(*)(void*,const void*);
+using RefreshMenuRows206=void(*)(void*,const void*,bool);
 using BuildMenuRows=void(*)(void*,void*,uint32_t,const void*);
 using FindWidgetProperty=void*(*)(void*,void*,const uint8_t*);
 using ResolveWidgetProperty=const unsigned char*(*)(void*);
@@ -111,6 +119,7 @@ ResolveMenuTarget resolveMenuTarget=nullptr;
 ReleaseMenuTarget releaseMenuTarget=nullptr;
 CloseMenu closeMenu=nullptr;
 RefreshMenuRows originalRefreshMenuRows=nullptr;
+RefreshMenuRows206 originalRefreshMenuRows206=nullptr;
 BuildMenuRows originalBuildMenuRows=nullptr;
 FindWidgetProperty findWidgetProperty=nullptr;
 ResolveWidgetProperty resolveWidgetProperty=nullptr;
@@ -166,19 +175,24 @@ uintptr_t recordTable(){
     return *reinterpret_cast<const uintptr_t*>(base+layout->records);
 }
 uint32_t recordCount(uintptr_t table){
-    return table?*reinterpret_cast<const uint32_t*>(table+0x28):0;
+    return databaseRecordCount(table);
 }
 uintptr_t recordAt(uintptr_t table,uint16_t index){
     if(index==noRecord||index>=recordCount(table))return 0;
-    const auto rows=*reinterpret_cast<const uintptr_t*>(table+0x20);
-    return rows?*reinterpret_cast<const uintptr_t*>(rows+size_t(index)*24+8):0;
+    return databaseRecordAt(databaseRecordStorage(table),index);
 }
+size_t interactionTypeOffset(){return gameLayout().expandedRecords?0x1a:0x1e;}
 uint32_t recordKey(uintptr_t row){
-    return row?*reinterpret_cast<const uint32_t*>(row+8):0;
+    return row?*reinterpret_cast<const uint32_t*>(row+(gameLayout().expandedRecords?0:8)):0;
+}
+uint8_t recordType(uintptr_t row){
+    return *reinterpret_cast<const uint8_t*>(row+interactionTypeOffset());
+}
+uint8_t recordMode(uintptr_t row){
+    return *reinterpret_cast<const uint8_t*>(row+interactionTypeOffset()+1);
 }
 bool matchesAction(uintptr_t row,const Action& action){
-    return recordKey(row)==action.key&&*reinterpret_cast<const uint8_t*>(row+0x1e)==action.type&&
-           *reinterpret_cast<const uint8_t*>(row+0x1f)==action.mode;
+    return row&&recordKey(row)==action.key&&recordType(row)==action.type&&recordMode(row)==action.mode;
 }
 bool wardrobeAction(uintptr_t row){
     return matchesAction(row,focusAction)||matchesAction(row,relationshipAction);
@@ -213,7 +227,7 @@ const Entry* outerInteract(uintptr_t table,const Entries* entries,uint8_t mode=U
         if(entry.parent!=noRecord)continue;
         const auto record=recordAt(table,entry.index);
         const auto key=recordKey(record);
-        if(mode!=UINT8_MAX&&(!record||*reinterpret_cast<const uint8_t*>(record+0x1f)!=mode))continue;
+        if(mode!=UINT8_MAX&&(!record||recordMode(record)!=mode))continue;
         if(key==interactRecord)return &entry;
         if(key==alternateInteractRecord)alternate=&entry;
     }
@@ -226,6 +240,7 @@ const unsigned char* actorComponent(void* actor){
     const auto* component=*reinterpret_cast<const unsigned char* const*>(metadata+0x98);
     return component&&*reinterpret_cast<void* const*>(component+8)==actor?component:nullptr;
 }
+size_t cachedInteractionOffset(){return gameLayout().expandedRecords?0x80:0x90;}
 template<size_t N> bool follows(uintptr_t caller,const uintptr_t (&routes)[N]){
     for(const auto address:routes)if(caller==address)return true;
     return false;
@@ -269,13 +284,13 @@ void appendWardrobe(void* context,Entries* output){
         const auto actor=*reinterpret_cast<void**>(static_cast<unsigned char*>(context)+8);
         ActorIdentity identity{};
         if(!wardrobeIdentity(actor,identity)||actorComponent(actor)!=context)return;
-        auto* npcEntries=reinterpret_cast<Entries*>(static_cast<unsigned char*>(context)+0x90);
+        auto* npcEntries=reinterpret_cast<Entries*>(static_cast<unsigned char*>(context)+cachedInteractionOffset());
         if(output==npcEntries||output->data==npcEntries->data)return;
         const auto table=recordTable();
         const auto* interact=outerInteract(table,output);
         if(!interact)return;
         const auto nativeRecord=recordAt(table,interact->index);
-        const auto mode=*reinterpret_cast<const uint8_t*>(nativeRecord+0x1f);
+        const auto mode=recordMode(nativeRecord);
         const auto index=wardrobeIndex(table,mode);
         if(index==noRecord)return;
         focusAnchors[identity.witch]={actor,identity.recordKey,interact->index};
@@ -300,17 +315,17 @@ const Entry* eligibilitySource(void* target,const Entry* entry,Entry& temporary)
         const auto table=recordTable();
         const auto wardrobe=recordAt(table,entry->index);
         if(!wardrobeAction(wardrobe))return nullptr;
-        const auto mode=*reinterpret_cast<const uint8_t*>(wardrobe+0x1f);
+        const auto mode=recordMode(wardrobe);
         ActorIdentity identity{};
         if(!wardrobeIdentity(target,identity))return nullptr;
         const auto* component=actorComponent(target);
         if(!component)return nullptr;
-        const auto* cached=reinterpret_cast<const Entries*>(component+0x90);
+        const auto* cached=reinterpret_cast<const Entries*>(component+cachedInteractionOffset());
         if(const auto* source=outerInteract(table,cached,mode))return source;
         const auto& anchor=focusAnchors[identity.witch];
         if(anchor.actor!=target||anchor.character!=identity.recordKey)return nullptr;
         const auto record=recordAt(table,anchor.index);
-        if(!record||*reinterpret_cast<const uint8_t*>(record+0x1f)!=mode)return nullptr;
+        if(!record||recordMode(record)!=mode)return nullptr;
         const auto key=recordKey(record);
         if(key!=interactRecord&&key!=alternateInteractRecord)return nullptr;
         temporary=*entry;
@@ -339,7 +354,7 @@ bool openWardrobe(uint32_t* result,void* target,const Entry* entry){
 bool menuIdentity(void* menu,ActorIdentity& identity){
     if(!resolveMenuTarget||!releaseMenuTarget)return false;
     __try{
-        const auto handle=*reinterpret_cast<const uint32_t*>(static_cast<const char*>(menu)+0x268);
+        const auto handle=*reinterpret_cast<const uint32_t*>(static_cast<const char*>(menu)+previewLayout().handle);
         if(!handle||handle==UINT32_MAX)return false;
         alignas(8) unsigned char reference[0x20]{};
         resolveMenuTarget(nullptr,reference,handle);
@@ -356,14 +371,15 @@ struct MenuRows {
     uint32_t count=0;
 
     const Entry* entry(uint8_t index) const{
-        return index<count?*reinterpret_cast<const Entry* const*>(data+size_t(index)*0x80):nullptr;
+        return index<count?*reinterpret_cast<const Entry* const*>(data+size_t(index)*previewLayout().rowSize):nullptr;
     }
 };
 const unsigned char* menuGroup(void* menu,uint8_t group){
     const auto* bytes=static_cast<const unsigned char*>(menu);
-    const auto listCount=*reinterpret_cast<const uint32_t*>(bytes+0x1e8);
+    const auto groups=previewLayout().groups;
+    const auto listCount=*reinterpret_cast<const uint32_t*>(bytes+groups+8);
     if(group>=listCount||listCount>64)return nullptr;
-    const auto* lists=*reinterpret_cast<const unsigned char* const*>(bytes+0x1e0);
+    const auto* lists=*reinterpret_cast<const unsigned char* const*>(bytes+groups);
     return lists?lists+size_t(group)*16:nullptr;
 }
 MenuRows menuRows(void* menu,uint8_t group){
@@ -375,7 +391,7 @@ MenuRows menuRows(void* menu,uint8_t group){
 }
 uint8_t choosePreviewInteract(void* menu,uint8_t option){
     __try{
-        if(static_cast<const unsigned char*>(menu)[0x284]!=0)return option;
+        if(static_cast<const unsigned char*>(menu)[previewLayout().group]!=0)return option;
         const auto rows=menuRows(menu,0);
         const auto* selected=rows.entry(option);
         if(!selected||selected->parent!=noRecord)return option;
@@ -383,15 +399,14 @@ uint8_t choosePreviewInteract(void* menu,uint8_t option){
         const auto action=recordAt(table,selected->index);
         if(!wardrobeAction(action))return option;
         if(!ml::State::Get().HasRecentPresentation(GetTickCount64()))return option;
-        const auto mode=*reinterpret_cast<const uint8_t*>(action+0x1f);
+        const auto mode=recordMode(action);
         for(uint8_t i=0;i<rows.count;++i){
             const auto* sibling=rows.entry(i);
             if(!sibling||sibling->parent!=noRecord)continue;
             const auto record=recordAt(table,sibling->index);
             const auto key=recordKey(record);
             if((key!=interactRecord&&key!=alternateInteractRecord)||
-               *reinterpret_cast<const uint8_t*>(record+0x1e)!=16||
-               *reinterpret_cast<const uint8_t*>(record+0x1f)!=mode)continue;
+               recordType(record)!=16||recordMode(record)!=mode)continue;
             ActorIdentity identity{};
             if(!menuIdentity(menu,identity))return option;
             pendingPreview={menu,identity.actor,identity.witch,sibling->index,GetTickCount64()};
@@ -404,25 +419,25 @@ uint8_t choosePreviewInteract(void* menu,uint8_t option){
 bool matchingPreviewCommit(void* menu,const PreviewSelection& pending){
     if(!pending.menu||menu!=pending.menu||GetTickCount64()-pending.selectedAt>2000)return false;
     __try{
-        const auto option=static_cast<const unsigned char*>(menu)[0x282];
-        if(static_cast<const unsigned char*>(menu)[0x284]!=0)return false;
+        const auto option=static_cast<const unsigned char*>(menu)[previewLayout().selected];
+        if(static_cast<const unsigned char*>(menu)[previewLayout().group]!=0)return false;
         const auto* entry=menuRows(menu,0).entry(option);
         ActorIdentity identity{};
         return entry&&entry->index==pending.stock&&menuIdentity(menu,identity)&&
                identity.actor==pending.actor&&identity.witch==pending.witch;
     }__except(EXCEPTION_EXECUTE_HANDLER){reportFault();return false;}
 }
-constexpr uintptr_t radiusCursorVtable=0x5af0ee0;
 constexpr uint8_t widgetOpacity=0x50;
 constexpr uint8_t localWidgetValue=1;
 void* previewCursorStyle(void* menu,size_t part){
-    const auto* control=*reinterpret_cast<const unsigned char* const*>(static_cast<const unsigned char*>(menu)+0x1b0);
-    if(!control||*reinterpret_cast<const uintptr_t*>(control)!=base+radiusCursorVtable)return nullptr;
+    const auto& offsets=previewLayout();
+    const auto* control=*reinterpret_cast<const unsigned char* const*>(static_cast<const unsigned char*>(menu)+offsets.cursor);
+    if(!control||*reinterpret_cast<const uintptr_t*>(control)!=base+offsets.cursorClass)return nullptr;
     const auto* widget=*reinterpret_cast<const unsigned char* const*>(control+0xe8+part*sizeof(void*));
     return widget?*reinterpret_cast<void* const*>(widget+0x20):nullptr;
 }
 bool readWidgetOpacity(void* style,float& value){
-    alignas(8) unsigned char reference[16]{};
+    alignas(8) unsigned char reference[32]{};
     const auto* property=resolveWidgetProperty(findWidgetProperty(style,reference,&widgetOpacity));
     if(!property)return false;
     const auto* data=property[0x0e]?*reinterpret_cast<const float* const*>(property):reinterpret_cast<const float*>(property);
@@ -455,8 +470,8 @@ void setPreviewCursorVisibility(PreviewSession& session,bool restore){
 bool startPreviewSession(void* menu,const PreviewSelection& pending){
     __try{
         const auto* bytes=static_cast<const unsigned char*>(menu);
-        const auto group=bytes[0x284];
-        const auto handle=*reinterpret_cast<const uint32_t*>(bytes+0x268);
+        const auto group=bytes[previewLayout().group];
+        const auto handle=*reinterpret_cast<const uint32_t*>(bytes+previewLayout().handle);
         if(!group||!handle||handle==UINT32_MAX||!menuGroup(menu,group))return false;
         previewSession={menu,pending.actor,pending.witch,handle,group,GetTickCount64()};
         previewCloseRequested.store(false);
@@ -467,16 +482,17 @@ bool startPreviewSession(void* menu,const PreviewSelection& pending){
 bool previewIsCurrent(const PreviewSession& session){
     __try{
         const auto* bytes=static_cast<const unsigned char*>(session.menu);
-        return bytes[0x284]==session.group&&
-               *reinterpret_cast<const uint32_t*>(bytes+0x268)==session.handle&&
+        return bytes[previewLayout().group]==session.group&&
+               *reinterpret_cast<const uint32_t*>(bytes+previewLayout().handle)==session.handle&&
                menuGroup(session.menu,session.group)!=nullptr;
     }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
 bool suppressPreviewChoices(void* menu,void* displayRows,uintptr_t caller){
-    if(previewCommitting==menu&&caller==0x12a84f7){
+    const auto commitDisplay=gameLayout().expandedRecords?0x1326eb1:0x12a84f7;
+    if(previewCommitting==menu&&caller==commitDisplay){
         __try{
             const auto* bytes=static_cast<const unsigned char*>(menu);
-            const auto handle=*reinterpret_cast<const uint32_t*>(bytes+0x268);
+            const auto handle=*reinterpret_cast<const uint32_t*>(bytes+previewLayout().handle);
             return handle&&handle!=UINT32_MAX;
         }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
     }
@@ -493,20 +509,22 @@ void buildInteractionMenuRows(void* menu,void* displayRows,uint32_t style,const 
 }
 void clearPreviewSelection(void* menu){
     auto* bytes=static_cast<unsigned char*>(menu);
-    bytes[0x282]=UINT8_MAX;
-    bytes[0x283]=UINT8_MAX;
+    const auto selected=previewLayout().selected;
+    bytes[selected]=UINT8_MAX;
+    bytes[selected+1]=UINT8_MAX;
 }
 void resetInvalidReturnedSelection(void* menu){
     if(menu!=returningPreviewMenu||GetTickCount64()>returningPreviewUntil)return;
     __try{
         const auto* bytes=static_cast<const unsigned char*>(menu);
-        const auto selected=bytes[0x282];
-        if(bytes[0x284]!=0||bytes[0x280]!=0||selected==UINT8_MAX)return;
+        const auto& offsets=previewLayout();
+        const auto selected=bytes[offsets.selected];
+        if(bytes[offsets.group]!=0||bytes[offsets.rootState]!=0||selected==UINT8_MAX)return;
         const auto rows=menuRows(menu,0);
         if(!rows.count)return;
         // The root refresh assumes that a selected index has a live widget.
         if(selected<rows.count){
-            const auto* widget=*reinterpret_cast<const unsigned char* const*>(rows.data+size_t(selected)*0x80+8);
+            const auto* widget=*reinterpret_cast<const unsigned char* const*>(rows.data+size_t(selected)*offsets.rowSize+8);
             void* control=nullptr;
             if(widget&&creation::Read(widget+8,&control,sizeof control)&&control)return;
         }
@@ -518,12 +536,23 @@ void refreshInteractionMenuRows(void* menu,const void* options){
     resetInvalidReturnedSelection(menu);
     originalRefreshMenuRows(menu,options);
 }
+void refreshInteractionMenuRows206(void* menu,const void* options,bool refreshSelection){
+    resetInvalidReturnedSelection(menu);
+    originalRefreshMenuRows206(menu,options,refreshSelection);
+}
 void closePreviewSession(const PreviewSession& session){
     __try{
         ActorIdentity identity{};
         if(previewIsCurrent(session)&&menuIdentity(session.menu,identity)&&
            identity.actor==session.actor&&identity.witch==session.witch){
-            const auto event=*reinterpret_cast<const uint32_t*>(base+0x71a7ca8);
+            if(gameLayout().expandedRecords){
+                const auto vtable=*reinterpret_cast<const uintptr_t*>(session.menu);
+                if(!vtable||*reinterpret_cast<const uintptr_t*>(vtable+0x510)!=base+0x131bac0){
+                    LOG_ERR("[HA] Wardrobe could not verify the native Interact close handler.");
+                    return;
+                }
+            }
+            const auto event=*reinterpret_cast<const uint32_t*>(base+previewLayout().closeEvent);
             if(!event||event==UINT32_MAX){
                 LOG_ERR("[HA] Wardrobe could not resolve the native Interact close event.");
                 return;
@@ -537,7 +566,7 @@ void closePreviewSession(const PreviewSession& session){
     }__except(EXCEPTION_EXECUTE_HANDLER){reportFault();}
 }
 void chooseInteractionMenu(void* menu,uint8_t option){
-    if(reinterpret_cast<uintptr_t>(_ReturnAddress())-base==0x129c951&&frameThreadId()==GetCurrentThreadId()){
+    if(reinterpret_cast<uintptr_t>(_ReturnAddress())-base==previewLayout().chooseCaller&&frameThreadId()==GetCurrentThreadId()){
         pendingPreview={};
         option=choosePreviewInteract(menu,option);
     }
@@ -569,7 +598,9 @@ uintptr_t buildInteraction(void* context,bool cached,bool alternate,Entries* out
     const auto caller=reinterpret_cast<uintptr_t>(_ReturnAddress())-base;
     const auto value=originalBuild(context,cached,alternate,output);
     const bool gameThread=frameThreadId()==GetCurrentThreadId();
-    if(cached&&(gameThread||follows(caller,layout->focusLists)))appendWardrobe(context,output);
+    const auto* resolved=gameLayout().expandedRecords?signatureInteraction():nullptr;
+    if(cached&&(gameThread||follows(caller,layout->focusLists)||
+        (resolved&&follows(caller,resolved->alternateFocusLists))))appendWardrobe(context,output);
     return value;
 }
 uintptr_t evaluateInteraction(void* context,void* target,const Entry* entry,uint8_t mode,void* result){
@@ -591,7 +622,9 @@ bool checkedHead(HMODULE game,void* address,const unsigned char (&head)[15],cons
         appearance::checkedGameEntry(address,head,16,tail)!=appearance::GameEntry::Unavailable;
 }
 bool installPreviewInteraction(HMODULE game){
-    if(!nativePreviewHold||layout->gameStamp!=0x6afdc0cf)return true;
+    if(!nativePreviewHold)return true;
+    const bool expanded=gameLayout().expandedRecords;
+    if(!expanded&&layout->gameStamp!=0x6afdc0cf)return true;
     const unsigned char chooseHead[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x6c,0x24,0x10,0x48,0x89,0x74,0x24,0x18};
     const unsigned char commitHead[]{0x48,0x89,0x4c,0x24,0x08,0x55,0x53,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56};
     const unsigned char resolveHead[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x54,0x24,0x10,0x57,0x48,0x83,0xec,0x50};
@@ -606,24 +639,41 @@ bool installPreviewInteraction(HMODULE game){
     const unsigned char findPropertyHead[]{0x40,0x55,0x53,0x56,0x41,0x54,0x48,0x8b,0xec,0x48,0x83,0xec,0x78,0x4c,0x8b};
     const unsigned char resolvePropertyHead[]{0x48,0x8b,0xd1,0x0f,0xb6,0x49,0x0c,0x80,0xf9,0xff,0x74,0x47,0x4c,0x8b,0x02};
     const unsigned char setPropertyHead[]{0x48,0x89,0x5c,0x24,0x10,0x48,0x89,0x6c,0x24,0x18,0x56,0x57,0x41,0x54,0x41};
+    const unsigned char expandedChooseHead[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x74,0x24,0x10,0x57,0x48,0x81,0xec,0x90};
+    const unsigned char expandedChooseTail[]{0x00,0x00,0x48,0x8b,0xf9,0x48,0x8b,0x05,0x4c,0xae,0x0c,0x06,0x4c,0x8b,0x40};
+    const unsigned char expandedCommitTail[]{0x57,0x48,0x8d,0x6c,0x24,0xe8,0x48,0x81,0xec,0x18,0x01,0x00,0x00,0x48,0x8b};
+    const unsigned char expandedCloseHead[]{0xe9,0x0b,0x95,0x57,0x09,0x0f,0x85,0xed,0xf8,0x4f,0x00,0xce,0x82,0x07,0x0f};
+    const unsigned char expandedRefreshHead[]{0x48,0x89,0x5c,0x24,0x10,0x55,0x56,0x57,0x41,0x56,0x41,0x57,0x48,0x83,0xec};
+    const unsigned char expandedRefreshTail[]{0x45,0x0f,0xb6,0xf0,0x48,0x8b,0xf2,0x48,0x8b,0xf9,0x48,0x8b,0x05,0xf7,0x32};
+    const unsigned char expandedDisplayHead[]{0x48,0x8b,0xc4,0x48,0x89,0x58,0x08,0x44,0x89,0x40,0x18,0x55,0x56,0x57,0x41};
+    const unsigned char expandedDisplayTail[]{0x41,0x55,0x41,0x56,0x41,0x57,0x48,0x8d,0x68,0xa8,0x48,0x81,0xec,0x20,0x01};
+    const unsigned char expandedFindPropertyHead[]{0x40,0x55,0x53,0x57,0x41,0x54,0x41,0x56,0x48,0x8b,0xec,0x48,0x83,0xec,0x50};
+    const unsigned char expandedResolvePropertyHead[]{0x8b,0x41,0x10,0x48,0x8b,0xd1,0x85,0xc0,0x74,0x55,0x0f,0xb6,0x49,0x0c,0x80};
     const auto matchesHead=[&](uintptr_t offset,const unsigned char (&head)[15]){
         auto* address=reinterpret_cast<void*>(base+offset);
         unsigned char bytes[sizeof head]{};
         return executablePluginFunction(game,address)&&creation::Read(address,bytes,sizeof bytes)&&
                std::memcmp(bytes,head,sizeof bytes)==0;
     };
-    if(!matchesHead(0x748c50,resolveHead)||!matchesHead(0x165af00,releaseHead)||
-       !matchesHead(0x129cdc0,closeHead))return false;
-    resolveMenuTarget=gameFunction<ResolveMenuTarget>(game,0x748c50);
-    releaseMenuTarget=gameFunction<ReleaseMenuTarget>(game,0x165af00);
-    closeMenu=gameFunction<CloseMenu>(game,0x129cdc0);
+    const auto resolveAddress=expanded?0x7819d0:0x748c50;
+    const auto releaseAddress=expanded?0x16e3b60:0x165af00;
+    const auto closeAddress=expanded?0x131bac0:0x129cdc0;
+    if(!matchesHead(resolveAddress,resolveHead)||!matchesHead(releaseAddress,releaseHead)||
+       !matchesHead(closeAddress,expanded?expandedCloseHead:closeHead))return false;
+    resolveMenuTarget=gameFunction<ResolveMenuTarget>(game,resolveAddress);
+    releaseMenuTarget=gameFunction<ReleaseMenuTarget>(game,releaseAddress);
+    closeMenu=gameFunction<CloseMenu>(game,closeAddress);
     if(!resolveMenuTarget||!releaseMenuTarget||!closeMenu)return false;
-    if(matchesHead(0x3918f50,findPropertyHead)&&matchesHead(0x700360,resolvePropertyHead)&&
-       matchesHead(0x73eee0,setPropertyHead)){
-        findWidgetProperty=gameFunction<FindWidgetProperty>(game,0x3918f50);
-        resolveWidgetProperty=gameFunction<ResolveWidgetProperty>(game,0x700360);
+    const auto findPropertyAddress=expanded?0x3a75cf0:0x3918f50;
+    const auto resolvePropertyAddress=expanded?0x738010:0x700360;
+    const auto setPropertyAddress=expanded?0x777a70:0x73eee0;
+    if(matchesHead(findPropertyAddress,expanded?expandedFindPropertyHead:findPropertyHead)&&
+       matchesHead(resolvePropertyAddress,expanded?expandedResolvePropertyHead:resolvePropertyHead)&&
+       matchesHead(setPropertyAddress,setPropertyHead)){
+        findWidgetProperty=gameFunction<FindWidgetProperty>(game,findPropertyAddress);
+        resolveWidgetProperty=gameFunction<ResolveWidgetProperty>(game,resolvePropertyAddress);
         if(findWidgetProperty&&resolveWidgetProperty)
-            setWidgetFloat=gameFunction<SetWidgetFloat>(game,0x73eee0);
+            setWidgetFloat=gameFunction<SetWidgetFloat>(game,setPropertyAddress);
     }
     struct PreviewHook{
         uintptr_t offset;
@@ -632,12 +682,19 @@ bool installPreviewInteraction(HMODULE game){
         void* detour;
         void** original;
     };
-    const PreviewHook hooks[]{
+    const PreviewHook stockHooks[]{
         {0x12a7770,chooseHead,chooseTail,reinterpret_cast<void*>(chooseInteractionMenu),reinterpret_cast<void**>(&originalMenuChoose)},
         {0x12a7d10,commitHead,commitTail,reinterpret_cast<void*>(commitInteractionMenu),reinterpret_cast<void**>(&originalMenuCommit)},
         {0x129fdd0,displayHead,displayTail,reinterpret_cast<void*>(buildInteractionMenuRows),reinterpret_cast<void**>(&originalBuildMenuRows)},
         {0x129f2e0,refreshHead,refreshTail,reinterpret_cast<void*>(refreshInteractionMenuRows),reinterpret_cast<void**>(&originalRefreshMenuRows)}
     };
+    const PreviewHook expandedHooks[]{
+        {0x1325f40,expandedChooseHead,expandedChooseTail,reinterpret_cast<void*>(chooseInteractionMenu),reinterpret_cast<void**>(&originalMenuChoose)},
+        {0x1326390,commitHead,expandedCommitTail,reinterpret_cast<void*>(commitInteractionMenu),reinterpret_cast<void**>(&originalMenuCommit)},
+        {0x131dd80,expandedDisplayHead,expandedDisplayTail,reinterpret_cast<void*>(buildInteractionMenuRows),reinterpret_cast<void**>(&originalBuildMenuRows)},
+        {0x131da90,expandedRefreshHead,expandedRefreshTail,reinterpret_cast<void*>(refreshInteractionMenuRows206),reinterpret_cast<void**>(&originalRefreshMenuRows206)}
+    };
+    const auto& hooks=expanded?expandedHooks:stockHooks;
     for(const auto& hook:hooks)
         if(!checkedHead(game,reinterpret_cast<void*>(base+hook.offset),hook.head,hook.tail))return false;
     size_t installed=0;
@@ -671,9 +728,11 @@ bool installInteraction(){
     copyLabel=gameFunction<CopyLabel>(game,layout->copyLabel);
     if(!reserveEntries||!copyEntry||!makeLabel||!copyLabel)return false;
     const unsigned char buildHead[]{0x48,0x89,0x5c,0x24,0x08,0x44,0x88,0x44,0x24,0x18,0x55,0x56,0x57,0x41,0x54};
+    const unsigned char expandedBuildHead[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x74,0x24,0x10,0x48,0x89,0x7c,0x24,0x20};
     const unsigned char evaluateHead[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x74,0x24,0x10,0x48,0x89,0x7c,0x24,0x18};
     const unsigned char selectHead[]{0x48,0x89,0x5c,0x24,0x08,0x4c,0x89,0x4c,0x24,0x20,0x4c,0x89,0x44,0x24,0x18};
     const unsigned char buildTail[]{0x55,0x41,0x56,0x41,0x57,0x48,0x8d,0x6c,0x24,0xd9,0x48,0x81,0xec,0xe0,0x00};
+    const unsigned char expandedBuildTail[]{0x88,0x44,0x24,0x18,0x55,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57,0x48,0x8d};
     const unsigned char evaluateTail[]{0x88,0x4c,0x24,0x20,0x55,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57,0x48,0x8b};
     const unsigned char selectTail[]{0x89,0x54,0x24,0x10,0x55,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56,0x41,0x57};
     struct Hook {
@@ -684,7 +743,8 @@ bool installInteraction(){
         void** original;
     };
     const Hook hooks[]{
-        {layout->build,buildHead,buildTail,reinterpret_cast<void*>(buildInteraction),reinterpret_cast<void**>(&originalBuild)},
+        {layout->build,gameLayout().expandedRecords?expandedBuildHead:buildHead,
+         gameLayout().expandedRecords?expandedBuildTail:buildTail,reinterpret_cast<void*>(buildInteraction),reinterpret_cast<void**>(&originalBuild)},
         {layout->evaluate,evaluateHead,evaluateTail,reinterpret_cast<void*>(evaluateInteraction),reinterpret_cast<void**>(&originalEvaluate)},
         {layout->select,selectHead,selectTail,reinterpret_cast<void*>(selectInteraction),reinterpret_cast<void**>(&originalSelect)}
     };
@@ -718,7 +778,7 @@ bool interactionTableLoaded(){
     __try{
         const auto table=*reinterpret_cast<const uintptr_t*>(game+checked->records);
         const auto count=recordCount(table);
-        return count&&count<=noRecord&&*reinterpret_cast<const uintptr_t*>(table+0x20)!=0;
+        return count&&count<=noRecord&&databaseRecordStorage(table)!=0;
     }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
 }
@@ -752,7 +812,7 @@ void setWardrobePreviewHudHidden(bool hide){
         if(hudHookEnabled&&MH_DisableHook(hudHookSite)==MH_OK)hudHookEnabled=false;
         return;
     }
-    if(!previewGroupTracked.load())return;
+    if(!previewGroupTracked.load()&&!gameLayout().expandedRecords)return;
     if(hudHookEnabled){InterlockedExchange(&HexWardrobeHideHud,1);return;}
     const auto* game=loadedGameLayout();
     if(!game||!base||!game->hudCall||!game->hudSubmit)return;

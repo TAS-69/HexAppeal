@@ -18,7 +18,7 @@ struct SkinToneSource {
 };
 
 SkinToneSource activeDamianeSkin(const std::map<std::string,std::filesystem::path>& routes);
-SkinToneSource activeVenusDamianeSkin(const std::map<std::string,std::filesystem::path>& routes);
+SkinToneSource activeVenusDamianeSkin(const std::map<std::string,std::filesystem::path>& routes,const std::filesystem::path& game={});
 inline constexpr auto skinRegistryRoute="character/bin__/partprefabtable.pappt";
 inline constexpr auto damianeCustomizationRoute="character/descriptors/customization/cd_pc/cd_phw_damian_customization.paccd_xml";
 struct SkinToneAssets {

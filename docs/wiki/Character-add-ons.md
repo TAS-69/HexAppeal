@@ -1,6 +1,6 @@
 # Character add-ons
 
-My character packs add NPCs to Hex Appeal’s Shape and Wardrobe. They follow your VENUS or Vanilla body choice. Download the optional packs from the `packs/` folder in the [1.1.4 Release Bundle](https://github.com/TAS-69/HexAppeal/releases/tag/v1.1.4). They are unchanged from 1.1.3.
+My character packs add NPCs to Hex Appeal’s Shape and Wardrobe. They follow your VENUS or Vanilla body choice. Download the optional packs from the `packs/` folder in the [1.1.5 Release Bundle](https://github.com/TAS-69/HexAppeal/releases/tag/v1.1.5). They are unchanged from 1.1.3.
 
 | Pack | Version | Minimum Hex Appeal | Game records |
 | --- | --- | --- | --- |

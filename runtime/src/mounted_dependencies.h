@@ -28,7 +28,10 @@ struct DependencyStatus {
     uint32_t unavailableBodyWitches=0;
     std::vector<std::filesystem::path> searchRoots;
     std::vector<std::filesystem::path> surgeryPresets;
-    std::string bodyDetail,bodyWarning,bodyNote;
+    // bodyWarning covers every character (an unverified shared body, for example). A witch's own
+    // appearance or body replacement is reported only for her; bodySkipped names witches Shape skips.
+    std::string bodyDetail,bodyWarning,bodyNote,bodySkipped;
+    std::array<std::string,6> witchBodyWarnings;
     std::map<std::string,unsigned> mountedMods;
     std::vector<MountedRoute> relevantRoutes;
     std::filesystem::path managerMountLog;
@@ -38,7 +41,7 @@ struct DependencyStatus {
 };
 BodyMode mountedBodyMode(const std::filesystem::path& manifest,uint32_t* cloneWitches=nullptr,uint32_t* unavailableWitches=nullptr);
 BodyMode mountedBodyMode(const std::map<std::string,std::filesystem::path>& routes,uint32_t* cloneWitches,uint32_t* unavailableWitches,
-                         std::vector<MountedBodyIssue>* issues=nullptr);
+                         std::vector<MountedBodyIssue>* issues=nullptr,const std::filesystem::path& game={});
 bool mountedDamianeVenus(const std::map<std::string,std::filesystem::path>& routes);
 std::map<std::string,std::filesystem::path> readMountedRoutes(const std::filesystem::path& manifest,
     bool* supported=nullptr,std::string* formatWarning=nullptr);
@@ -50,7 +53,8 @@ bool saveDependencyPaths(const std::filesystem::path& file,const DependencyPaths
 bool isOwnModContent(const std::filesystem::path& path);
 bool verifyMountedDependencies(const std::filesystem::path& game,std::string& error);
 bool verifyMountedDependencies(const std::filesystem::path& game,const std::filesystem::path& manifest,std::string& error);
-bool verifyMountedDependencies(const std::filesystem::path& game,const std::filesystem::path& manifest,std::string& error,std::string& warning,uint32_t* unavailableWitches=nullptr,std::string* note=nullptr);
+bool verifyMountedDependencies(const std::filesystem::path& game,const std::filesystem::path& manifest,std::string& error,std::string& warning,uint32_t* unavailableWitches=nullptr,std::string* note=nullptr,
+                               std::array<std::string,6>* witchWarnings=nullptr,std::string* skipped=nullptr);
 bool readableDependency(const std::filesystem::path& path,const char* signature=nullptr);
 std::string unverifiedDependency(const char* name);
 std::string profileDependencyIssue(const Profile& profile,bool shaping,bool hex,bool weight);

@@ -135,7 +135,33 @@ int wmain(int argc,wchar_t** argv) {
         std::string warning;uint32_t clones=0;
         if(hex::mountedBodyMode(selected,&clones)!=hex::BodyMode::Venus||clones!=1||
            !hex::verifyMountedDependencies(game,selected,error,warning)||warning.find("body replacement")==std::string::npos){
-            std::cerr<<"A mounted stock body clone blocked VENUS or was attributed to the wrong witch.\n";return 1;
+            std::cerr<<"A mounted stock body clone blocked VENUS or was attributed to the wrong witch. Clones "<<clones<<". "<<error<<warning<<'\n';return 1;
+        }
+        // Generated looks keep capitals in the body name (Legion's Slider ..._IAL) and write the rig path in
+        // lower case, while DMM's routes are lower case. Prefab names and paths are case-insensitive in the game.
+        save(appearance,"<Appearance><Nude><Prefab Name=\"Private_NPC_Base\"/></Nude></Appearance>");
+        save(metadata,"<NudePrefabData>"+skeleton+"<SkeletonVariationName FileName=\"1_pc/2_phw/nude/PHW_00_Nude_00_0001.pabc\"/></NudePrefabData>");
+        clones=0;
+        if(hex::mountedBodyMode(selected,&clones)!=hex::BodyMode::Venus||clones!=1||!hex::verifyMountedDependencies(game,selected,error,warning)){
+            std::cerr<<"A body clone named or described in another letter case was rejected. Clones "<<clones<<". "<<error<<warning<<'\n';return 1;
+        }
+        save(appearance,"<Appearance><Nude><Prefab Name=\""+name+"\"/></Nude></Appearance>");
+        save(metadata,"<NudePrefabData>"+skeleton+variation+"</NudePrefabData>");
+        {
+            const std::string venusMesh=std::string("\xff\xff\x04\0\0\0",6)+"SkinnedMeshComponent character/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac";
+            save(prefab,venusMesh+std::string(part,sizeof(part)-1)+underwear);
+            std::array<std::string,6> own;std::string skipped;
+            if(!hex::verifyMountedDependencies(game,selected,error,warning,nullptr,nullptr,&own,&skipped)||
+               warning.find("body replacement")!=std::string::npos||own[0].find("body replacement")!=std::string::npos){
+                std::cerr<<"A clone drawing the checked Venus model was reported as an unverified replacement. "<<warning<<own[0]<<'\n';return 1;
+            }
+            save(prefab,prefabStart+underwear);
+            own={};
+            if(!hex::verifyMountedDependencies(game,selected,error,warning,nullptr,nullptr,&own,&skipped)||
+               own[0].find("body replacement")==std::string::npos||warning.find("body replacement")!=std::string::npos||
+               std::any_of(own.begin()+1,own.end(),[](const std::string& text){return text.find("body replacement")!=std::string::npos;})){
+                std::cerr<<"A different-model clone warning was not scoped to its witch. "<<warning<<'\n';return 1;
+            }
         }
         hex::DependencyPaths paths;paths.manifest=selected;
         const auto keep=hex::inspectDependencies(game,paths);
@@ -151,7 +177,8 @@ int wmain(int argc,wchar_t** argv) {
         diagnosticPaths.modsDirectory=temporary;
         const auto partial=hex::inspectDependencies(game,diagnosticPaths);
         const auto& cause=partial.unavailableBodyDetails[0];
-        if(!partial.bodyVerified||partial.unavailableBodyWitches!=1||partial.bodyWarning.find("Lyselia")==std::string::npos||
+        if(!partial.bodyVerified||partial.unavailableBodyWitches!=1||partial.bodySkipped.find("Lyselia")==std::string::npos||
+           partial.bodyWarning.find("Lyselia")!=std::string::npos||
            cause.find(name)==std::string::npos||cause.find("cd_nhw_south_20166.app_xml")==std::string::npos||
            cause.find("NPC body fixture")==std::string::npos||!partial.unavailableBodyDetails[3].empty()){
             std::cerr<<"An unsupported Lyselia replacement blocked other witches or was reported incorrectly.\n";return 1;
@@ -271,7 +298,8 @@ int wmain(int argc,wchar_t** argv) {
         if(!scoped.bodyVerified||scoped.bodyMode!=hex::BodyMode::Vanilla||scoped.unavailableBodyWitches||
            scoped.missingUnderwearMeshMask!=sylvia||scoped.underwearSources[4].empty()||
            scoped.bodyNote!="Shape uses the mounted replacement body as the midpoint for Sylvia."||
-           scoped.bodyWarning.find("No Underwear")==std::string::npos){
+           scoped.witchBodyWarnings[4].find("No Underwear")==std::string::npos||scoped.bodyWarning.find("No Underwear")!=std::string::npos||
+           scoped.witchBodyWarnings[0].find("No Underwear")!=std::string::npos){
             std::cerr<<"The NPC underwear replacement must preserve shaping and keep ownership scoped to Sylvia in Vanilla mode. "
                 <<"Mode "<<static_cast<int>(scoped.bodyMode)<<", shape mask "<<scoped.unavailableBodyWitches
                 <<", missing mesh mask "<<scoped.missingUnderwearMeshMask<<", owner "<<scoped.underwearSources[4]
@@ -295,7 +323,8 @@ int wmain(int argc,wchar_t** argv) {
         const auto custom=hex::inspectDependencies(game,paths);
         if(!custom.bodyVerified||custom.bodyMode!=hex::BodyMode::Vanilla||custom.unavailableBodyWitches||
            custom.bodyNote!="Shape uses the mounted replacement body as the midpoint for Sylvia."||
-           custom.bodyWarning.find("mounted witch body replacement")==std::string::npos){
+           custom.witchBodyWarnings[4].find("mounted witch body replacement")==std::string::npos||
+           custom.bodyWarning.find("mounted witch body replacement")!=std::string::npos){
             std::cerr<<"A compatible replacement with an unrelated name and folder blocked Vanilla shaping.\n";return 1;
         }
         save(mixedManifest,cloneRoutes+"file\tcharacter/bin__/prefab/another_mod/nude/custom_underwear_body.prefab\t"+clonePrefab.u8string()+"\n");

@@ -1,5 +1,6 @@
 #pragma once
 #include "mounted_dependencies.h"
+#include "game_archive.h"
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -39,6 +40,7 @@ inline std::filesystem::path venusManifestFixture(const std::filesystem::path& s
         const auto tab=row.find('\t',5);
         if(row.rfind("file\t",0)==0&&tab!=std::string::npos){
             const auto key=row.substr(5,tab-5);
+            if(key.find("/phw_00_nude_00_0001_damian_lnw.")!=std::string::npos&&!readableDependency(routes.at(key)))continue;
             if(key.find("character/model/1_pc/2_phw/nude/")==0||key.find("character/model/ha_p/2_phw/nude/")==0||key.find("character/modelproperty/ha_p/2_phw/nude/")==0||key.find("character/bin__/meshphysics/ha_p/2_phw/nude/")==0||
                key.find("/hva_00_nude_00_0001")!=std::string::npos)continue;
             if(key.find("character/appearance/")==0&&witchAppearance(key)){
@@ -55,6 +57,19 @@ inline std::filesystem::path venusManifestFixture(const std::filesystem::path& s
             }
         }
         output<<row<<'\n';
+    }
+    const std::string sylvia="character/appearance/3_npc/cd_npc_south/cd_nhw_south/cd_nhw_south_20169.app_xml";
+    if(count==6&&!routes.count(sylvia)){
+        const auto game=source.parent_path().parent_path().parent_path();
+        const GameArchive archive(game/L"0009","character/appearance/3_npc/cd_npc_south/cd_nhw_south");
+        const auto before=archive.read(sylvia);
+        std::smatch match;
+        if(std::regex_search(before,match,nude)&&match[2]=="phw_00_nude_00_0001_damian"){
+            const auto path=folder/L"sylvia-stock.app_xml";
+            std::ofstream(path,std::ios::binary)<<before;
+            output<<"file\t"<<sylvia<<'\t'<<path.u8string()<<'\n';
+            ++count;
+        }
     }
     if(count!=7)throw std::runtime_error("Seven appearance fixtures are required");
     output<<"file\tcharacter/model/1_pc/2_phw/nude/phw_00_nude_00_0001_damian.pac\t"<<external.u8string()<<'\n';

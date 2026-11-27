@@ -141,10 +141,18 @@ bool readWardrobeCharacterRecord(uintptr_t actor,uintptr_t gameBase,uintptr_t ch
         const auto index=*reinterpret_cast<const uint16_t*>(entry+0x30);
         const auto table=pointer(characterInfo);
         if(!table)return false;
-        const auto records=pointer(table+0x20);
-        const auto count=number(table+0x28);
+        const auto records=databaseRecordStorage(table);
+        const auto count=databaseRecordCount(table);
         if(!records||count>0x10000||index>=count)return false;
-        const auto row=pointer(records+size_t(index)*0x18+8);
+        const auto row=databaseRecordAt(records,index);
+        if(gameLayout().expandedRecords){
+            const auto indexRow=records+size_t(index)*0x30;
+            const auto label=pointer(indexRow+8);
+            if(!row||number(row)!=number(indexRow)||number(row+4)!=index||!text(label,name,sizeof name))return false;
+            return pointer(actor+0x68)==components&&pointer(components+0x20)==entry&&pointer(entry+8)==actor&&
+                *reinterpret_cast<const uint16_t*>(entry+0x30)==index&&pointer(characterInfo)==table&&
+                databaseRecordStorage(table)==records&&databaseRecordAt(records,index)==row&&pointer(indexRow+8)==label;
+        }
         const auto label=row?pointer(row):0;
         const auto* value=label?reinterpret_cast<const unsigned char*>(pointer(label)):nullptr;
         if(!value)return false;
@@ -159,7 +167,7 @@ bool readWardrobeCharacterRecord(uintptr_t actor,uintptr_t gameBase,uintptr_t ch
         name[length]=0;
         return pointer(actor+0x68)==components&&pointer(components+0x20)==entry&&
             pointer(entry+8)==actor&&*reinterpret_cast<const uint16_t*>(entry+0x30)==index&&
-            pointer(characterInfo)==table&&pointer(table+0x20)==records&&pointer(records+size_t(index)*0x18+8)==row;
+            pointer(characterInfo)==table&&databaseRecordStorage(table)==records&&databaseRecordAt(records,index)==row;
     }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
 uintptr_t checkedWardrobeRenderer(uintptr_t actor,int witch,uintptr_t gameBase,const char* addonAppearance){

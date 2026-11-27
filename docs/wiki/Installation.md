@@ -12,7 +12,7 @@ Download these separately:
 | [Instant Surgery](https://www.nexusmods.com/crimsondesert/mods/3660) | Native shaping | 0.9.6 |
 | [Hex's Hentai Preset](https://www.nexusmods.com/crimsondesert/mods/4234) | HEX shapes; retain its original preset file | 1.3 preferred; 1.2 also checked |
 
-[Two Reasons Body Physics](https://www.nexusmods.com/crimsondesert/mods/3636) is optional. Hex Appeal enables the coordinated pose handoff once the plugin and its interface are available. The game and manager used for development are Crimson Desert 2.05.01 / Steam build 26776744 and DMM 5.0.1.
+[Two Reasons Body Physics](https://www.nexusmods.com/crimsondesert/mods/3636) is optional. Hex Appeal enables the coordinated pose handoff once the plugin and its interface are available. On Crimson Desert 2.06, the handoff waits for updated Instant Surgery and Two Reasons Body Physics releases; shaping works without it. The game and manager used for development are Crimson Desert 2.06.00 / Steam build 26949954 and DMM 5.3.2 (2.05.01 / Steam build 26776744 and DMM 5.0.1 were checked earlier).
 
 **Weight needs no outfit mod.** Dancer outfit integration, colours, source detection and setup are excluded from this release pending permission. Any future integration will be a separate patch. Wardrobe's generic SDK remains available for other outfits.
 
@@ -20,16 +20,16 @@ Download these separately:
 
 | File | Use |
 | --- | --- |
-| **HexAppeal-1.1.4.zip** | Player package: runtime, body routing and default outfit refits |
-| **HexAppeal-Wardrobe-SDK-1.1.3.zip** | Optional asset-free SDK for outfit creators; unchanged in 1.1.4 |
-| **HexAppeal-Source-1.1.4.zip** | Optional source for the runtime and packs |
-| **HexAppeal-1.1.4-Release-Bundle.zip** | Installer, source, SDK and the six optional character packs in `packs/` |
+| **HexAppeal-1.1.5.zip** | Player package: runtime, body routing and default outfit refits |
+| **HexAppeal-Wardrobe-SDK-1.1.3.zip** | Optional asset-free SDK for outfit creators; unchanged since 1.1.3 |
+| **HexAppeal-Source-1.1.5.zip** | Optional source for the runtime and packs |
+| **HexAppeal-1.1.5-Release-Bundle.zip** | Installer, source, SDK and the six optional character packs in `packs/` |
 
-Get the files from the [GitHub 1.1.4 release](https://github.com/TAS-69/HexAppeal/releases/tag/v1.1.4). Extract the bundle if you use it, then import the inner player ZIP and any individual [character packs](Character-add-ons.md) you want.
+Get the files from the [GitHub 1.1.5 release](https://github.com/TAS-69/HexAppeal/releases/tag/v1.1.5). Extract the bundle if you use it, then import the inner player ZIP and any individual [character packs](Character-add-ons.md) you want.
 
 1. Close Crimson Desert. Install DMM and Instant Surgery. Add Hex's Hentai Preset for HEX. Venus Body for Damiane is required only for the VENUS body option.
-2. Import **HexAppeal-1.1.4.zip** into DMM. If upgrading, follow the cleanup below first. Keep only the current HexAppeal.asi in DMM's library.
-3. Expand Hex Appeal and choose **[01] VENUS** or **[02] Vanilla**. In DMM 5.0.1, choosing one automatically clears the other within the same package. Enable Hex Appeal under **ASI Mods**, then mount once.
+2. Import **HexAppeal-1.1.5.zip** into DMM. If upgrading, follow the cleanup below first. Keep only the current HexAppeal.asi in DMM's library.
+3. Expand Hex Appeal and choose **[01] VENUS** or **[02] Vanilla**. In DMM, choosing one automatically clears the other within the same package. Enable Hex Appeal under **ASI Mods**, then mount once.
 4. Launch, load near a witch and press **F9**. Open **Settings → Dependencies & paths** if detection needs a manual location.
 
 For VENUS, let the selected Venus Body for Damiane variant (Human or Elf Body) win its body route. Witch boots use private paths, so Damiane Armor Refit Pack can retain its own boots. Vanilla also isolates the original witch bodies and underwear. You can keep Venus Body for Damiane installed for Damiane while choosing Vanilla for witches. See [Body options](Body-options.md).
@@ -38,9 +38,9 @@ Unverified readable versions warn and remain usable when their actual checks pas
 
 ## Update or remove
 
-**Upgrading to 1.1.4:** close the game and back up `%LOCALAPPDATA%/HexAppeal/`. Remove the previous Hex Appeal package through DMM, then import 1.1.4. Keep your saved settings. Remove any separate top-level VENUS/Vanilla entries left by an older import, and disable old separate Bodies/Outfit Refits and external outfit resource entries. Leave separately installed third-party mods alone.
+**Upgrading to 1.1.5:** close the game and back up `%LOCALAPPDATA%/HexAppeal/`. Delete the previous Hex Appeal package in DMM, not just disable it, then import 1.1.5. While an older Hex Appeal package stays in DMM's library, DMM can install its plugin instead of the new one. Keep your saved settings. Remove any separate top-level VENUS/Vanilla entries left by an older import, and disable old separate Bodies/Outfit Refits and external outfit resource entries. Leave separately installed third-party mods alone.
 
-Select exactly one new body choice, enable its ASI and mount. Check that the mod group, selected body option and sole HexAppeal ASI show 1.1.4. DMM can add a new folder beside an older installation; do not rely on importing to remove the old version for you.
+Select exactly one new body choice, enable its ASI and mount. Check that the mod group, selected body option and sole HexAppeal ASI show 1.1.5. DMM can add a new folder beside an older installation; do not rely on importing to remove the old version for you.
 
 The earlier packaging could split the body folders and shared files during import. The corrected ZIP uses one folder with its manifest beside it, which DMM imports as a single group. Removing the old installation avoids duplicate plugins and stale selections. Your saved profiles are stored separately and do not need resetting.
 

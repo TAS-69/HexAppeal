@@ -7,21 +7,44 @@
 namespace hex {
 namespace {
 uintptr_t pointer(const WardrobeRecord& record,size_t offset){uintptr_t value=0;std::memcpy(&value,record.bytes.data()+offset,sizeof value);return value;}
+
+// The game's vectors use the installed game's record stride. Keep owning
+// records in full-size storage and marshal the older, narrower vectors at the call.
+template<size_t Capacity>
+struct PackedRecords {
+    alignas(8) std::array<unsigned char,Capacity*sizeof(WardrobeRecord)> bytes{};
+
+    WardrobeVector pack(const WardrobeRecord* records,uint32_t count){
+        const auto stride=wardrobeRecordSize();
+        for(uint32_t i=0;i<count;++i)std::memcpy(bytes.data()+i*stride,records[i].bytes.data(),stride);
+        return {count?bytes.data():nullptr,count,count};
+    }
+    void unpack(WardrobeRecord* records,uint32_t count) const{
+        const auto stride=wardrobeRecordSize();
+        for(uint32_t i=0;i<count;++i)std::memcpy(records[i].bytes.data(),bytes.data()+i*stride,stride);
+    }
+};
 }
+size_t wardrobeRecordSize(){return gameLayout().expandedRecords?0x78:0x70;}
 bool isSimpleWardrobeRecord(const WardrobeRecord& record,uintptr_t gameBase){
     if(!gameBase||!pointer(record,0)||pointer(record,0)==gameBase+gameLayout().emptyWrapper)return false;
-
-
-    for(const auto offset:{0x10u,0x18u,0x20u,0x28u,0x30u,0x38u,0x48u,0x50u,0x58u})if(pointer(record,offset))return false;
-    uint32_t id=0;std::memcpy(&id,record.bytes.data()+0x68,4);
-    return pointer(record,0x60)==gameBase+gameLayout().emptyRecord&&id==0xffffffff;
+    for(const auto offset:{0x10u,0x18u,0x20u,0x28u,0x30u,0x38u,0x50u,0x58u})if(pointer(record,offset))return false;
+    const auto last=wardrobeRecordSize()-0x10;
+    if(last==0x68){
+        // The native copy reads three flag bytes here. The remaining bytes
+        // before the aligned member at 0x50 are uninitialized padding.
+        if(pointer(record,0x40)!=gameBase+gameLayout().emptyWrapper||pointer(record,0x60)||
+           record.bytes[0x48]||record.bytes[0x49]||record.bytes[0x4a])return false;
+    }else if(pointer(record,0x48))return false;
+    uint32_t id=0;std::memcpy(&id,record.bytes.data()+last+8,4);
+    return pointer(record,last)==gameBase+gameLayout().emptyRecord&&id==0xffffffff;
 }
 bool rebuildWardrobePipeline(uintptr_t node,const WardrobeVector* ready,WardrobeVector* removals,WardrobeVector* additions,uint8_t flag,decltype(WardrobeTransport::pipeline) pipeline){
     if(!node||!ready||!ready->data||!ready->count||ready->count>64||!pipeline)return false;
     bool called=false,restored=false;
     __try{
         const auto data=*reinterpret_cast<const uintptr_t*>(node+0x40);auto* count=reinterpret_cast<uint32_t*>(node+0x48);
-        if(!data||*count!=ready->count||*count>*reinterpret_cast<const uint32_t*>(node+0x4c)||std::memcmp(reinterpret_cast<const void*>(data),ready->data,ready->count*sizeof(WardrobeRecord)))return false;
+        if(!data||*count!=ready->count||*count>*reinterpret_cast<const uint32_t*>(node+0x4c)||std::memcmp(reinterpret_cast<const void*>(data),ready->data,ready->count*wardrobeRecordSize()))return false;
         *count=0;
         __try{called=pipeline(node,removals,additions,flag);}
         __finally{if(*reinterpret_cast<const uintptr_t*>(node+0x40)==data&&!*count){*count=ready->count;restored=true;}}
@@ -55,8 +78,10 @@ WardrobeCallResult invokeWardrobePartBatch(uintptr_t node,const std::vector<Ward
     for(;count<parts.size();++count)if(!ops.retain(removals[count].wrapper))break;
     const bool retained=count==parts.size();
     WardrobeVector removeList{attach?nullptr:removals.data(),attach?0:count,attach?0:count};
-    WardrobeVector addList{attach?additions.data():nullptr,attach?count:0,attach?count:0};
+    PackedRecords<8> packed;
+    auto addList=packed.pack(additions.data(),attach?count:0);
     const bool called=retained&&ops.pipeline(node,&removeList,&addList,0);
+    if(attach)packed.unpack(additions.data(),count);
     bool cleaned=true;
     for(uint32_t i=0;i<count;++i){const bool ok=attach?ops.destroy(&additions[i]):ops.release(&removals[i].wrapper);cleaned&=ok;}
     if(!cleaned)return WardrobeCallResult::CleanupFailed;
@@ -80,8 +105,11 @@ WardrobeCallResult invokeWardrobeRecipe(uintptr_t node,const std::vector<uintptr
     };
     for(const auto wrapper:remove){if(!ops.retain(wrapper))return cleanup()?WardrobeCallResult::RetainFailed:WardrobeCallResult::CleanupFailed;removals[nr++].wrapper=wrapper;}
     for(const auto* part:add){if(!ops.copy(&additions[na],part))return cleanup()?WardrobeCallResult::RetainFailed:WardrobeCallResult::CleanupFailed;++na;}
-    WardrobeVector removeList{nr?removals.data():nullptr,nr,nr},addList{na?additions.data():nullptr,na,na};
+    PackedRecords<24> packed;
+    WardrobeVector removeList{nr?removals.data():nullptr,nr,nr};
+    auto addList=packed.pack(additions.data(),na);
     const bool called=ops.pipeline(node,&removeList,&addList,0);
+    packed.unpack(additions.data(),na);
     if(!cleanup())return WardrobeCallResult::CleanupFailed;
     return called?WardrobeCallResult::Completed:WardrobeCallResult::CallFailed;
 }
@@ -98,9 +126,13 @@ WardrobeCallResult invokeWardrobeRebuild(uintptr_t node,const std::vector<Wardro
     const auto clean=[&](){bool ok=true;for(uint32_t i=0;i<nr;++i)if(!ops.release(&removed[i].wrapper))ok=false;for(uint32_t i=0;i<na;++i)if(!ops.destroy(&added[i]))ok=false;return ok;};
     for(const auto& row:removals){const auto wrapper=pointer(row,0);if(!ops.retain(wrapper))return clean()?WardrobeCallResult::RetainFailed:WardrobeCallResult::CleanupFailed;removed[nr++]={wrapper,0};}
     for(const auto& row:desired){const auto wrapper=pointer(row,0);if(!ops.retain(wrapper))return clean()?WardrobeCallResult::RetainFailed:WardrobeCallResult::CleanupFailed;added[na++]=row;}
-    WardrobeVector removeList{nr?removed.data():nullptr,nr,nr},addList{na?added.data():nullptr,na,na};
-    const WardrobeVector baseline{const_cast<WardrobeRecord*>(ready.data()),uint32_t(ready.size()),uint32_t(ready.size())};
-    const bool called=ops.rebuild(node,&baseline,&removeList,&addList,0);if(!clean())return WardrobeCallResult::CleanupFailed;
+    PackedRecords<64> packed,packedBaseline;
+    WardrobeVector removeList{nr?removed.data():nullptr,nr,nr};
+    auto addList=packed.pack(added.data(),na);
+    const auto baseline=packedBaseline.pack(ready.data(),uint32_t(ready.size()));
+    const bool called=ops.rebuild(node,&baseline,&removeList,&addList,0);
+    packed.unpack(added.data(),na);
+    if(!clean())return WardrobeCallResult::CleanupFailed;
     return called?WardrobeCallResult::Completed:WardrobeCallResult::CallFailed;
 }
 }

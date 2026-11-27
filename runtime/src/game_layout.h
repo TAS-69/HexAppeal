@@ -15,7 +15,12 @@ struct GameLayout {
     uintptr_t frameCalls[2]{};
     uintptr_t hudCall=0,hudSubmit=0;
     uintptr_t characterInfo=0;
+    bool expandedRecords=false;
 };
+
+inline constexpr uint32_t expandedRecordBuild=0x6b07e5e9;
+inline constexpr uint32_t expandedRecordImageSize=0x13d05000;
+inline constexpr uint32_t expandedRecordChecksum=0x1380bc2b;
 
 inline constexpr GameLayout layouts[]={
     {0x6af5d198,0x144e9000,0x13ff2bd0,"8be67178d9b9a149c361a731051665e0ba4d441e250ae1dfe645bd6e524345c8",
@@ -79,6 +84,20 @@ inline const GameLayout& gameLayout(){
 
 inline bool checkedGameDigest(std::string_view digest){
     for(const auto& layout:layouts)if(digest==layout.digest)return true;
-    return false;
+    return digest=="ea2d84d947521332b002359818960ffd97765f37b447503d8a1efad4040269c8";
+}
+
+// These accessors are used inside callers' guarded reads. Both formats store
+// a pointer to the decoded record, which can be null before the game loads it.
+inline uint32_t databaseRecordCount(uintptr_t table){
+    return table?*reinterpret_cast<const uint32_t*>(table+(gameLayout().expandedRecords?0x20:0x28)):0;
+}
+inline uintptr_t databaseRecordStorage(uintptr_t table){
+    return table?*reinterpret_cast<const uintptr_t*>(table+(gameLayout().expandedRecords?0x18:0x20)):0;
+}
+inline uintptr_t databaseRecordAt(uintptr_t storage,uint32_t index){
+    if(!storage)return 0;
+    const auto offset=gameLayout().expandedRecords?size_t(index)*0x30+0x20:size_t(index)*0x18+8;
+    return *reinterpret_cast<const uintptr_t*>(storage+offset);
 }
 }

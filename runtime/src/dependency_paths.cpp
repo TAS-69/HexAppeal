@@ -292,10 +292,10 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
     }
     result.manifest.valid=regular(result.manifest.path);result.manifest.detail=result.manifest.valid?"Active file list found":"Active file list not found. Mount through DMM or set its location.";
     const auto routes=readMountedRoutes(result.manifest.path);
-    result.skinTone=result.manifest.valid?activeVenusDamianeSkin(routes):
+    result.skinTone=result.manifest.valid?activeVenusDamianeSkin(routes,game):
         SkinToneSource{{},{},"DMM’s active file list is unavailable."};
     std::vector<MountedBodyIssue> bodyIssues;
-    result.bodyMode=mountedBodyMode(routes,nullptr,&result.unavailableBodyWitches,&bodyIssues);
+    result.bodyMode=mountedBodyMode(routes,nullptr,&result.unavailableBodyWitches,&bodyIssues,game);
     if(result.bodyMode==BodyMode::Invalid){
         const bool noMountedBody=std::none_of(bodyIssues.begin(),bodyIssues.end(),[&](const auto& issue){return routes.count(issue.resource)!=0;});
         const bool hasKnownBodies=std::any_of(bodyIssues.begin(),bodyIssues.end(),[](const auto& issue){
@@ -398,7 +398,8 @@ DependencyStatus inspectDependencies(const fs::path& game,const DependencyPaths&
     if(result.venus.path.empty())result.venus.detail=result.bodyMode==BodyMode::Vanilla?"Venus Body for Damiane is not required by the selected Vanilla body option.":"No active route for Venus Body for Damiane found. Mount one Human Body or Elf Body variant through DMM.";
     if(result.hex.path.empty())result.hex.detail="Hex's Hentai Preset not found. Set its path to enable HEX.";
     else if(result.hex.valid&&result.bodyMode==BodyMode::Vanilla)result.hex.detail+=" The preset values are applied relative to each witch's original body.";
-    result.bodyVerified=result.bodySourceReady()&&verifyMountedDependencies(base,result.manifest.path,result.bodyDetail,result.bodyWarning,&result.unavailableBodyWitches,&result.bodyNote);
+    result.bodyVerified=result.bodySourceReady()&&verifyMountedDependencies(base,result.manifest.path,result.bodyDetail,result.bodyWarning,&result.unavailableBodyWitches,&result.bodyNote,
+                                                                         &result.witchBodyWarnings,&result.bodySkipped);
     if(result.bodyMode==BodyMode::Invalid)result.bodyDetail="The mounted witch bodies are missing or mixed. Enable one Hex Appeal body option, remove any stale older entry and remount.";
     if(result.bodyVerified)result.bodyDetail=result.bodyWarning.empty()?(result.bodyMode==BodyMode::Vanilla?"Vanilla body selected explicitly; all seven witch body routes checked. Venus Body for Damiane is not required.":"Venus Body for Damiane and witch body routes verified in the active file list."):result.bodyWarning;
     else if(result.bodyMode==BodyMode::Live)result.bodyDetail="Shape checks each character's live body and outfit skeletons before applying.";

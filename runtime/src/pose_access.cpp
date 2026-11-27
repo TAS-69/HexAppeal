@@ -79,7 +79,14 @@ bool gameIdentity(void* actor,ActorIdentity& output,int (*addonLookup)(std::stri
     return false;
 }
 bool partCountGuard(void* model,uint32_t* count,uintptr_t* list) {
-    __try {*count=word(reinterpret_cast<uintptr_t>(model),0x78);*list=ptr(reinterpret_cast<uintptr_t>(model),0x70);return *list&&*count>0&&*count<=128;}
+    __try {
+        const auto address=reinterpret_cast<uintptr_t>(model);
+        const auto expanded=gameLayout().expandedRecords;
+        if(expanded&&*reinterpret_cast<const uint8_t*>(address+0x2bc)!=0)return false;
+        *count=word(address,expanded?0x198:0x78);
+        *list=ptr(address,expanded?0x190:0x70);
+        return *list&&*count>0&&*count<=128;
+    }
     __except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
 struct RawPart {uintptr_t part;uintptr_t destination;uintptr_t animation;uintptr_t boneRows;uintptr_t hashRows;uint32_t count;uint32_t hashCount;uintptr_t skeleton;};
