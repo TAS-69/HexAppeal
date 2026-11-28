@@ -14,6 +14,8 @@
 #include "runtime.h"
 #include <MinHook.h>
 #include <intrin.h>
+#include <algorithm>
+#include <array>
 #include <atomic>
 #include <cstddef>
 #include <cstring>
@@ -64,10 +66,11 @@ struct Layout {
 };
 struct PreviewLayout {
     size_t groups, rowSize, group, selected, rootState, handle, cursor;
-    uintptr_t chooseCaller, closeEvent, cursorClass;
+    uintptr_t chooseCaller, closeEvent, cursorClass, commitDisplay, close;
 };
-constexpr PreviewLayout stockPreview{0x1e0,0x80,0x284,0x282,0x280,0x268,0x1b0,0x129c951,0x71a7ca8,0x5af0ee0};
-constexpr PreviewLayout expandedPreview{0x210,0x78,0x29e,0x29c,0x2bc,0x2b8,0x1e0,0x131b192,0x734fdd4,0x5c7f9d8};
+constexpr PreviewLayout stockPreview{0x1e0,0x80,0x284,0x282,0x280,0x268,0x1b0,0x129c951,0x71a7ca8,0x5af0ee0,0x12a84f7,0x129cdc0};
+// 2.06: the addresses come from the signature lookup when the preview route installs.
+PreviewLayout expandedPreview{0x210,0x78,0x29e,0x29c,0x2bc,0x2b8,0x1e0,0,0,0,0,0};
 const PreviewLayout& previewLayout(){return gameLayout().expandedRecords?expandedPreview:stockPreview;}
 constexpr Layout layouts[]{
     {0x6af5d198,0x235b640,0xaf5030,0xc049f0,0x7246388,
@@ -432,7 +435,7 @@ constexpr uint8_t localWidgetValue=1;
 void* previewCursorStyle(void* menu,size_t part){
     const auto& offsets=previewLayout();
     const auto* control=*reinterpret_cast<const unsigned char* const*>(static_cast<const unsigned char*>(menu)+offsets.cursor);
-    if(!control||*reinterpret_cast<const uintptr_t*>(control)!=base+offsets.cursorClass)return nullptr;
+    if(!control||!offsets.cursorClass||*reinterpret_cast<const uintptr_t*>(control)!=base+offsets.cursorClass)return nullptr;
     const auto* widget=*reinterpret_cast<const unsigned char* const*>(control+0xe8+part*sizeof(void*));
     return widget?*reinterpret_cast<void* const*>(widget+0x20):nullptr;
 }
@@ -488,8 +491,8 @@ bool previewIsCurrent(const PreviewSession& session){
     }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
 bool suppressPreviewChoices(void* menu,void* displayRows,uintptr_t caller){
-    const auto commitDisplay=gameLayout().expandedRecords?0x1326eb1:0x12a84f7;
-    if(previewCommitting==menu&&caller==commitDisplay){
+    const auto commitDisplay=previewLayout().commitDisplay;
+    if(previewCommitting==menu&&commitDisplay&&caller==commitDisplay){
         __try{
             const auto* bytes=static_cast<const unsigned char*>(menu);
             const auto handle=*reinterpret_cast<const uint32_t*>(bytes+previewLayout().handle);
@@ -547,7 +550,7 @@ void closePreviewSession(const PreviewSession& session){
            identity.actor==session.actor&&identity.witch==session.witch){
             if(gameLayout().expandedRecords){
                 const auto vtable=*reinterpret_cast<const uintptr_t*>(session.menu);
-                if(!vtable||*reinterpret_cast<const uintptr_t*>(vtable+0x510)!=base+0x131bac0){
+                if(!vtable||!previewLayout().close||*reinterpret_cast<const uintptr_t*>(vtable+0x510)!=base+previewLayout().close){
                     LOG_ERR("[HA] Wardrobe could not verify the native Interact close handler.");
                     return;
                 }
@@ -566,7 +569,8 @@ void closePreviewSession(const PreviewSession& session){
     }__except(EXCEPTION_EXECUTE_HANDLER){reportFault();}
 }
 void chooseInteractionMenu(void* menu,uint8_t option){
-    if(reinterpret_cast<uintptr_t>(_ReturnAddress())-base==previewLayout().chooseCaller&&frameThreadId()==GetCurrentThreadId()){
+    const auto chooseCaller=previewLayout().chooseCaller;
+    if(chooseCaller&&reinterpret_cast<uintptr_t>(_ReturnAddress())-base==chooseCaller&&frameThreadId()==GetCurrentThreadId()){
         pendingPreview={};
         option=choosePreviewInteract(menu,option);
     }
@@ -617,7 +621,8 @@ template<class T> T gameFunction(HMODULE game,uintptr_t offset){
     const auto* address=reinterpret_cast<const void*>(base+offset);
     return executablePluginFunction(game,address)?reinterpret_cast<T>(base+offset):nullptr;
 }
-bool checkedHead(HMODULE game,void* address,const unsigned char (&head)[15],const unsigned char (&tail)[15]){
+template<size_t M>
+bool checkedHead(HMODULE game,void* address,const unsigned char (&head)[15],const unsigned char (&tail)[M]){
     return executablePluginFunction(game,address)&&
         appearance::checkedGameEntry(address,head,16,tail)!=appearance::GameEntry::Unavailable;
 }
@@ -625,6 +630,22 @@ bool installPreviewInteraction(HMODULE game){
     if(!nativePreviewHold)return true;
     const bool expanded=gameLayout().expandedRecords;
     if(!expanded&&layout->gameStamp!=0x6afdc0cf)return true;
+    // 2.06 addresses come from the signature lookup, so another link of the same
+    // code (a different store's executable) gets the same route.
+    const auto* found=expanded?signatureExpanded():nullptr;
+    if(expanded){
+        static bool reported=false;
+        const uintptr_t required[]{found?found->menuChoose:0,found?found->menuCommit:0,found?found->menuDisplay:0,
+            found?found->menuRefresh:0,found?found->menuResolve:0,found?found->menuRelease:0,found?found->menuClose:0,
+            found?found->chooseCaller:0,found?found->commitDisplay:0,found?found->closeEvent:0};
+        if(std::find(std::begin(required),std::end(required),uintptr_t(0))!=std::end(required)){
+            if(!reported){reported=true;LOG_ERR("[HA] Wardrobe could not find every native Interact preview address on this build. The [HA] Wardrobe row still opens the editor.");}
+            return false;
+        }
+        expandedPreview.chooseCaller=found->chooseCaller;expandedPreview.closeEvent=found->closeEvent;
+        expandedPreview.cursorClass=found->cursorClass;expandedPreview.commitDisplay=found->commitDisplay;
+        expandedPreview.close=found->menuClose;
+    }
     const unsigned char chooseHead[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x6c,0x24,0x10,0x48,0x89,0x74,0x24,0x18};
     const unsigned char commitHead[]{0x48,0x89,0x4c,0x24,0x08,0x55,0x53,0x56,0x57,0x41,0x54,0x41,0x55,0x41,0x56};
     const unsigned char resolveHead[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x54,0x24,0x10,0x57,0x48,0x83,0xec,0x50};
@@ -640,11 +661,10 @@ bool installPreviewInteraction(HMODULE game){
     const unsigned char resolvePropertyHead[]{0x48,0x8b,0xd1,0x0f,0xb6,0x49,0x0c,0x80,0xf9,0xff,0x74,0x47,0x4c,0x8b,0x02};
     const unsigned char setPropertyHead[]{0x48,0x89,0x5c,0x24,0x10,0x48,0x89,0x6c,0x24,0x18,0x56,0x57,0x41,0x54,0x41};
     const unsigned char expandedChooseHead[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x74,0x24,0x10,0x57,0x48,0x81,0xec,0x90};
-    const unsigned char expandedChooseTail[]{0x00,0x00,0x48,0x8b,0xf9,0x48,0x8b,0x05,0x4c,0xae,0x0c,0x06,0x4c,0x8b,0x40};
+    const unsigned char expandedChooseTail[]{0x00,0x00,0x48,0x8b,0xf9,0x48,0x8b,0x05};
     const unsigned char expandedCommitTail[]{0x57,0x48,0x8d,0x6c,0x24,0xe8,0x48,0x81,0xec,0x18,0x01,0x00,0x00,0x48,0x8b};
-    const unsigned char expandedCloseHead[]{0xe9,0x0b,0x95,0x57,0x09,0x0f,0x85,0xed,0xf8,0x4f,0x00,0xce,0x82,0x07,0x0f};
     const unsigned char expandedRefreshHead[]{0x48,0x89,0x5c,0x24,0x10,0x55,0x56,0x57,0x41,0x56,0x41,0x57,0x48,0x83,0xec};
-    const unsigned char expandedRefreshTail[]{0x45,0x0f,0xb6,0xf0,0x48,0x8b,0xf2,0x48,0x8b,0xf9,0x48,0x8b,0x05,0xf7,0x32};
+    const unsigned char expandedRefreshTail[]{0x45,0x0f,0xb6,0xf0,0x48,0x8b,0xf2,0x48,0x8b,0xf9,0x48,0x8b,0x05};
     const unsigned char expandedDisplayHead[]{0x48,0x8b,0xc4,0x48,0x89,0x58,0x08,0x44,0x89,0x40,0x18,0x55,0x56,0x57,0x41};
     const unsigned char expandedDisplayTail[]{0x41,0x55,0x41,0x56,0x41,0x57,0x48,0x8d,0x68,0xa8,0x48,0x81,0xec,0x20,0x01};
     const unsigned char expandedFindPropertyHead[]{0x40,0x55,0x53,0x57,0x41,0x54,0x41,0x56,0x48,0x8b,0xec,0x48,0x83,0xec,0x50};
@@ -655,19 +675,23 @@ bool installPreviewInteraction(HMODULE game){
         return executablePluginFunction(game,address)&&creation::Read(address,bytes,sizeof bytes)&&
                std::memcmp(bytes,head,sizeof bytes)==0;
     };
-    const auto resolveAddress=expanded?0x7819d0:0x748c50;
-    const auto releaseAddress=expanded?0x16e3b60:0x165af00;
-    const auto closeAddress=expanded?0x131bac0:0x129cdc0;
+    const uintptr_t resolveAddress=expanded?found->menuResolve:0x748c50;
+    const uintptr_t releaseAddress=expanded?found->menuRelease:0x165af00;
+    const uintptr_t closeAddress=previewLayout().close;
+    // On 2.06 the close handler is read from the Interact class's vtable, and its
+    // entry may be a protector jump, so only its placement is checked here. The
+    // live menu's vtable is checked again before every close.
     if(!matchesHead(resolveAddress,resolveHead)||!matchesHead(releaseAddress,releaseHead)||
-       !matchesHead(closeAddress,expanded?expandedCloseHead:closeHead))return false;
+       !(expanded?executablePluginFunction(game,reinterpret_cast<void*>(base+closeAddress)):matchesHead(closeAddress,closeHead)))return false;
     resolveMenuTarget=gameFunction<ResolveMenuTarget>(game,resolveAddress);
     releaseMenuTarget=gameFunction<ReleaseMenuTarget>(game,releaseAddress);
     closeMenu=gameFunction<CloseMenu>(game,closeAddress);
     if(!resolveMenuTarget||!releaseMenuTarget||!closeMenu)return false;
-    const auto findPropertyAddress=expanded?0x3a75cf0:0x3918f50;
-    const auto resolvePropertyAddress=expanded?0x738010:0x700360;
-    const auto setPropertyAddress=expanded?0x777a70:0x73eee0;
-    if(matchesHead(findPropertyAddress,expanded?expandedFindPropertyHead:findPropertyHead)&&
+    const uintptr_t findPropertyAddress=expanded?found->widgetFind:0x3918f50;
+    const uintptr_t resolvePropertyAddress=expanded?found->widgetResolve:0x700360;
+    const uintptr_t setPropertyAddress=expanded?found->widgetSet:0x73eee0;
+    if(findPropertyAddress&&resolvePropertyAddress&&setPropertyAddress&&
+       matchesHead(findPropertyAddress,expanded?expandedFindPropertyHead:findPropertyHead)&&
        matchesHead(resolvePropertyAddress,expanded?expandedResolvePropertyHead:resolvePropertyHead)&&
        matchesHead(setPropertyAddress,setPropertyHead)){
         findWidgetProperty=gameFunction<FindWidgetProperty>(game,findPropertyAddress);
@@ -677,26 +701,22 @@ bool installPreviewInteraction(HMODULE game){
     }
     struct PreviewHook{
         uintptr_t offset;
-        const unsigned char (&head)[15];
-        const unsigned char (&tail)[15];
+        bool checked;
         void* detour;
         void** original;
     };
-    const PreviewHook stockHooks[]{
-        {0x12a7770,chooseHead,chooseTail,reinterpret_cast<void*>(chooseInteractionMenu),reinterpret_cast<void**>(&originalMenuChoose)},
-        {0x12a7d10,commitHead,commitTail,reinterpret_cast<void*>(commitInteractionMenu),reinterpret_cast<void**>(&originalMenuCommit)},
-        {0x129fdd0,displayHead,displayTail,reinterpret_cast<void*>(buildInteractionMenuRows),reinterpret_cast<void**>(&originalBuildMenuRows)},
-        {0x129f2e0,refreshHead,refreshTail,reinterpret_cast<void*>(refreshInteractionMenuRows),reinterpret_cast<void**>(&originalRefreshMenuRows)}
-    };
-    const PreviewHook expandedHooks[]{
-        {0x1325f40,expandedChooseHead,expandedChooseTail,reinterpret_cast<void*>(chooseInteractionMenu),reinterpret_cast<void**>(&originalMenuChoose)},
-        {0x1326390,commitHead,expandedCommitTail,reinterpret_cast<void*>(commitInteractionMenu),reinterpret_cast<void**>(&originalMenuCommit)},
-        {0x131dd80,expandedDisplayHead,expandedDisplayTail,reinterpret_cast<void*>(buildInteractionMenuRows),reinterpret_cast<void**>(&originalBuildMenuRows)},
-        {0x131da90,expandedRefreshHead,expandedRefreshTail,reinterpret_cast<void*>(refreshInteractionMenuRows206),reinterpret_cast<void**>(&originalRefreshMenuRows206)}
-    };
-    const auto& hooks=expanded?expandedHooks:stockHooks;
-    for(const auto& hook:hooks)
-        if(!checkedHead(game,reinterpret_cast<void*>(base+hook.offset),hook.head,hook.tail))return false;
+    const auto at=[&](uintptr_t offset){return reinterpret_cast<void*>(base+offset);};
+    const auto hooks=expanded?std::array<PreviewHook,4>{{
+        {found->menuChoose,checkedHead(game,at(found->menuChoose),expandedChooseHead,expandedChooseTail),reinterpret_cast<void*>(chooseInteractionMenu),reinterpret_cast<void**>(&originalMenuChoose)},
+        {found->menuCommit,checkedHead(game,at(found->menuCommit),commitHead,expandedCommitTail),reinterpret_cast<void*>(commitInteractionMenu),reinterpret_cast<void**>(&originalMenuCommit)},
+        {found->menuDisplay,checkedHead(game,at(found->menuDisplay),expandedDisplayHead,expandedDisplayTail),reinterpret_cast<void*>(buildInteractionMenuRows),reinterpret_cast<void**>(&originalBuildMenuRows)},
+        {found->menuRefresh,checkedHead(game,at(found->menuRefresh),expandedRefreshHead,expandedRefreshTail),reinterpret_cast<void*>(refreshInteractionMenuRows206),reinterpret_cast<void**>(&originalRefreshMenuRows206)}}}:
+        std::array<PreviewHook,4>{{
+        {0x12a7770,checkedHead(game,at(0x12a7770),chooseHead,chooseTail),reinterpret_cast<void*>(chooseInteractionMenu),reinterpret_cast<void**>(&originalMenuChoose)},
+        {0x12a7d10,checkedHead(game,at(0x12a7d10),commitHead,commitTail),reinterpret_cast<void*>(commitInteractionMenu),reinterpret_cast<void**>(&originalMenuCommit)},
+        {0x129fdd0,checkedHead(game,at(0x129fdd0),displayHead,displayTail),reinterpret_cast<void*>(buildInteractionMenuRows),reinterpret_cast<void**>(&originalBuildMenuRows)},
+        {0x129f2e0,checkedHead(game,at(0x129f2e0),refreshHead,refreshTail),reinterpret_cast<void*>(refreshInteractionMenuRows),reinterpret_cast<void**>(&originalRefreshMenuRows)}}};
+    for(const auto& hook:hooks)if(!hook.checked)return false;
     size_t installed=0;
     bool queued=true;
     for(const auto& hook:hooks){

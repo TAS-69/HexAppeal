@@ -1,5 +1,6 @@
 #include "npc_runtime.h"
 #include "game_layout.h"
+#include "game_signatures.h"
 #include "runtime.h"
 #include "shaping.h"
 #include "pose_access.h"
@@ -463,8 +464,14 @@ void updateGameUpload(void* upload,void* model){
 }
 bool installGamePoseUpload(){
     if(!gameLayout().expandedRecords)return false;
+    // Found by signature on any 2.06 executable; on the checked Steam build it must be 0x324fd80.
+    const auto* found=signatureExpanded();
+    if(!found||!found->poseUpload){
+        LOG_ERR("The 2.06 animation upload was not found on this build. Shape waits for a compatible upload.");
+        return false;
+    }
     const auto game=GetModuleHandleW(nullptr);
-    auto* entry=reinterpret_cast<unsigned char*>(game)+0x324fd80;
+    auto* entry=reinterpret_cast<unsigned char*>(game)+found->poseUpload;
     const unsigned char head[]{0x48,0x89,0x5c,0x24,0x08,0x48,0x89,0x6c,0x24,0x10,0x48,0x89,0x74,0x24,0x18};
     const unsigned char tail[]{0x48,0x8b,0x9a,0x90,0x01,0x00,0x00,0x4c,0x8d,0x7a,0x40,0x8b,0x82,0x98,0x01,0x00,0x00};
     if(!executablePluginFunction(game,entry)||appearance::checkedGameEntry(entry,head,28,tail)!=appearance::GameEntry::Stock)return false;
@@ -540,7 +547,10 @@ DWORD WINAPI worker(void*) {
     std::string error,hexError,hexWarning;DependencyStatus dependencies;uint64_t scannedRevision=0;DWORD scannedAt=0;bool engineBound=false;std::filesystem::path loadedPreset;std::string loadedPresetHash;
     bool hadCompatibleUpload=false;
     const auto rescan=[&](bool force=false){
-        const bool compatibleUpload=!gameLayout().expandedRecords||s.sawCompatibleUpload.load();
+        // Without game addresses, or on 2.06 (where Instant Surgery receives no uploads),
+        // Shape is Ready only once a compatible upload has been seen.
+        const bool layoutReady=loadedGameLayout()!=nullptr;
+        const bool compatibleUpload=(layoutReady&&!gameLayout().expandedRecords)||s.sawCompatibleUpload.load();
         const auto revision=r.dependencyRevision.load();const auto now=GetTickCount();if(!force&&revision==scannedRevision&&now-scannedAt<15000&&compatibleUpload==hadCompatibleUpload)return;
         hadCompatibleUpload=compatibleUpload;
         scannedAt=now;scannedRevision=revision;
@@ -567,6 +577,7 @@ DWORD WINAPI worker(void*) {
         const auto shapeIssue=!dependencies.canShapeBody()?dependencies.bodyDetail:!dependencies.instant.valid?dependencies.instant.detail:
             !error.empty()?error:s.hooked&&engineBound&&!compatibleUpload?
             std::string(gamePoseUpload?"Waiting for a compatible game animation upload. Keep a supported character visible.":
+                !layoutReady?"Game addresses for this Crimson Desert build were not found. Waiting for a compatible animation upload from Instant Surgery. Keep a supported character visible.":
                 "Waiting for a compatible animation upload from Instant Surgery. Keep a supported character visible."):
             std::string("Waiting for the installed Instant Surgery plugin to initialize.");
         if(!s.failed)r.reportCompatibility(Feature::Shaping,r.shapingAvailable?CompatibilityState::Ready:

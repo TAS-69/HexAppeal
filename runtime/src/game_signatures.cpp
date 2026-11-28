@@ -11,19 +11,25 @@
 
 namespace hex {
 namespace {
-enum class Method{Code,Reference,Rtti,Optional};
+enum class Method{Code,Reference,Rtti,Optional,Slot};
 enum class Expect{Code,ReadOnly,Writable};
 struct Signature{
     const char* field;Method method;Expect expect;bool call;const char* pattern;
     int offset,disp,end;const char* rtti;uintptr_t sourceRva;
+    int slot=0;                 // Method::Slot: byte offset of the function in the RTTI class's vtable
+    const char* calls=nullptr;  // a call site: the field whose function the call before it must target
 };
 constexpr Signature signatures[]={
 #include "game_signatures_table.inc"
 };
 constexpr uint32_t sourceStamp=0x6afdc0cf;  // the build the table was generated from
 
-// 2.06 changes the appearance record ABI as well as the signatures below.
-// Keep these signatures tied to the executable checked for that ABI.
+// 2.06 changes the appearance record ABI as well as the signatures below. A
+// build uses them when its appearance record code matches every 2.06
+// signature in recordCode; on the checked Steam 2.06 executable each one must
+// also land on its checked address. Another link of the same code, such as a
+// different store's executable, is recognised by its code and runs with the
+// unverified game warning.
 constexpr Signature expandedRecordSignatures[]={
     {"mergeAppearance",Method::Code,Expect::Code,false,"48 89 54 24 10 55 53 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 38 E2 FF FF B8 C8 1E 00 00",0,0,0,nullptr,0x30e2040},
     {"copyPart",Method::Code,Expect::Code,false,"48 89 5C 24 18 48 89 4C 24 08 55 56 57 41 56 41 57 48 83 EC 20 4C 8B F2 48 8B F1 45 33 FF 4C 89 39 48 8B 02",0,0,0,nullptr,0x578600},
@@ -41,6 +47,13 @@ constexpr Signature expandedRecordSignatures[]={
     {"ia_focus1",Method::Code,Expect::Code,false,"E8 ?? ?? ?? ?? 90 48 8B 8D B0 0E 00 00 48 8B 01 B2 01 FF 50 20 83 7D 58 00 74 33 48 8D 45 50",5,0,0,nullptr,0xc5cec9},
     {"ia_focus2",Method::Code,Expect::Code,false,"E8 ?? ?? ?? ?? 90 48 8B 8D D0 0D 00 00 48 8B 01 B2 01 FF 50 20 83 7D 88 00 74 3E 48 8D 45 80",5,0,0,nullptr,0xc52761},
 };
+
+// 2.06 addresses outside the required layout. Each one that does not resolve
+// leaves only its own feature waiting (game_signatures_206.inc, from gen206.py).
+constexpr Signature expandedExtraSignatures[]={
+#include "game_signatures_206.inc"
+};
+constexpr const char* recordCode[]={"mergeAppearance","copyPart","destroyRecord","copyRecord","applyAppearance"};
 
 const Signature& signatureFor(const Signature& stock,bool expanded){
     if(expanded)for(const auto& sig:expandedRecordSignatures)
@@ -225,6 +238,12 @@ struct Resolver{
             rva=uint32_t(int64_t(match)+sig.end+disp);break;}
         case Method::Rtti:
             if(!rtti(sig.rtti,rva,why))return false;break;
+        case Method::Slot:{
+            uint32_t vtable=0;if(!rtti(sig.rtti,vtable,why))return false;
+            uint64_t function=0;
+            if(!placed(vtable+uint32_t(sig.slot),Expect::ReadOnly)||!readRaw(image.base+vtable+sig.slot,&function,8)||
+               function<image.imageBase||function-image.imageBase>=image.size){why="unreadable vtable slot";return false;}
+            rva=uint32_t(function-image.imageBase);break;}
         case Method::Optional:
             rva=0;return true;
         }
@@ -262,8 +281,53 @@ uintptr_t* slot(GameLayout& layout,InteractionAddresses& ia,const char* field){
     return nullptr;
 }
 
+uintptr_t* expandedSlot(SignatureResult& result,const char* field){
+    auto& e=result.expanded;auto& ia=result.interaction;
+    const std::pair<const char*,uintptr_t*> slots[]={
+        {"poseUpload",&e.poseUpload},{"menuChoose",&e.menuChoose},{"menuCommit",&e.menuCommit},{"menuDisplay",&e.menuDisplay},
+        {"menuRefresh",&e.menuRefresh},{"menuResolve",&e.menuResolve},{"menuRelease",&e.menuRelease},{"menuClose",&e.menuClose},
+        {"widgetFind",&e.widgetFind},{"widgetResolve",&e.widgetResolve},{"widgetSet",&e.widgetSet},
+        {"chooseCaller",&e.chooseCaller},{"commitDisplay",&e.commitDisplay},{"closeEvent",&e.closeEvent},{"cursorClass",&e.cursorClass},
+        {"ia_alt0",&ia.alternateFocusLists[0]},{"ia_alt1",&ia.alternateFocusLists[1]},
+        {"ia_alt2",&ia.alternateFocusLists[2]},{"ia_alt3",&ia.alternateFocusLists[3]},{"ia_build",&ia.build}};
+    for(const auto& [name,pointer]:slots)if(std::strcmp(name,field)==0)return pointer;
+    return nullptr;
+}
+// True when the build's appearance record code is 2.06's: every record function matches its 2.06 signature.
+bool expandedRecordCode(Resolver& resolver){
+    for(const auto* field:recordCode){
+        bool matched=false;
+        for(const auto& sig:expandedRecordSignatures){
+            if(std::strcmp(sig.field,field)!=0)continue;
+            uint32_t rva=0;std::string why;
+            matched=resolver.resolve(sig,rva,why);
+        }
+        if(!matched)return false;
+    }
+    return true;
+}
+void resolveExpandedExtras(const Image& image,Resolver& resolver,SignatureResult& result){
+    for(const auto& sig:expandedExtraSignatures){
+        uint32_t rva=0;std::string why;
+        bool ok=resolver.resolve(sig,rva,why);
+        if(ok&&sig.calls){
+            const auto* target=expandedSlot(result,sig.calls);
+            ok=target&&*target&&rva>=5&&calls(image,rva-5,*target);
+            if(!ok)why=std::string("the call before it does not target ")+sig.calls;
+        }
+        if(ok&&result.checkedBuild&&rva!=sig.sourceRva){ok=false;why="signature differs from the checked 2.06 address";}
+        if(!ok){
+            if(!result.missing.empty())result.missing+="; ";
+            result.missing+=std::string(sig.field)+" ("+why+")";
+            continue;
+        }
+        *expandedSlot(result,sig.field)=rva;
+    }
+}
+
 GameLayout resolvedLayout{};
 InteractionAddresses resolvedInteraction{};
+ExpandedAddresses resolvedExpanded{};
 
 SignatureResult scanGameFile(const Image& loaded){
     SignatureResult result;
@@ -314,8 +378,14 @@ DWORD WINAPI resolveRunningGame(LPVOID){
             if(result.ok){
                 resolvedLayout=result.layout;
                 resolvedInteraction=result.interaction;
+                resolvedExpanded=result.expanded;
                 signatureGameLayout().store(&resolvedLayout,std::memory_order_release);
                 LOG_OK("[layout] Found %zu of %zu game addresses by code signature in %.1f s.",result.found,result.total,seconds);
+                if(result.layout.expandedRecords&&!result.checkedBuild)
+                    LOG("[layout] Build %08X is not the checked Steam 2.06 executable. Its 2.06 code was recognised by signature, "
+                        "so features run with the unverified game warning.",image.stamp);
+                if(!result.missing.empty())
+                    LOG_ERR("[layout] Some 2.06 addresses were not found: %s. Only the features that need them wait.",result.missing.c_str());
             }else{
                 LOG_ERR("[layout] Signature lookup stopped at %s. Features that need game addresses stay unavailable on this build.",result.detail.c_str());
             }
@@ -335,7 +405,8 @@ SignatureResult resolveBySignature(const unsigned char* base){
     SignatureResult result;Image image;
     if(!readImage(base,image)){result.detail="not a 64-bit PE image";return result;}
     Resolver resolver(image);
-    const bool expanded=image.stamp==expandedRecordBuild&&image.size==expandedRecordImageSize&&image.checksum==expandedRecordChecksum;
+    result.checkedBuild=image.stamp==expandedRecordBuild&&image.size==expandedRecordImageSize&&image.checksum==expandedRecordChecksum;
+    const bool expanded=expandedRecordCode(resolver);
     for(const auto& stock:signatures){
         const auto& sig=signatureFor(stock,expanded);
         ++result.total;
@@ -346,7 +417,7 @@ SignatureResult resolveBySignature(const unsigned char* base){
             return result;
         }
         if(sig.method!=Method::Optional)++result.found;
-        if(expanded&&sig.sourceRva&& &sig!=&stock&&rva!=sig.sourceRva){
+        if(result.checkedBuild&&sig.sourceRva&& &sig!=&stock&&rva!=sig.sourceRva){
             result.detail=std::string(sig.field)+" (signature differs from the checked 2.06 address)";
             return result;
         }
@@ -367,14 +438,8 @@ SignatureResult resolveBySignature(const unsigned char* base){
             return result;
         }
     }
-    if(expanded){
-        // These builders feed the focus result list and the visible action picker.
-        constexpr uintptr_t alternativeCallers[]{0xb3e5a5,0xb3e7bc,0xb3f655,0xc5de0d};
-        for(size_t i=0;i<std::size(alternativeCallers);++i){
-            const auto site=alternativeCallers[i];
-            if(calls(image,site-5,result.interaction.build))result.interaction.alternateFocusLists[i]=site;
-        }
-    }
+    // The alternative builders (ia_alt*) feed the focus result list and the visible action picker.
+    if(expanded)resolveExpandedExtras(image,resolver,result);
     bool compared=false;
     if(!signaturesMatchSource(result,compared,result.detail))return result;
     if(compared)
@@ -412,6 +477,10 @@ void startGameLayoutResolution(const std::filesystem::path& ini){
 
 const InteractionAddresses* signatureInteraction(){
     return signatureGameLayout().load(std::memory_order_acquire)?&resolvedInteraction:nullptr;
+}
+const ExpandedAddresses* signatureExpanded(){
+    const auto* layout=signatureGameLayout().load(std::memory_order_acquire);
+    return layout&&layout->expandedRecords?&resolvedExpanded:nullptr;
 
 }
 }

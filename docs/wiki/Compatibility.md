@@ -2,11 +2,11 @@
 
 ## Checked references
 
-Last reviewed **27 November 2026**. These versions were used for local checks.
+Last reviewed **28 November 2026**. These versions were used for local checks.
 
 | Component | Checked version | Scope |
 | --- | --- | --- |
-| Crimson Desert | **2.06.00 / Steam 26949954**; **2.05.01 / Steam 26776744** retained | Native layouts, actor ownership, shaping and sampled outfit operations |
+| Crimson Desert | **2.06.00 / Steam 26949954**; **2.06.00 / Epic Games Store** confirmed by a player; **2.05.01 / Steam 26776744** retained | Native layouts, actor ownership, shaping and sampled outfit operations |
 | Definitive Mod Manager | **5.3.2** with DMM Runtime **1.4.0**; **5.0.1** retained | Two body choices, ordered labels, merged appearance/registry routes and private resource mounting |
 | Venus Body for Damiane | **2.6 Human / Elf Body** | Body format and matching skinning; Elf core session and earlier Human comparison |
 | Instant Surgery | **0.9.6** | Checked native shaping interface and live coordinated deformation |
@@ -15,7 +15,7 @@ Last reviewed **27 November 2026**. These versions were used for local checks.
 | Character Creator | **9.1.41**, **9.1.42** | Optional hook coexistence, startup, shaping, Wardrobe and base visibility |
 | Spouse Overhaul | **0.5.0**, **0.6.0** | Optional hook coexistence. Live checks on 0.6.0 covered saved Barber changes, save reloads and Combat Gear with Lyselia. |
 
-These are checked versions, not a promise that every past or future release works. Unknown readable versions receive a soft warning and remain usable. Native layouts, function signatures, ownership and transaction checks must still pass. The static default-outfit refits were built against Venus Body for Damiane 2.6 and need a new fit review if its geometry changes.
+These are checked versions, not a promise that every past or future release works. Unknown readable versions receive a soft warning and remain usable. Native layouts, function signatures, ownership and transaction checks must still pass. Another store's executable of a checked game version, such as the Epic Games Store build of 2.06.00, is recognised by its code. It shows the unverified game warning, and each feature runs once its own addresses are found. The static default-outfit refits were built against Venus Body for Damiane 2.6 and need a new fit review if its geometry changes.
 
 **Settings → Dependencies & paths** has separate **Feature checks**, specific errors for actual interface failures, named-export validation independent of an export's address, and tolerant preset formatting. See [dependency compatibility](../DEPENDENCY-COMPATIBILITY.md) for recovery and the remaining private-interface limits.
 
@@ -52,9 +52,9 @@ Both Human Body and Elf Body are recognized. Their body/hand skinning and physic
 
 ## What was checked
 
-The 1.1.5 release passed 33 offline runtime checks and 58 helper tests and was live-tested on Crimson Desert 2.06.00 with a full mod loadout. Live DMM imports of the 1.1.3 release covered VENUS and Vanilla, the six character packs, Woosa & Maegu’s saved disabled state through its 1.0.1 update and a full 250-record roster. They cover dependency variants, Wardrobe slots and the stock equipment catalogue, wearer names on default outfit pieces, Barber looks, outfit providers, skin routes, character add-ons and game signature lookup. The native fixture covers all nine blends, 44 weighted cases and eleven reference poses. Earlier live tests near Elowen checked both body choices with the armour pack enabled.
+The 1.1.6 release passed 33 offline runtime checks and 58 helper tests. Its code was live-tested on Crimson Desert 2.06.00 with a full mod loadout and confirmed by a player on the Epic Games Store version. Live DMM imports of the 1.1.3 release covered VENUS and Vanilla, the six character packs, Woosa & Maegu’s saved disabled state through its 1.0.1 update and a full 250-record roster. They cover dependency variants, Wardrobe slots and the stock equipment catalogue, wearer names on default outfit pieces, Barber looks, outfit providers, skin routes, character add-ons and game signature lookup. The native fixture covers all nine blends, 44 weighted cases and eleven reference poses. Earlier live tests near Elowen checked both body choices with the armour pack enabled.
 
-The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See the [1.1.5](../VERIFICATION-1.1.5.md) and [1.1.3](../VERIFICATION-1.1.3.md) verification records for the exact builds and test scope, and the [1.0.2 record](../VERIFICATION-1.0.2.md) for the earlier body and packaging checks.
+The optional SDK base-underwear replacement policy is covered by native ownership/visibility fixtures. A separately authored custom outfit still needs its own rendered acceptance. Earlier refresh, Human-body, all-witch and moving-cloth evidence retains its original scope. See the [1.1.6](../VERIFICATION-1.1.6.md), [1.1.5](../VERIFICATION-1.1.5.md) and [1.1.3](../VERIFICATION-1.1.3.md) verification records for the exact builds and test scope, and the [1.0.2 record](../VERIFICATION-1.0.2.md) for the earlier body and packaging checks.
 
 ## Troubleshooting
 

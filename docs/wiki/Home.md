@@ -6,7 +6,7 @@
 
 Start with [Installation](Installation.md), then open the game panel with **F9**. You do not need the SDK to use Hex Appeal.
 
-The current release is **1.1.5** (27 November 2026). See [what changed in each release](Versioning.md).
+The current release is **1.1.6** (28 November 2026). See [what changed in each release](Versioning.md).
 
 | I want to… | Read this |
 | --- | --- |

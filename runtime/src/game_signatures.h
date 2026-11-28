@@ -15,12 +15,24 @@ struct InteractionAddresses {
     uintptr_t focusLists[3]{};
     uintptr_t alternateFocusLists[4]{};
 };
+// 2.06 addresses outside the required layout. Each is 0 when its signature
+// did not resolve, and only the feature that needs it waits.
+struct ExpandedAddresses {
+    uintptr_t poseUpload=0;
+    uintptr_t menuChoose=0,menuCommit=0,menuDisplay=0,menuRefresh=0,menuResolve=0,menuRelease=0,menuClose=0;
+    uintptr_t widgetFind=0,widgetResolve=0,widgetSet=0;
+    uintptr_t chooseCaller=0,commitDisplay=0,closeEvent=0,cursorClass=0;
+};
 struct SignatureResult {
     bool ok=false;
     GameLayout layout{};
     InteractionAddresses interaction{};
+    ExpandedAddresses expanded{};
+    // The checked Steam 2.06 executable: every 2.06 signature must land on its checked address.
+    bool checkedBuild=false;
     size_t found=0,total=0;
-    std::string detail;  // the field that failed and why, or a summary
+    std::string detail;   // the field that failed and why, or a summary
+    std::string missing;  // optional 2.06 addresses that did not resolve, and why
 };
 // Resolves every address in the PE image at 'image': the running game, or
 // CrimsonDesert.exe mapped as an image. Values are RVAs.
@@ -33,4 +45,6 @@ bool signaturesMatchSource(const SignatureResult& result,bool& compared,std::str
 void startGameLayoutResolution(const std::filesystem::path& ini);
 // The interaction addresses found by signature, once lookup has succeeded.
 const InteractionAddresses* signatureInteraction();
+// The 2.06 addresses found by signature, once lookup has succeeded on a 2.06 build.
+const ExpandedAddresses* signatureExpanded();
 }

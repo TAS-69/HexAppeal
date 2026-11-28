@@ -1,0 +1,168 @@
+{
+ "exe": {
+  "stamp": 1795679721,
+  "size": 332419072,
+  "checksum": 327203883
+ },
+ "fields": [
+  {
+   "name": "poseUpload",
+   "rva": 52755840,
+   "kind": "function",
+   "method": "code",
+   "pattern": "48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 57 41 54 41 55 41 56 41 57 48 83 EC 30 48 8B 9A 90 01 00 00",
+   "offset": 0
+  },
+  {
+   "name": "menuChoose",
+   "rva": 20078400,
+   "kind": "function",
+   "method": "code",
+   "pattern": "48 89 5C 24 08 48 89 74 24 10 57 48 81 EC 90 01 00 00 48 8B F9",
+   "offset": 0
+  },
+  {
+   "name": "menuCommit",
+   "rva": 20079504,
+   "kind": "function",
+   "method": "code",
+   "pattern": "48 89 4C 24 08 55 53 56 57 41 54 41 55 41 56 41 57 48 8D 6C 24 E8 48 81 EC 18 01 00 00 48 8B F1 C7 44 24 50 00 00 00 00",
+   "offset": 0
+  },
+  {
+   "name": "menuDisplay",
+   "rva": 20045184,
+   "kind": "function",
+   "method": "code",
+   "pattern": "48 8B C4 48 89 58 08 44 89 40 18 55 56 57 41 54 41 55 41 56 41 57 48 8D 68 A8",
+   "offset": 0
+  },
+  {
+   "name": "menuRefresh",
+   "rva": 20044432,
+   "kind": "function",
+   "method": "code",
+   "pattern": "48 89 5C 24 10 55 56 57 41 56 41 57 48 83 EC 50 45 0F B6 F0",
+   "offset": 0
+  },
+  {
+   "name": "menuResolve",
+   "rva": 7870928,
+   "kind": "function",
+   "method": "code",
+   "pattern": "48 89 5C 24 08 48 89 54 24 10 57 48 83 EC 50 48 8B DA 33 FF 89 7C 24 20 45 85 C0",
+   "offset": 0
+  },
+  {
+   "name": "menuRelease",
+   "rva": 24001376,
+   "kind": "function",
+   "method": "code",
+   "pattern": "48 89 5C 24 10 48 89 74 24 18 57 48 83 EC 20 48 8B F1 80 79 10 00",
+   "offset": 0
+  },
+  {
+   "name": "widgetFind",
+   "rva": 61299952,
+   "kind": "function",
+   "method": "code",
+   "pattern": "40 55 53 57 41 54 41 56 48 8B EC 48 83 EC 50 4C 8B 09",
+   "offset": 0
+  },
+  {
+   "name": "widgetResolve",
+   "rva": 7569424,
+   "kind": "function",
+   "method": "code",
+   "pattern": "8B 41 10 48 8B D1 85 C0 74 55 0F B6 49 0C 80 F9 FF",
+   "offset": 0
+  },
+  {
+   "name": "widgetSet",
+   "rva": 7830128,
+   "kind": "function",
+   "method": "code",
+   "pattern": "48 89 5C 24 10 48 89 6C 24 18 56 57 41 54 41 56 41 57 48 83 EC 30 49 8B F1",
+   "offset": 0
+  },
+  {
+   "name": "chooseCaller",
+   "rva": 20033938,
+   "kind": "site",
+   "method": "code",
+   "pattern": "E8 ?? ?? ?? ?? EB 32 48 8B D0 48 03 D2 4C 8B 87 10 02 00 00",
+   "offset": 5,
+   "calls": "menuChoose"
+  },
+  {
+   "name": "commitDisplay",
+   "rva": 20082353,
+   "kind": "site",
+   "method": "code",
+   "pattern": "48 8B CB E8 ?? ?? ?? ?? C6 83 05 03 00 00 01 B2 01 48 8B CB",
+   "offset": 8,
+   "calls": "menuDisplay"
+  },
+  {
+   "name": "ia_alt0",
+   "rva": 11789733,
+   "kind": "site",
+   "method": "code",
+   "pattern": "E8 ?? ?? ?? ?? 90 48 8B 8C 24 78 0E 00 00 48 8B 01 B2 01 FF 50 20 44 39 74 24 48 74 2C 48 8D 44 24 40 48 89 44 24 30 4C 89 74 24 38 48 89 7C 24 28 44 88 74 24 20 4C 8D 4C 24 30 41 B0 02",
+   "offset": 5,
+   "calls": "ia_build"
+  },
+  {
+   "name": "ia_alt1",
+   "rva": 11790268,
+   "kind": "site",
+   "method": "code",
+   "pattern": "E8 ?? ?? ?? ?? 90 48 8B 8D 38 0F 00 00 48 8B 01 B2 01 FF 50 20",
+   "offset": 5,
+   "calls": "ia_build"
+  },
+  {
+   "name": "ia_alt2",
+   "rva": 11794005,
+   "kind": "site",
+   "method": "code",
+   "pattern": "E8 ?? ?? ?? ?? 90 48 8B 8C 24 78 0E 00 00 48 8B 01 B2 01 FF 50 20 44 39 74 24 48 74 2C 48 8D 44 24 40 48 89 44 24 30 4C 89 74 24 38 48 89 7C 24 28 44 88 74 24 20 4C 8D 4C 24 30 41 B0 04",
+   "offset": 5,
+   "calls": "ia_build"
+  },
+  {
+   "name": "ia_alt3",
+   "rva": 12967437,
+   "kind": "site",
+   "method": "code",
+   "pattern": "48 8B CB E8 ?? ?? ?? ?? 90 48 8B 8D A0 0D 00 00 48 8B 01 B2 01",
+   "offset": 8,
+   "calls": "ia_build"
+  },
+  {
+   "name": "closeEvent",
+   "rva": 120913364,
+   "kind": "data",
+   "method": "reference",
+   "pattern": "8B 0D ?? ?? ?? ?? 3B C2 74 06 3B C1 75 16 EB 04 3B C1 75 26",
+   "disp": 2,
+   "end": 6,
+   "via": "mov         ecx,dword ptr [000000014734FDD4h]"
+  },
+  {
+   "name": "cursorClass",
+   "rva": 96991704,
+   "kind": "rtti",
+   "method": "rtti",
+   "cls": ".?AVUIGamePlayControlCommon_RadialCursor@uiCommonScript@pa@@"
+  },
+  {
+   "name": "menuClose",
+   "rva": 20036288,
+   "kind": "slot",
+   "method": "slot",
+   "cls": ".?AVUIGamePlayControlCommon_Interaction@uiCommonScript@pa@@",
+   "slot": 1296
+  }
+ ]
+}

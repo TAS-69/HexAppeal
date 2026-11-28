@@ -1,5 +1,12 @@
 # Changes
 
+## 1.1.6
+
+- Works with the Epic Games Store version of Crimson Desert 2.06.00. 1.1.5 recognised 2.06 only by the Steam executable, so on any other executable Shape, Wardrobe and the native **[HA] Wardrobe** stayed off. Hex Appeal now recognises 2.06 by the game's code. On the Steam executable, every address must still be the one checked in game. Other executables run with the usual "not verified" warning.
+- The other fixed 2.06 addresses are also found by code signature: the animation upload, the native Interact menu hooks, its close handler and the focus menu callers. If one is not found, only the feature that needs it waits, and the log names it.
+- If Hex Appeal cannot find a build's game addresses, Shape shows Checking until it sees a compatible animation upload. 1.1.5 showed Ready on such a build although shaping could not work.
+- A player on the Epic Games Store version confirmed that Shape and Wardrobe work with this change.
+
 ## 1.1.5
 
 - Supports Crimson Desert 2.06.00. Shape, Height, Weight, HEX, Wardrobe, Hide outfit, base underwear and the native **[HA] Wardrobe** work on the updated game. Hex Appeal finds the changed game functions by checked signatures and keeps the 2.05.01 layouts.
